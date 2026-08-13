@@ -41,18 +41,18 @@ Bescherm beide `main`-branches: geen directe pushes, verplichte PR/CI en eigenaa
 Production wordt alleen uitgerold nadat Mik de staging-versie expliciet heeft goedgekeurd. Gebruik exact de geaccepteerde commit.
 
 ## Eerste inrichting na Workspace-verificatie
-1. Maak de zakelijke GitHub-identiteit en Volt & Vroom GitHub-organisatie.
-2. Maak een private repository, bijvoorbeeld `volt-vroom-platform`.
-3. Importeer deze repository.
-4. Maak branch `staging` vanaf `main`.
-5. Stel branch protection in.
-6. Maak beide Firebase-projecten.
-7. Activeer Blaze/App Hosting indien Firebase dit vereist.
-8. Maak staging App Hosting backend met live branch `staging`, auto rollout AAN, Environment `staging`.
-9. Maak production App Hosting backend met live branch `main`, auto rollout UIT, Environment `production`.
-10. Voeg secrets per Firebase-project toe via Secret Manager / App Hosting Environment.
-11. Deploy staging en voer de smoke test uit.
-12. Pas pas daarna DNS voor production aan.
+1. Maak deze staging-repository private en bescherm `main` met verplichte PR/CI.
+2. Upgrade `voltvroom-staging` van Spark naar een geschikt billingplan; App Hosting is anders geblokkeerd.
+3. Zet Firebase Environment type op `Staging`.
+4. Registreer de Firebase Web App en noteer de gegenereerde clientconfig als stagingwaarden.
+5. Activeer de gekozen Authentication-provider(s) en maak minimaal één eigenaaraccount.
+6. Maak/controleer Firestore en Storage in een EU-regio en publiceer eerst de meegeleverde rules/indexes.
+7. Provision alle waarden uit `SECRET_MATRIX.md` in staging Secret Manager.
+8. Maak de staging App Hosting-backend met live branch `main`, auto rollout AAN en repository root als app root.
+9. Valideer de runtime service identity en geef uitsluitend minimaal benodigde IAM-rollen.
+10. Laat de eerste rollout uitvoeren en voer health-, auth- en service-hook-smokechecks uit.
+11. Koppel daarna pas `staging.voltvroom.nl` en DNS.
+12. Richt production later afzonderlijk en handmatig in met exact de goedgekeurde staging-snapshot.
 
 ## Definition of Done staging
 - `/api/health` geeft een gezonde status.
