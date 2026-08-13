@@ -1,0 +1,24 @@
+# Documentation only. Keep the active production config in the private production repository.
+runConfig:
+  minInstances: 1
+  maxInstances: 10
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  - variable: VVOS_ENV
+    value: production
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://www.voltvroom.nl
+    availability: [BUILD, RUNTIME]
+  - variable: VVOS_REQUIRE_AUTH
+    value: "true"
+    availability: [BUILD, RUNTIME]
+  - variable: VVOS_DATA_MODE
+    value: firebase
+    availability: [BUILD, RUNTIME]
+
+# Mirror all Firebase client and runtime secret references from apphosting.yaml,
+# but provision independent values in the production Firebase project.

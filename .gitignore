@@ -1,0 +1,33 @@
+node_modules/
+.next/
+out/
+coverage/
+*.log
+.DS_Store
+
+# Local environment/secrets
+.env
+.env.local
+.env.*.local
+.env.staging
+.env.production
+
+# Google GitHub Actions generated credentials
+gha-creds-*.json
+
+# Firebase local/emulator artifacts
+.firebase/
+firestore-debug.log
+ui-debug.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Local bootstrap artifacts (the repository source is the unpacked tree)
+_developer_pack/
+_prod_ready/
+*.zip
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.npm-cache/
+.gh-auth-*.txt
