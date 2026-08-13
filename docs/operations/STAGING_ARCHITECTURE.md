@@ -32,7 +32,9 @@ De middleware classificeert browser- en API-routes centraal. Publieke verkooprou
 - Firestore- en Storage Rules zijn gepubliceerd. De samengestelde indexes voor `vehicles` en `leads` zijn aangemaakt.
 - `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT` bestaan in Secret Manager; hun waarden staan niet in git.
 - Environment type blijft `Unspecified`: de Firebase-console bood alleen `Unspecified` en `Production`, niet `Staging`.
-- Er is nog geen App Hosting-backend. De GitHub-import bleef hangen bij de private repository; verbind of configureer de Firebase GitHub App pas nadat deze PR is goedgekeurd en `main` de gewenste stagingcode bevat.
+- PR #1 is mergeable, heeft een groene `quality`-check en geen review- of commentaarblokkades, maar blijft bewust draft tot expliciete eigenaar-goedkeuring voor de merge naar `main`.
+- Er is nog geen App Hosting-backend. De GitHub-import blijft hangen omdat voor het persoonlijke GitHub-account geen Firebase GitHub App is geïnstalleerd. Installeer de app met toegang tot uitsluitend `mik-voltvroom/staging` nadat PR #1 is goedgekeurd.
+- De lokale-brondeploy via Firebase CLI is voorbereid als fallback. Afronding vereist een eenmalige Google-herauthenticatie door de eigenaar. Browserupload vereist daarnaast dat de ChatGPT Chrome-extensie toegang tot bestands-URL's heeft.
 
 Na het aanmaken van de backend moet de runtime service identity minimaal `Secret Manager Secret Accessor` krijgen voor alleen de vier runtime-secrets. Daarna kan de eerste staging-rollout en smokecheck plaatsvinden.
 

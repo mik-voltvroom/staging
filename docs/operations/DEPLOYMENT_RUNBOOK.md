@@ -25,6 +25,15 @@ Deze repository is de staging-codebase. `main` is uitsluitend de bronbranch van 
 7. Start de rollout en controleer dat Firestore- en Storage-toegang zonder geldige auth gesloten blijven.
 8. Voer de staging-smokechecks hierboven uit. Activeer App Check enforcement pas na een geslaagde webappregistratie en test.
 
+Als de private GitHub-import niet beschikbaar is, mag de eerste backend als gecontroleerde fallback vanaf lokale bron worden uitgerold met Firebase CLI v14.4.0 of nieuwer. Gebruik alleen de getrackte inhoud van de goedgekeurde commit, leg die SHA vast en koppel GitHub daarna in de Deployment-tab. Deze fallback vervangt nooit de vereiste PR-goedkeuring.
+
+### Bekende eerste-rolloutblokkades
+
+- PR #1 mag pas na expliciete eigenaar-goedkeuring van draft naar merge; een generiek "werk door" is geen mergegoedkeuring.
+- De Firebase GitHub App moet op het persoonlijke account worden geïnstalleerd met toegang tot alleen `mik-voltvroom/staging`.
+- Voor de CLI-fallback moet de eigenaar de eenmalige Google-herauthenticatie voltooien. Deel of commit nooit het wachtwoord of de autorisatiecode.
+- Voor console-upload via Chrome moet bij de ChatGPT-extensie `Allow access to file URLs` actief zijn.
+
 ## Promotie naar productie
 
 1. Noteer de op staging geaccepteerde commit-SHA en testresultaten.

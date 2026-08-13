@@ -55,8 +55,9 @@ Production wordt alleen uitgerold nadat Mik de staging-versie expliciet heeft go
 - [x] Email/Password Authentication ingeschakeld.
 - [x] Firestore en Storage in `europe-west4` gemaakt; rules en indexes gepubliceerd.
 - [x] Vier runtime-secrets in Secret Manager aangemaakt.
+- [x] PR #1 technisch gecontroleerd: mergeable, CI groen en geen reviewopmerkingen.
 - [ ] Deze PR goedkeuren en naar `main` mergen.
-- [ ] Firebase GitHub App toegang geven tot de private repository.
+- [ ] Firebase GitHub App installeren en toegang geven tot uitsluitend de private repository `mik-voltvroom/staging`.
 - [ ] App Hosting-backend maken met live branch `main`, auto rollout AAN en repository root als app root.
 - [ ] Runtime service identity minimaal toegang geven tot de vier runtime-secrets.
 - [ ] Een eigenaaraccount aanmaken en server-side role claim `owner` instellen.
