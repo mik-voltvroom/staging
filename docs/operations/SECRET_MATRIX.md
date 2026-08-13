@@ -1,15 +1,15 @@
 # VVOS secret matrix
 
-Secrets worden nooit in `.env.example`, GitHub commits of ChatGPT-prompts met echte waarden opgeslagen.
+Secrets worden nooit in `.env.example`, GitHub commits of prompts met echte waarden opgeslagen. Firebase clientconfig is publiek ontwerpgegeven en staat daarom als gewone stagingconfig in `apphosting.yaml`.
 
 | Secret/config | Staging | Production | Opslag |
 |---|---|---|---|
-| Firebase client config | eigen project | eigen project | App Hosting/Firebase system |
-| Admin credentials | eigen project | eigen project | bij voorkeur Application Default Credentials |
-| CRON_SECRET | apart | apart | Secret Manager |
-| PORTAL_TOKEN_SECRET | apart | apart | Secret Manager |
-| AUDIT_HASH_SALT | apart | apart | Secret Manager |
-| VWE webhook/API | sandbox/test | live | Secret Manager |
+| Firebase client config | `voltvroom-staging` | eigen project | `apphosting.yaml` / Firebase system |
+| Admin credentials | runtime service identity | eigen runtime identity | Application Default Credentials |
+| `CRON_SECRET` | apart | apart | Secret Manager |
+| `PORTAL_TOKEN_SECRET` | apart | apart | Secret Manager |
+| `AUDIT_HASH_SALT` | apart | apart | Secret Manager |
+| `VWE_WEBHOOK_SECRET` | sandbox/test | live | Secret Manager |
 | RDW/API credentials | test waar mogelijk | live | Secret Manager |
 | Google Merchant | test/uit | live | Secret Manager |
 | WhatsApp | sandbox/test | live | Secret Manager |
@@ -18,8 +18,8 @@ Secrets worden nooit in `.env.example`, GitHub commits of ChatGPT-prompts met ec
 
 Een secret mag nooit tussen staging en production worden hergebruikt als daarmee echte side-effects mogelijk zijn.
 
-## Firebase staging-blokkers
+## Firebase staging-status
 
-Voor de eerste staging-rollout moeten minimaal de volgende Secret Manager-namen bestaan en aan de App Hosting-backend zijn gekoppeld: `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`, `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT`.
+De vier runtime-secret-namen bestaan in project `voltvroom-staging`: `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT`. Koppel ze na backend-creatie aan de App Hosting runtime service identity met uitsluitend minimaal benodigde accessorrechten.
 
-Firebase Admin gebruikt bij voorkeur de runtime service identity (Application Default Credentials). Voeg alleen `FIREBASE_ADMIN_*` secrets toe wanneer die identity niet volstaat; commit nooit een service-account JSON-bestand.
+Firebase Admin gebruikt de runtime service identity via Application Default Credentials. Voeg alleen `FIREBASE_ADMIN_*` secrets toe wanneer die identity aantoonbaar niet volstaat; commit nooit een service-account JSON-bestand.

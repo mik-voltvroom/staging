@@ -11,12 +11,11 @@ service cloud.firestore {
       allow delete: if hasRole('owner') || hasRole('admin');
     }
     match /leads/{leadId} {
-      allow create: if true;
-      allow read, update: if staff();
+      allow create, read, update: if staff();
       allow delete: if hasRole('owner') || hasRole('admin');
     }
     match /customers/{customerId} { allow read, write: if staff(); }
     match /tasks/{taskId} { allow read, write: if staff(); }
-    match /auditLogs/{logId} { allow read: if hasRole('owner') || hasRole('admin'); allow write: if false; }
+    match /audit_logs/{logId} { allow read: if hasRole('owner') || hasRole('admin'); allow write: if false; }
   }
 }

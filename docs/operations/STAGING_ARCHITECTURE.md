@@ -4,35 +4,37 @@
 
 | Onderdeel | Staging | Production |
 |---|---|---|
-| GitHub | deze repository, `main` via PR | afzonderlijke private repository |
-| Firebase | eigen project en App Hosting-backend | eigen project en handmatige backend-rollout |
+| GitHub | deze private repository, `main` via PR | afzonderlijke private repository |
+| Firebase | project `voltvroom-staging`; App Hosting-backend nog niet aangemaakt | eigen project en handmatige backend-rollout |
 | Config | actieve `apphosting.yaml` is staging-only | eigen actieve config; voorbeeld staat alleen onder docs |
 | Secrets/data | sandbox/test, nooit echte klantdata | onafhankelijke live secrets en data |
 | Rollout | automatisch na protected merge mag | handmatig na expliciete eigenaar-goedkeuring |
 
 ## Routinggrens
 
-De middleware classificeert browser- en API-routes centraal. Publieke verkooproutes blijven bereikbaar; dashboard en interne API’s vereisen een sessie. Cron en VWE zijn expliciete machinehooks en valideren hun eigen secret fail-closed. Handler-level autorisatie blijft de definitieve controle voor rollen en permissions.
+De middleware classificeert browser- en API-routes centraal. Publieke verkooproutes blijven bereikbaar; dashboard en interne API's vereisen een sessie. Cron en VWE zijn expliciete machinehooks en valideren hun eigen secret fail-closed. Handler-level autorisatie blijft de definitieve controle voor rollen en permissions.
 
 ## Nog niet production-ready
 
 - Tokenportaal gebruikt nog demo/sampled data; vervang dit door ondertekende, intrekbare en aflopende tokens voordat echte klantdata wordt gebruikt.
 - Publieke lead-, RDW- en portal-endpoints hebben nog geen rate limiting/WAF-beleid.
-- Firestore lead creation staat publiek open; voeg App Check, strikte veldvalidatie en abuse-monitoring toe.
-- Provideraccounts, Firebase-project-ID, App Hosting-backend, domein/DNS en Secret Manager-waarden zijn externe inrichting en staan niet in git.
-- Repository is momenteel public; maak hem private voordat interne logica of providerintegraties worden uitgebreid.
+- Lead creation vereist nu een ingelogd staff-account. Activeer App Check pas nadat de webapp is uitgerold en getest; voortijdige enforcement kan staging blokkeren.
+- App Hosting, domein/DNS en externe provideraccounts zijn nog niet ingericht.
 
 ## Geverifieerde Firebase-status (13 augustus 2026)
 
 - Firebase-project bestaat: `voltvroom-staging` (projectnummer `241472991923`).
 - Eigenaarstoegang voor `mik@voltvroom.nl` is aanwezig.
-- Project staat op het kosteloze Spark-plan; Firebase meldt expliciet dat App Hosting pas na een pricing-plan-upgrade gebruikt kan worden.
-- Er is nog geen App Hosting-backend.
-- Projectomgeving staat nog op `Unspecified` in plaats van `Staging`.
-- Er is nog geen Firebase Web App geregistreerd, waardoor de `NEXT_PUBLIC_FIREBASE_*` configuratie nog niet beschikbaar is.
-- Firebase Authentication kon zijn configuratie nog niet laden; richt dit pas in nadat de Web App en vereiste providers zijn gekozen.
+- Billing staat op Blaze Free Trial. Production is niet aangeraakt.
+- Firebase Web App `VVOS Staging` is geregistreerd; de publieke clientconfig staat in `apphosting.yaml`.
+- Email/Password Authentication is ingeschakeld. Er is nog geen eigenaaraccount of custom role claim aangemaakt.
+- Firestore Standard en de default Storage-bucket staan in `europe-west4`.
+- Firestore- en Storage Rules zijn gepubliceerd. De samengestelde indexes voor `vehicles` en `leads` zijn aangemaakt.
+- `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT` bestaan in Secret Manager; hun waarden staan niet in git.
+- Environment type blijft `Unspecified`: de Firebase-console bood alleen `Unspecified` en `Production`, niet `Staging`.
+- Er is nog geen App Hosting-backend. De GitHub-import bleef hangen bij de private repository; verbind of configureer de Firebase GitHub App pas nadat deze PR is goedgekeurd en `main` de gewenste stagingcode bevat.
 
-De billing-upgrade is een financiële/externe keuze en wordt daarom niet automatisch uitgevoerd. Na die keuze: zet environment type op staging, registreer de Web App, configureer Authentication, provision secrets en maak pas daarna de App Hosting-backend.
+Na het aanmaken van de backend moet de runtime service identity minimaal `Secret Manager Secret Accessor` krijgen voor alleen de vier runtime-secrets. Daarna kan de eerste staging-rollout en smokecheck plaatsvinden.
 
 ## Promotieprincipe
 

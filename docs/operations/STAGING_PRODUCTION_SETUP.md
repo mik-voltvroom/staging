@@ -1,36 +1,43 @@
 # VVOS Staging + Production setup
 
 ## Doel
+
 Een eenvoudige en veilige straat:
 
 `feature/* -> staging repo/main -> eigenaar akkoord -> afzonderlijke production repo -> handmatige rollout`
 
-## Firebase projecten
-Maak twee volledig gescheiden Firebase-projecten:
+## Firebase-projecten
 
-- Volt & Vroom Staging (`VV_STAGING_PROJECT_ID`)
-- Volt & Vroom Production (`VV_PRODUCTION_PROJECT_ID`)
+Gebruik twee volledig gescheiden Firebase-projecten:
+
+- Volt & Vroom Staging: `voltvroom-staging`
+- Volt & Vroom Production: afzonderlijk project, later in te richten
 
 Gebruik geen productieklanten, echte leads of productie-secrets in staging.
 
-## Git branches
+## Git-branches
+
 - staging-repository `main`: geaccepteerde stagingcode
 - production-repository `main`: uitsluitend exact goedgekeurde releases
-- `feature/*`: wijzigingen door Alexander, Mik/Codex of andere developers
+- `feature/*` en `agent/*`: wijzigingen door developers of agents
 
 Bescherm beide `main`-branches: geen directe pushes, verplichte PR/CI en eigenaar-review.
 
 ## Firebase App Hosting
-### Staging backend
-- Firebase-project: staging
+
+### Staging-backend
+
+- Firebase-project: `voltvroom-staging`
 - GitHub live branch: `main` van de staging-repository
 - Automatic rollouts: AAN
-- Environment name: `staging`
+- Firebase environment type: `Unspecified` zolang `Staging` niet beschikbaar is; nooit `Production`
 - App root: repository root
+- Regio: `europe-west4`
 - Custom domain later: `staging.voltvroom.nl`
 
-### Production backend
-- Firebase-project: production
+### Production-backend
+
+- Firebase-project: afzonderlijk production-project
 - GitHub source: afzonderlijke private productierepository
 - Live branch: `main`
 - Automatic rollouts: UIT
@@ -40,30 +47,34 @@ Bescherm beide `main`-branches: geen directe pushes, verplichte PR/CI en eigenaa
 
 Production wordt alleen uitgerold nadat Mik de staging-versie expliciet heeft goedgekeurd. Gebruik exact de geaccepteerde commit.
 
-## Eerste inrichting na Workspace-verificatie
-1. Maak deze staging-repository private en bescherm `main` met verplichte PR/CI.
-2. Upgrade `voltvroom-staging` van Spark naar een geschikt billingplan; App Hosting is anders geblokkeerd.
-3. Zet Firebase Environment type op `Staging`.
-4. Registreer de Firebase Web App en noteer de gegenereerde clientconfig als stagingwaarden.
-5. Activeer de gekozen Authentication-provider(s) en maak minimaal één eigenaaraccount.
-6. Maak/controleer Firestore en Storage in een EU-regio en publiceer eerst de meegeleverde rules/indexes.
-7. Provision alle waarden uit `SECRET_MATRIX.md` in staging Secret Manager.
-8. Maak de staging App Hosting-backend met live branch `main`, auto rollout AAN en repository root als app root.
-9. Valideer de runtime service identity en geef uitsluitend minimaal benodigde IAM-rollen.
-10. Laat de eerste rollout uitvoeren en voer health-, auth- en service-hook-smokechecks uit.
-11. Koppel daarna pas `staging.voltvroom.nl` en DNS.
-12. Richt production later afzonderlijk en handmatig in met exact de goedgekeurde staging-snapshot.
+## Inrichtingsstatus op 13 augustus 2026
+
+- [x] Staging-repository private gemaakt.
+- [x] `voltvroom-staging` op Blaze Free Trial.
+- [x] Firebase Web App geregistreerd en publieke clientconfig vastgelegd.
+- [x] Email/Password Authentication ingeschakeld.
+- [x] Firestore en Storage in `europe-west4` gemaakt; rules en indexes gepubliceerd.
+- [x] Vier runtime-secrets in Secret Manager aangemaakt.
+- [ ] Deze PR goedkeuren en naar `main` mergen.
+- [ ] Firebase GitHub App toegang geven tot de private repository.
+- [ ] App Hosting-backend maken met live branch `main`, auto rollout AAN en repository root als app root.
+- [ ] Runtime service identity minimaal toegang geven tot de vier runtime-secrets.
+- [ ] Een eigenaaraccount aanmaken en server-side role claim `owner` instellen.
+- [ ] Eerste rollout en health-, auth- en service-hook-smokechecks uitvoeren.
+- [ ] Daarna pas `staging.voltvroom.nl` en DNS koppelen.
 
 ## Definition of Done staging
+
 - `/api/health` geeft een gezonde status.
-- Login/auth is ingeschakeld voor VVOS.
+- Login/auth is ingeschakeld voor VVOS en een eigenaar kan inloggen.
 - Publieke homepage laadt.
 - Firestore/Storage staging zijn geïsoleerd.
 - Geen Caroutlet e-mailadressen of oude merkcopy.
-- Geen production secrets aanwezig.
+- Geen production-secrets aanwezig.
 - CI is groen.
 
 ## Definition of Done production
+
 - Exact dezelfde commit als goedgekeurd op staging.
 - CI groen.
 - Production readiness check groen met productie-secrets.
