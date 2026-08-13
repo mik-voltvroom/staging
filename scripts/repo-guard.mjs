@@ -7,6 +7,7 @@ const textExtensions = new Set([".ts", ".tsx", ".js", ".mjs", ".json", ".md", ".
 const forbiddenPatterns = [
   { regex: /@caroutletgroningen\.nl/gi, label: "oud Caroutlet e-mailadres" },
   { regex: /caroutletgroningen\.nl/gi, label: "oud Caroutlet domein" },
+  { regex: /packages\.applied-caas-gateway\d*\.internal\.api\.openai\.org/gi, label: "interne package-registry" },
 ];
 const forbiddenFiles = [".env", ".env.local", ".env.production", ".env.staging"];
 const hits = [];
