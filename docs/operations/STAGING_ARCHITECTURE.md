@@ -32,7 +32,7 @@ De middleware classificeert browser- en API-routes centraal. Publieke verkooprou
 - Firestore- en Storage Rules zijn gepubliceerd. De samengestelde indexes voor `vehicles` en `leads` zijn aangemaakt.
 - `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT` bestaan in Secret Manager; hun waarden staan niet in git.
 - Environment type blijft `Unspecified`: de Firebase-console bood alleen `Unspecified` en `Production`, niet `Staging`.
-- PR #1 is mergeable, heeft een groene `quality`-check en geen review- of commentaarblokkades, maar blijft bewust draft tot expliciete eigenaar-goedkeuring voor de merge naar `main`.
+- PR #1 is na expliciete eigenaar-goedkeuring als commit `543586f87f532875b9c5af5a5e5cccd9b46064bd` naar staging `main` gemerged; de post-merge `quality`-check is geslaagd.
 - Er is nog geen App Hosting-backend. De GitHub-import blijft hangen omdat voor het persoonlijke GitHub-account geen Firebase GitHub App is geïnstalleerd. Installeer de app met toegang tot uitsluitend `mik-voltvroom/staging` nadat PR #1 is goedgekeurd.
 - De lokale-brondeploy via Firebase CLI is voorbereid als fallback. Afronding vereist een eenmalige Google-herauthenticatie door de eigenaar. Browserupload vereist daarnaast dat de ChatGPT Chrome-extensie toegang tot bestands-URL's heeft.
 

@@ -56,7 +56,7 @@ Production wordt alleen uitgerold nadat Mik de staging-versie expliciet heeft go
 - [x] Firestore en Storage in `europe-west4` gemaakt; rules en indexes gepubliceerd.
 - [x] Vier runtime-secrets in Secret Manager aangemaakt.
 - [x] PR #1 technisch gecontroleerd: mergeable, CI groen en geen reviewopmerkingen.
-- [ ] Deze PR goedkeuren en naar `main` mergen.
+- [x] PR #1 na expliciete eigenaar-goedkeuring als commit `543586f87f532875b9c5af5a5e5cccd9b46064bd` naar staging `main` gemerged; post-merge CI groen.
 - [ ] Firebase GitHub App installeren en toegang geven tot uitsluitend de private repository `mik-voltvroom/staging`.
 - [ ] App Hosting-backend maken met live branch `main`, auto rollout AAN en repository root als app root.
 - [ ] Runtime service identity minimaal toegang geven tot de vier runtime-secrets.
