@@ -7,12 +7,12 @@
 - [ ] Repository geïmporteerd
 - [ ] `staging` branch aangemaakt
 - [ ] Branch protection ingesteld
-- [ ] Firebase staging-project aangemaakt
+- [x] Firebase staging-project aangemaakt
 - [ ] Firebase production-project aangemaakt
 - [ ] App Hosting staging gekoppeld aan `staging`, auto rollout aan
 - [ ] App Hosting production gekoppeld aan `main`, auto rollout uit
 - [ ] Environment names `staging` en `production` ingesteld
-- [ ] Secrets per omgeving ingevoerd
-- [ ] Eerste staging deployment uitgevoerd
-- [ ] Smoke test geslaagd
+- [x] Staging-secrets ingevoerd en per secret aan de runtime toegekend
+- [x] Eerste staging deployment uitgevoerd
+- [x] Smoke test geslaagd
 - [ ] Alexander staging URL gegeven

@@ -38,9 +38,11 @@ De repository bevat hiervoor een staging-only `apphosting`-target in `firebase.j
 ### Bekende eerste-rolloutblokkades
 
 - PR #1 is na expliciete eigenaar-goedkeuring als commit `543586f87f532875b9c5af5a5e5cccd9b46064bd` naar staging `main` gemerged; de post-merge `quality`-check is geslaagd.
+- De eerste lokale bronrollout is op 14 augustus 2026 geslaagd vanaf commit `e6960b16bf6e15d7a38797015df8efac454c360b`. Backend: `vvos-staging`; URL: `https://vvos-staging--voltvroom-staging.europe-west4.hosted.app`.
+- De eerste smokecheck is geslaagd: homepage en health `200`; interne API, VWE en cron zonder autorisatie `401`.
 - De Firebase GitHub App moet op het persoonlijke account worden geïnstalleerd met toegang tot alleen `mik-voltvroom/staging`.
-- Voor de CLI-fallback moet de eigenaar de eenmalige Google-herauthenticatie voltooien. Deel of commit nooit het wachtwoord of de autorisatiecode.
-- Voor console-upload via Chrome moet bij de ChatGPT-extensie `Allow access to file URLs` actief zijn.
+- PR #2 moet nog worden gereviewd en gemerged voordat `main` de geteste App Hosting-configuratie bevat.
+- Er is nog geen Firebase Authentication-eigenaaraccount met gecontroleerde `{ role: "owner" }` custom claim.
 
 ## Promotie naar productie
 
