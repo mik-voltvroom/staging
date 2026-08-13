@@ -1,0 +1,15 @@
+"use client";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { eur } from "@/lib/format";
+import { getLeads, getVehicles } from "@/lib/demo-store";
+import { grossMargin } from "@/lib/business";
+import type { Lead, Vehicle } from "@/types";
+
+export default function Dashboard() {
+  const [vehicles,setVehicles]=useState<Vehicle[]>([]); const [leads,setLeads]=useState<Lead[]>([]);
+  useEffect(()=>{setVehicles(getVehicles());setLeads(getLeads())},[]);
+  const available=vehicles.filter(v=>v.status==="available"); const stockValue=available.reduce((s,v)=>s+v.priceEur,0); const margin=available.reduce((s,v)=>s+(v.costs?grossMargin(v.priceEur,v.costs):0),0); const incomplete=vehicles.filter(v=>(v.publication?.validationErrors.length??0)>0).length;
+  const recent=useMemo(()=>vehicles.slice().sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,4),[vehicles]);
+  return <main className="container dashboardPage"><div className="pageTitle"><div><p className="eyebrow">VVOS command center</p><h1>Grip op voorraad, leads en marge.</h1></div><Link href="/dashboard/voorraad/nieuw" className="button">+ Nieuwe auto</Link></div><div className="metrics"><div className="metric"><strong>{available.length}</strong><span className="muted">online voertuigen</span></div><div className="metric"><strong>{eur.format(stockValue)}</strong><span className="muted">retail voorraadwaarde</span></div><div className="metric"><strong>{eur.format(margin)}</strong><span className="muted">verwachte brutomarge</span></div><div className="metric"><strong>{leads.filter(l=>(l.status??"new")==="new").length}</strong><span className="muted">onbehandelde leads</span></div></div><div className="dashboardGrid"><section className="panel"><div className="panelHeader"><div><p className="eyebrow">Actie vereist</p><h2>Publicatiekwaliteit</h2></div><strong>{incomplete}</strong></div><p className="muted">Voertuigen met ontbrekende gegevens worden niet automatisch naar website of Merchant Center gestuurd.</p><Link className="textLink" href="/dashboard/voorraad">Controleer voorraad →</Link></section><section className="panel"><div className="panelHeader"><div><p className="eyebrow">Merchant Center</p><h2>Feed gereed</h2></div><span className="successDot">Online</span></div><p className="muted">De XML-route is actief. Definitieve verzending vereist Merchant Center-toelating en credentials.</p><a className="textLink" href="/api/merchant-feed" target="_blank">Bekijk XML-feed →</a></section></div><section className="panel"><div className="panelHeader"><div><p className="eyebrow">Recent</p><h2>Laatst bijgewerkte voertuigen</h2></div><Link href="/dashboard/voorraad">Alles bekijken</Link></div><div className="recentList">{recent.map(v=><Link href={`/dashboard/voorraad/${v.id}`} key={v.id}><img src={v.images[0]} alt=""/><span><strong>{v.brand} {v.model}</strong><small>{v.status} · {new Date(v.updatedAt).toLocaleDateString("nl-NL")}</small></span><b>{eur.format(v.priceEur)}</b></Link>)}</div></section></main>;
+}

@@ -1,0 +1,34 @@
+# VVOS deployment runbook
+
+## Staging-wijziging
+
+Deze repository is de staging-codebase. `main` is uitsluitend de bronbranch van de Firebase staging-backend; vanuit deze repository wordt niet naar productie uitgerold.
+
+1. Maak `agent/<korte-naam>` of `feature/<korte-naam>` vanaf `main`.
+2. Wijzig code en documenteer env- of datamigratie-impact.
+3. Run `npm ci` en `npm run check`.
+4. Open een draft-PR naar `main`.
+5. Vereis groene CI en minimaal één eigenaar-review.
+6. Merge naar `main`; Firebase App Hosting staging mag daarna automatisch uitrollen.
+7. Controleer `/api/health`, homepage, login en een interne API zonder sessie (verwacht 401).
+8. Controleer VWE- en cron-hooks zonder/ongeldig secret (verwacht 401 of 503).
+9. Noteer commit-SHA, smokecheckresultaat en eventuele rollback-SHA.
+
+## Promotie naar productie
+
+1. Noteer de op staging geaccepteerde commit-SHA en testresultaten.
+2. Open in een afzonderlijke private productierepository een PR die exact die snapshot overneemt.
+3. Controleer dat production eigen Firebase-project, backend, domein en secrets gebruikt.
+4. Draai `npm run check`, `npm run validate:env` en `npm run readiness` met production-configuratie.
+5. Vereis expliciete eigenaar-goedkeuring en een protected GitHub Environment.
+6. Rol handmatig uit; automatiseer pas nadat rollback en credentials aantoonbaar zijn getest.
+7. Voer smokechecks uit en leg release, tijdstip en rollback-SHA vast.
+
+## Rollback
+
+1. Stop verdere rollouts en leg de fout en actieve SHA vast.
+2. Rol in dezelfde Firebase-omgeving terug naar de laatst bekende gezonde rollout.
+3. Herhaal health-, auth- en kernroutechecks.
+4. Maak een incidentnotitie; herstel via een nieuwe PR, nooit via een directe push.
+
+Nooit direct ontwikkelen in `main`. Nooit production-secrets in deze repository committen. Nooit vanuit deze staging-repository naar productie deployen.

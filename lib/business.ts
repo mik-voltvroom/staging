@@ -1,0 +1,44 @@
+import type { Vehicle, VehicleCosts } from "@/types";
+
+export const emptyCosts: VehicleCosts = {
+  purchasePriceEur: 0,
+  transportEur: 0,
+  preparationEur: 0,
+  maintenanceEur: 0,
+  warrantyReserveEur: 0,
+  advertisingEur: 0,
+  financingEur: 0,
+  otherEur: 0,
+};
+
+export function totalCosts(costs: VehicleCosts): number {
+  return Object.values(costs).reduce((total, value) => total + Number(value || 0), 0);
+}
+
+export function grossMargin(priceEur: number, costs: VehicleCosts): number {
+  return Number(priceEur || 0) - totalCosts(costs);
+}
+
+export function marginPercent(priceEur: number, costs: VehicleCosts): number {
+  if (!priceEur) return 0;
+  return (grossMargin(priceEur, costs) / priceEur) * 100;
+}
+
+export function slugify(value: string): string {
+  return value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+export function validateVehicle(vehicle: Partial<Vehicle>): string[] {
+  const errors: string[] = [];
+  if (!vehicle.brand) errors.push("Merk ontbreekt");
+  if (!vehicle.model) errors.push("Model ontbreekt");
+  if (!vehicle.trim) errors.push("Uitvoering ontbreekt");
+  if (!vehicle.year) errors.push("Bouwjaar ontbreekt");
+  if (!vehicle.mileageKm && vehicle.mileageKm !== 0) errors.push("Kilometerstand ontbreekt");
+  if (!vehicle.priceEur) errors.push("Verkoopprijs ontbreekt");
+  if (!vehicle.images?.length) errors.push("Minimaal één foto is verplicht");
+  if (!vehicle.locationCode) errors.push("Vestigingscode ontbreekt");
+  if (vehicle.driveType !== "electric" && !vehicle.consumptionPer100Km) errors.push("Praktijkverbruik ontbreekt");
+  if (vehicle.driveType !== "electric" && !vehicle.batteryHealthPercent) errors.push("Accugezondheid ontbreekt");
+  return errors;
+}

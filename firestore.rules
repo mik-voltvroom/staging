@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function hasRole(role) { return signedIn() && request.auth.token.role == role; }
+    function staff() { return signedIn() && request.auth.token.role in ['owner','admin','sales','marketing','workshop']; }
+
+    match /vehicles/{vehicleId} {
+      allow read: if resource.data.status == 'available' || staff();
+      allow create, update: if hasRole('owner') || hasRole('admin') || hasRole('sales');
+      allow delete: if hasRole('owner') || hasRole('admin');
+    }
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, update: if staff();
+      allow delete: if hasRole('owner') || hasRole('admin');
+    }
+    match /customers/{customerId} { allow read, write: if staff(); }
+    match /tasks/{taskId} { allow read, write: if staff(); }
+    match /auditLogs/{logId} { allow read: if hasRole('owner') || hasRole('admin'); allow write: if false; }
+  }
+}

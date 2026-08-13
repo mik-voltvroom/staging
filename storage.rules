@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function staff() { return request.auth != null && request.auth.token.role in ['owner','admin','sales','marketing','workshop']; }
+    match /vehicles/{vehicleId}/{fileName} {
+      allow read: if true;
+      allow write: if staff() && request.resource.size < 15 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
