@@ -8,5 +8,20 @@
   },
   "storage": {
     "rules": "storage.rules"
-  }
+  },
+  "apphosting": [
+    {
+      "backendId": "vvos-staging",
+      "rootDir": ".",
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        ".env",
+        ".env.*",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ]
 }

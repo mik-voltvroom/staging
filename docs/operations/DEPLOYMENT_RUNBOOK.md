@@ -27,12 +27,22 @@ Deze repository is de staging-codebase. `main` is uitsluitend de bronbranch van 
 
 Als de private GitHub-import niet beschikbaar is, mag de eerste backend als gecontroleerde fallback vanaf lokale bron worden uitgerold met Firebase CLI v14.4.0 of nieuwer. Gebruik alleen de getrackte inhoud van de goedgekeurde commit, leg die SHA vast en koppel GitHub daarna in de Deployment-tab. Deze fallback vervangt nooit de vereiste PR-goedkeuring.
 
+De repository bevat hiervoor een staging-only `apphosting`-target in `firebase.json`:
+
+1. Meld de Firebase CLI aan met het gecontroleerde eigenaaraccount.
+2. Maak backend `vvos-staging` eenmalig aan in `europe-west4`, gekoppeld aan Firebase Web App `1:241472991923:web:75467e4adfacf620e936c6` en runtime `nodejs22`.
+3. Geef de runtime service identity per secret toegang met `firebase apphosting:secrets:grantaccess`.
+4. Rol alleen deze backend uit met `firebase deploy --only apphosting:vvos-staging --project staging`.
+5. Noteer de bron-SHA en voer alle staging-smokechecks uit voordat GitHub continuous deployment wordt gekoppeld.
+
 ### Bekende eerste-rolloutblokkades
 
-- PR #1 mag pas na expliciete eigenaar-goedkeuring van draft naar merge; een generiek "werk door" is geen mergegoedkeuring.
+- PR #1 is na expliciete eigenaar-goedkeuring als commit `543586f87f532875b9c5af5a5e5cccd9b46064bd` naar staging `main` gemerged; de post-merge `quality`-check is geslaagd.
+- De eerste lokale bronrollout is op 14 augustus 2026 geslaagd vanaf commit `e6960b16bf6e15d7a38797015df8efac454c360b`. Backend: `vvos-staging`; URL: `https://vvos-staging--voltvroom-staging.europe-west4.hosted.app`.
+- De eerste smokecheck is geslaagd: homepage en health `200`; interne API, VWE en cron zonder autorisatie `401`.
 - De Firebase GitHub App moet op het persoonlijke account worden geïnstalleerd met toegang tot alleen `mik-voltvroom/staging`.
-- Voor de CLI-fallback moet de eigenaar de eenmalige Google-herauthenticatie voltooien. Deel of commit nooit het wachtwoord of de autorisatiecode.
-- Voor console-upload via Chrome moet bij de ChatGPT-extensie `Allow access to file URLs` actief zijn.
+- PR #2 moet nog worden gereviewd en gemerged voordat `main` de geteste App Hosting-configuratie bevat.
+- Er is nog geen Firebase Authentication-eigenaaraccount met gecontroleerde `{ role: "owner" }` custom claim.
 
 ## Promotie naar productie
 

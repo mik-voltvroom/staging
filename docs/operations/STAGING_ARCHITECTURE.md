@@ -5,7 +5,7 @@
 | Onderdeel | Staging | Production |
 |---|---|---|
 | GitHub | deze private repository, `main` via PR | afzonderlijke private repository |
-| Firebase | project `voltvroom-staging`; App Hosting-backend nog niet aangemaakt | eigen project en handmatige backend-rollout |
+| Firebase | project `voltvroom-staging`; App Hosting-backend `vvos-staging` in `europe-west4` | eigen project en handmatige backend-rollout |
 | Config | actieve `apphosting.yaml` is staging-only | eigen actieve config; voorbeeld staat alleen onder docs |
 | Secrets/data | sandbox/test, nooit echte klantdata | onafhankelijke live secrets en data |
 | Rollout | automatisch na protected merge mag | handmatig na expliciete eigenaar-goedkeuring |
@@ -19,7 +19,7 @@ De middleware classificeert browser- en API-routes centraal. Publieke verkooprou
 - Tokenportaal gebruikt nog demo/sampled data; vervang dit door ondertekende, intrekbare en aflopende tokens voordat echte klantdata wordt gebruikt.
 - Publieke lead-, RDW- en portal-endpoints hebben nog geen rate limiting/WAF-beleid.
 - Lead creation vereist nu een ingelogd staff-account. Activeer App Check pas nadat de webapp is uitgerold en getest; voortijdige enforcement kan staging blokkeren.
-- App Hosting, domein/DNS en externe provideraccounts zijn nog niet ingericht.
+- Een eigen staging-domein/DNS en externe provideraccounts zijn nog niet ingericht. De standaard App Hosting-URL is wel actief.
 
 ## Geverifieerde Firebase-status (13 augustus 2026)
 
@@ -32,11 +32,12 @@ De middleware classificeert browser- en API-routes centraal. Publieke verkooprou
 - Firestore- en Storage Rules zijn gepubliceerd. De samengestelde indexes voor `vehicles` en `leads` zijn aangemaakt.
 - `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT` bestaan in Secret Manager; hun waarden staan niet in git.
 - Environment type blijft `Unspecified`: de Firebase-console bood alleen `Unspecified` en `Production`, niet `Staging`.
-- PR #1 is mergeable, heeft een groene `quality`-check en geen review- of commentaarblokkades, maar blijft bewust draft tot expliciete eigenaar-goedkeuring voor de merge naar `main`.
-- Er is nog geen App Hosting-backend. De GitHub-import blijft hangen omdat voor het persoonlijke GitHub-account geen Firebase GitHub App is geïnstalleerd. Installeer de app met toegang tot uitsluitend `mik-voltvroom/staging` nadat PR #1 is goedgekeurd.
-- De lokale-brondeploy via Firebase CLI is voorbereid als fallback. Afronding vereist een eenmalige Google-herauthenticatie door de eigenaar. Browserupload vereist daarnaast dat de ChatGPT Chrome-extensie toegang tot bestands-URL's heeft.
-
-Na het aanmaken van de backend moet de runtime service identity minimaal `Secret Manager Secret Accessor` krijgen voor alleen de vier runtime-secrets. Daarna kan de eerste staging-rollout en smokecheck plaatsvinden.
+- PR #1 is na expliciete eigenaar-goedkeuring als commit `543586f87f532875b9c5af5a5e5cccd9b46064bd` naar staging `main` gemerged; de post-merge `quality`-check is geslaagd.
+- App Hosting-backend `vvos-staging` is op 14 augustus 2026 aangemaakt in `europe-west4`, gekoppeld aan de bestaande staging Web App en uitgerold vanaf de geteste branch `agent/firebase-apphosting-source-deploy` (commit `e6960b16bf6e15d7a38797015df8efac454c360b`).
+- De runtime service identity heeft alleen per-secret leesrechten op de vier runtime-secrets; er is geen projectbrede Secret Manager-rol toegekend.
+- De standaard staging-URL is `https://vvos-staging--voltvroom-staging.europe-west4.hosted.app`.
+- Smokechecks na de eerste rollout: homepage `200`, `/api/health` `200`, interne API zonder sessie `401`, VWE zonder secret `401` en cron zonder secret `401`.
+- GitHub continuous deployment is nog niet gekoppeld. De eerste rollout is gecontroleerd vanaf lokale bron uitgevoerd; installeer de Firebase GitHub App later met toegang tot uitsluitend `mik-voltvroom/staging`.
 
 ## Promotieprincipe
 
