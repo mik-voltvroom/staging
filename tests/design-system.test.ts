@@ -28,4 +28,17 @@ describe("Volt & Vroom design system v1.2 RC", () => {
     expect(logo).toContain("VOLT &amp; VROOM");
     expect(logo.toUpperCase()).not.toContain("AUTOMOTIVE");
   });
+
+  it("uses the authentic web typography and governed public component layer", () => {
+    const packageJson = JSON.parse(read("package.json"));
+    const publicCss = read("app/public.css");
+    const brandLogo = read("components/BrandLogo.tsx");
+
+    expect(packageJson.dependencies).toHaveProperty("@fontsource-variable/manrope");
+    expect(packageJson.dependencies).toHaveProperty("@fontsource-variable/inter");
+    expect(publicCss).toContain("--vv-radius-card:16px");
+    expect(publicCss).toContain("--vv-radius-control:12px");
+    expect(publicCss).not.toContain("Georgia");
+    expect(brandLogo).toContain("/brand/vv-symbol.svg");
+  });
 });

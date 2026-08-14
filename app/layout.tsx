@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/manrope";
 import "./globals.css";
 import "./public.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
@@ -9,8 +11,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Volt & Vroom | Eerlijk advies over elektrisch en hybride",
   description: "Elektrisch of hybride? Volt & Vroom maakt techniek, gebruikskosten en accugezondheid begrijpelijk, met persoonlijk advies vanuit Groningen.",
-  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Bewust kiezen. Met plezier rijden.", description: "Persoonlijk en transparant advies over elektrisch en hybride rijden.", url: "/", images: [{ url: "/editorial/elektrisch-of-hybride.jpeg", width: 1254, height: 1254, alt: "Elektrisch of hybride? Volt & Vroom helpt kiezen." }] },
-  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Eerlijk advies over elektrisch en hybride rijden.", images: ["/editorial/elektrisch-of-hybride.jpeg"] },
+  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Persoonlijk en transparant advies over elektrisch en hybride rijden.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Elektrisch of hybride? Volt & Vroom helpt kiezen." }] },
+  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Eerlijk advies over elektrisch en hybride rijden.", images: ["/editorial/hero-v2.png"] },
   robots: { index: true, follow: true },
 };
 
