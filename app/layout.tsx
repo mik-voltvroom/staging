@@ -1,12 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./public.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl";
+
 export const metadata: Metadata = {
-  title: "Volt & Vroom | Slimmer hybride rijden",
-  description: "Geteste hybride auto's, transparante informatie en lage gebruikskosten.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl")
+  metadataBase: new URL(siteUrl),
+  title: "Volt & Vroom | Eerlijk advies over elektrisch en hybride",
+  description: "Elektrisch of hybride? Volt & Vroom maakt techniek, gebruikskosten en accugezondheid begrijpelijk, met persoonlijk advies vanuit Groningen.",
+  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Bewust kiezen. Met plezier rijden.", description: "Persoonlijk en transparant advies over elektrisch en hybride rijden.", url: "/", images: [{ url: "/editorial/elektrisch-of-hybride.jpeg", width: 1254, height: 1254, alt: "Elektrisch of hybride? Volt & Vroom helpt kiezen." }] },
+  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Eerlijk advies over elektrisch en hybride rijden.", images: ["/editorial/elektrisch-of-hybride.jpeg"] },
+  robots: { index: true, follow: true },
 };
+
+export const viewport: Viewport = { themeColor: "#ffffff", colorScheme: "light", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="nl"><body><AuthProvider>{children}</AuthProvider></body></html>;
