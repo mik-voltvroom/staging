@@ -1,0 +1,8 @@
+import type { Metadata } from "next";
+import { SegmentPage } from "@/components/SegmentPage";
+
+export const metadata: Metadata = { title: "Hybride occasions Groningen | Volt & Vroom", description: "Zorgvuldig geselecteerde full hybrid en plug-inhybride occasions met aantoonbare historie, accugezondheid en persoonlijk gebruiksadvies.", alternates: { canonical: "/hybride" } };
+
+export default function HybridePage() {
+  return <SegmentPage eyebrow="Hybride occasions · Noord-Nederland" title="Hybride wanneer dat slimmer is." lead="Een hybride combineert elektrisch rijden met de vrijheid van een brandstofmotor. Wij bepalen samen of full hybrid of plug-inhybride werkelijk bij uw gebruik past." icon="/brand/icons/hybride.svg" idealFor={["U rijdt wisselende afstanden en wilt niet afhankelijk zijn van een laadpunt.", "U rijdt veel in stad en regio, waar een full hybrid efficiënt kan terugwinnen.", "U kunt regelmatig laden en gebruikt een plug-inhybride daadwerkelijk elektrisch."]} proof={[{ title: "Hybridesysteem gecontroleerd", text: "Diagnose, storingshistorie en werking van de elektrische ondersteuning worden beoordeeld." }, { title: "Praktijkverbruik", text: "Geen foldercijfer, maar een realistische verwachting op basis van uw ritten en laadgedrag." }, { title: "Onderhoud en historie", text: "Kilometerstand, onderhoud en bekende modelaandachtspunten worden helder vastgelegd." }]} adviceTitle="Een PHEV is alleen slim wanneer u hem laadt." adviceText="Daarom vragen wij naar uw dagelijkse rit en laadmogelijkheden voordat wij een plug-inhybride adviseren. Geen verkooppraat, maar een aandrijflijn die in de praktijk klopt." />;
+}

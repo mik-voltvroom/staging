@@ -33,4 +33,22 @@ describe("publieke Volt & Vroom website", () => {
     expect(homepage).toContain(">Elektrisch<");
     expect(homepage).toContain(">Icons<");
   });
+
+  it("biedt afzonderlijke landingspagina's en een gevalideerde keuzehulp", () => {
+    expect(read("app/hybride/page.tsx")).toContain("Hybride wanneer dat slimmer is");
+    expect(read("app/elektrisch/page.tsx")).toContain("Elektrisch wanneer het klopt");
+    expect(read("app/icons/page.tsx")).toContain("Meer karakter. Dezelfde standaard");
+    const match = read("components/MatchForm.tsx");
+    expect(match).toContain('fetch("/api/leads"');
+    expect(match).toContain('name="consent"');
+    expect(match).toContain("getRecommendation");
+  });
+
+  it("publiceert technische SEO voor de nieuwe content", () => {
+    expect(read("app/sitemap.ts")).toContain('"/hybride"');
+    expect(read("app/sitemap.ts")).toContain('"/elektrisch"');
+    expect(read("app/sitemap.ts")).toContain('"/keuzehulp"');
+    expect(read("app/robots.ts")).toContain('disallow: ["/dashboard/", "/api/", "/login"]');
+    expect(read("app/page.tsx")).toContain('"@type": "AutoDealer"');
+  });
 });

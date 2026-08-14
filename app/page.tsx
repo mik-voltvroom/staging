@@ -1,8 +1,8 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { BrandLogo } from "@/components/BrandLogo";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
+import { SiteFooter } from "@/components/SiteFooter";
 import { VehicleCard } from "@/components/VehicleCard";
 import { vehicles } from "@/lib/sample-data";
 
@@ -24,6 +24,7 @@ const steps = [
 
 export default function HomePage() {
   return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "AutoDealer", name: "Volt & Vroom", description: "Onafhankelijke specialist voor zorgvuldig geselecteerde hybride en elektrische occasions.", url: "https://www.voltvroom.nl", telephone: "+31502113883", email: "mik@voltvroom.nl", address: { "@type": "PostalAddress", streetAddress: "Euvelgunnerweg 50", postalCode: "9723 CW", addressLocality: "Groningen", addressCountry: "NL" }, areaServed: ["Groningen", "Drenthe", "Friesland"] }) }} />
     <a className="skipLink" href="#inhoud">Ga naar de inhoud</a>
     <Header />
     <main id="inhoud">
@@ -35,7 +36,7 @@ export default function HomePage() {
             <p className="lead">Geteste auto’s. Eerlijke informatie. Persoonlijk advies. Wij maken accugezondheid, verbruik, historie en kosten inzichtelijk voordat u kiest.</p>
             <div className="actions">
               <a className="button" href="#voorraad">Bekijk ons aanbod <span aria-hidden="true">→</span></a>
-              <a className="textButton" href="#advies">Plan een gesprek</a>
+              <a className="textButton" href="/keuzehulp">Ontdek wat bij u past</a>
             </div>
             <ul className="trustList" aria-label="Onze zekerheden"><li>Aantoonbaar gecontroleerd</li><li>SOH-rapport</li><li>Advies zonder druk</li></ul>
           </div>
@@ -57,7 +58,7 @@ export default function HomePage() {
 
       <section className="choiceSection" aria-labelledby="keuze-title"><div className="container choiceGrid">
         <div className="choiceCopy"><p className="eyebrow">Drie duidelijke werelden</p><h2 id="keuze-title">Welke auto past bij uw gebruik?</h2><p className="lead">Niet de trend, maar uw ritten, laadmogelijkheden en voorkeuren bepalen wat verstandig is. Wij leggen de verschillen uit en maken de gebruikskosten vergelijkbaar.</p><a className="textButton" href="#advies">Vraag persoonlijk advies <span aria-hidden="true">→</span></a></div>
-        <div className="choiceCards"><article><Image className="choiceIcon" src="/brand/icons/hybride.svg" alt="" width={48} height={48} /><div><h3>Hybride</h3><p>Elektrische ondersteuning met de vertrouwdheid van een brandstofmotor. Geschikt voor wisselende afstanden.</p></div></article><article><Image className="choiceIcon" src="/brand/icons/elektrisch.svg" alt="" width={48} height={48} /><div><h3>Elektrisch</h3><p>Stil en direct rijden. Wij tonen bereik, laadmogelijkheden en gemeten accugezondheid.</p></div></article><article className="iconsChoice"><span className="iconsMark" aria-hidden="true">&amp;</span><div><h3>Icons</h3><p>Youngtimers, klassiekers in spe en bijzondere sportieve auto’s, geselecteerd op historie en techniek.</p></div></article></div>
+        <div className="choiceCards"><article><Image className="choiceIcon" src="/brand/icons/hybride.svg" alt="" width={48} height={48} /><div><h3>Hybride</h3><p>Elektrische ondersteuning met de vertrouwdheid van een brandstofmotor. Geschikt voor wisselende afstanden.</p><a href="/hybride">Lees over hybride <span aria-hidden="true">→</span></a></div></article><article><Image className="choiceIcon" src="/brand/icons/elektrisch.svg" alt="" width={48} height={48} /><div><h3>Elektrisch</h3><p>Stil en direct rijden. Wij tonen bereik, laadmogelijkheden en gemeten accugezondheid.</p><a href="/elektrisch">Lees over elektrisch <span aria-hidden="true">→</span></a></div></article><article className="iconsChoice"><span className="iconsMark" aria-hidden="true">&amp;</span><div><h3>Icons</h3><p>Youngtimers, klassiekers in spe en bijzondere sportieve auto’s, geselecteerd op historie en techniek.</p><a href="/icons">Ontdek Icons <span aria-hidden="true">→</span></a></div></article></div>
       </div></section>
 
       <section id="voorraad" className="section container">
@@ -75,6 +76,6 @@ export default function HomePage() {
         <ContactForm vehicles={vehicles.map(vehicle => ({ id: vehicle.id, label: `${vehicle.brand} ${vehicle.model}` }))} />
       </div></section>
     </main>
-    <footer className="siteFooter"><div className="container footerTop"><div><BrandLogo dark /><p>Slim rijden. Meer genieten.</p></div><div><strong>Navigatie</strong><a href="#voorraad">Voorraad</a><a href="#waarom">Onze zekerheid</a><a href="#advies">Contact</a></div><div><strong>Contact</strong><a href="tel:+31502113883">050 211 3883</a><a href="mailto:mik@voltvroom.nl">mik@voltvroom.nl</a><span>Groningen</span></div></div><div className="container footerBottom"><span>© 2026 Volt &amp; Vroom</span><div><a href="/privacy">Privacy</a><a href="/login">VVOS-login</a></div></div></footer>
+    <SiteFooter />
   </>;
 }
