@@ -9,10 +9,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Volt & Vroom | Eerlijk advies over elektrisch en hybride",
-  description: "Elektrisch of hybride? Volt & Vroom maakt techniek, gebruikskosten en accugezondheid begrijpelijk, met persoonlijk advies vanuit Groningen.",
-  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Persoonlijk en transparant advies over elektrisch en hybride rijden.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Elektrisch of hybride? Volt & Vroom helpt kiezen." }] },
-  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Eerlijk advies over elektrisch en hybride rijden.", images: ["/editorial/hero-v2.png"] },
+  title: "Volt & Vroom | Slim rijden. Meer genieten.",
+  description: "Geteste hybride en elektrische auto’s met aantoonbare historie, heldere kosten, gemeten accugezondheid en persoonlijk advies vanuit Groningen.",
+  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Hybride of elektrisch? Volt & Vroom legt uit wat bij uw gebruik past." }] },
+  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", images: ["/editorial/hero-v2.png"] },
   robots: { index: true, follow: true },
 };
 

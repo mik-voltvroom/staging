@@ -36,8 +36,11 @@ describe("Volt & Vroom design system v1.2 RC", () => {
 
     expect(packageJson.dependencies).toHaveProperty("@fontsource-variable/manrope");
     expect(packageJson.dependencies).toHaveProperty("@fontsource-variable/inter");
-    expect(publicCss).toContain("--vv-radius-card:16px");
-    expect(publicCss).toContain("--vv-radius-control:12px");
+    expect(publicCss).toContain("--vv-radius-card:20px");
+    expect(publicCss).toContain("--vv-radius-control:999px");
+    expect(publicCss).toContain("--vv-ink:#0b1118");
+    expect(publicCss).toContain("--vv-glacier:#6bcbff");
+    expect(publicCss).toContain("font-weight:300");
     expect(publicCss).not.toContain("Georgia");
     expect(brandLogo).toContain("/brand/vv-symbol.svg");
   });

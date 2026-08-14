@@ -21,4 +21,16 @@ describe("publieke Volt & Vroom website", () => {
   it("gebruikt geen vervallen Automotive-descriptor op de homepage", () => {
     expect(read("app/page.tsx").toUpperCase()).not.toContain("AUTOMOTIVE");
   });
+
+  it("maakt de selectiecriteria en drie aanbodwerelden expliciet", () => {
+    const homepage = read("app/page.tsx");
+    expect(homepage).toContain("Maximaal 5 jaar oud");
+    expect(homepage).toContain("Tot 100.000 kilometer");
+    expect(homepage).toContain("Eén vorige eigenaar");
+    expect(homepage).toContain("Dealeronderhouden");
+    expect(homepage).toContain("SOH-rapport");
+    expect(homepage).toContain(">Hybride<");
+    expect(homepage).toContain(">Elektrisch<");
+    expect(homepage).toContain(">Icons<");
+  });
 });

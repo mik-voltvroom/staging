@@ -9,16 +9,17 @@ import { vehicles } from "@/lib/sample-data";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const assurances = [
-  { icon: "/brand/icons/accugezondheid.svg", title: "Accu inzichtelijk", text: "Een begrijpelijke uitleg over de conditie en het gebruik van de aandrijflijn." },
-  { icon: "/brand/icons/hybride.svg", title: "Eerlijk verbruik", text: "Geen foldercijfers, maar een realistische verwachting die past bij jouw ritten." },
-  { icon: "/brand/icons/financiering.svg", title: "Kosten vooraf helder", text: "Aanschaf, maandlasten en verwacht onderhoud overzichtelijk naast elkaar." },
-  { icon: "/brand/icons/proefrit.svg", title: "Advies zonder druk", text: "Rustig vergelijken en proefrijden met iemand die de techniek kan uitleggen." },
+  { icon: "/brand/icons/proefrit.svg", title: "Maximaal 5 jaar oud", text: "Een jonge selectie met moderne techniek en actuele veiligheidssystemen." },
+  { icon: "/brand/icons/financiering.svg", title: "Tot 100.000 kilometer", text: "De kilometerstand wordt gecontroleerd en helder in het voertuigdossier vermeld." },
+  { icon: "/brand/icons/hybride.svg", title: "Eén vorige eigenaar", text: "Een overzichtelijke herkomst, zodat u weet wie de auto vóór u heeft gereden." },
+  { icon: "/brand/icons/elektrisch.svg", title: "Dealeronderhouden", text: "Onderhoudshistorie is aantoonbaar en uitgevoerd door de merkdealer." },
+  { icon: "/brand/icons/accugezondheid.svg", title: "SOH-rapport", text: "De gemeten accugezondheid wordt begrijpelijk uitgelegd en met u gedeeld." },
 ];
 
 const steps = [
-  ["01", "Vertel hoe je rijdt", "Dagelijkse afstand, laadmogelijkheden en wat je belangrijk vindt."],
-  ["02", "Wij vergelijken eerlijk", "Elektrisch, hybride of toch anders — ook als dat niet onze voorraad is."],
-  ["03", "Rijd en beslis rustig", "Pas na een uitgebreide proefrit bepaal je of de auto echt bij je past."],
+  ["01", "Vertel hoe u rijdt", "Uw dagelijkse afstand, laadmogelijkheden en wat u belangrijk vindt."],
+  ["02", "Wij leggen de opties uit", "U ziet wat elektrisch, hybride en de auto zelf in uw situatie betekenen."],
+  ["03", "Proefrijden en rustig kiezen", "Na de uitleg en proefrit beslist u pas of de auto werkelijk bij u past."],
 ];
 
 export default function HomePage() {
@@ -29,48 +30,48 @@ export default function HomePage() {
       <section className="heroShell" aria-labelledby="hero-title">
         <div className="container hero">
           <div className="heroCopy">
-            <p className="eyebrow">Premium hybride specialist van Noord-Nederland</p>
+            <p className="eyebrow">Hybride · Elektrisch · Icons</p>
             <h1 id="hero-title">Slim rijden.<br /><em>Meer genieten.</em></h1>
-            <p className="lead">Heldere informatie, lage gebruikskosten en persoonlijk advies. Wij maken elektrisch en hybride rijden begrijpelijk, zodat je kiest met zekerheid.</p>
+            <p className="lead">Geteste auto’s. Eerlijke informatie. Persoonlijk advies. Wij maken accugezondheid, verbruik, historie en kosten inzichtelijk voordat u kiest.</p>
             <div className="actions">
-              <a className="button" href="#advies">Plan een vrijblijvend gesprek <span aria-hidden="true">→</span></a>
-              <a className="textButton" href="#voorraad">Bekijk de voorraad</a>
+              <a className="button" href="#voorraad">Bekijk ons aanbod <span aria-hidden="true">→</span></a>
+              <a className="textButton" href="#advies">Plan een gesprek</a>
             </div>
-            <ul className="trustList" aria-label="Onze zekerheden"><li>Persoonlijk advies</li><li>Transparante historie</li><li>Geen verkooppraat</li></ul>
+            <ul className="trustList" aria-label="Onze zekerheden"><li>Aantoonbaar gecontroleerd</li><li>SOH-rapport</li><li>Advies zonder druk</li></ul>
           </div>
           <div className="heroVisual">
             <div className="heroArtwork"><Image src="/editorial/hero-v2.png" alt="Een witte elektrische auto en een grafietgrijze hybride auto in een rustige studio" fill priority sizes="(max-width: 980px) 100vw, 52vw" /></div>
-            <div className="heroProof"><span>Onze belofte</span><strong>Meer inzicht. Minder twijfel.</strong></div>
+            <div className="heroProof"><span>Onze norm</span><strong>Geen prijs zonder bewijs.</strong></div>
           </div>
         </div>
       </section>
 
       <section className="proofBar" aria-label="Volt & Vroom in het kort"><div className="container proofGrid">
-        <div><strong>Noord-Nederland</strong><span>Persoonlijk en dichtbij</span></div><div><strong>Elektrisch & hybride</strong><span>Advies vanuit jouw gebruik</span></div><div><strong>Techniek begrijpelijk</strong><span>Ook zonder autokennis</span></div><div><strong>Vrijblijvend</strong><span>Eerst weten, dan kiezen</span></div>
+        <div><strong>Maximaal 5 jaar</strong><span>Jonge, moderne auto’s</span></div><div><strong>Tot 100.000 km</strong><span>Gecontroleerde kilometerstand</span></div><div><strong>Eén vorige eigenaar</strong><span>Overzichtelijke herkomst</span></div><div><strong>SOH gemeten</strong><span>Accugezondheid in beeld</span></div>
       </div></section>
 
       <section id="waarom" className="section container introSection">
-        <div className="sectionHeading splitHeading"><div><p className="eyebrow">Waarom Volt & Vroom</p><h2>Een slimme keuze mag ook gewoon goed voelen.</h2></div><p className="sectionIntro">De overstap naar elektrisch of hybride roept vragen op. Wij combineren technische kennis met nuchter advies, zodat je precies weet waar je aan toe bent.</p></div>
+        <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>Zekerheid zit in onze selectie.</h2></div><p className="sectionIntro">Elke auto moet aan vijf heldere voorwaarden voldoen. De historie, techniek en accugezondheid worden controleerbaar onderdeel van het verhaal.</p></div>
         <div className="assuranceGrid">{assurances.map(item => <article className="assuranceCard" key={item.title}><Image src={item.icon} alt="" width={46} height={46} /><div><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>
       </section>
 
       <section className="choiceSection" aria-labelledby="keuze-title"><div className="container choiceGrid">
-        <div className="choiceCopy"><p className="eyebrow">Elektrisch of hybride?</p><h2 id="keuze-title">Niet de trend, maar jouw dagelijkse rit bepaalt.</h2><p className="lead">Een elektrische auto is ideaal als laden logisch in je dag past. Een hybride kan slimmer zijn bij wisselende afstanden of beperkte laadmogelijkheden. Wij rekenen beide routes eerlijk met je door.</p><a className="textButton" href="#advies">Ontdek wat bij je past <span aria-hidden="true">→</span></a></div>
-        <div className="choiceCards"><article><Image className="choiceIcon" src="/brand/icons/elektrisch.svg" alt="" width={48} height={48} /><div><h3>Elektrisch</h3><p>Stil, direct en lokaal uitstootvrij. Sterk bij voorspelbare ritten en een goede laadplek.</p></div></article><article><Image className="choiceIcon" src="/brand/icons/hybride.svg" alt="" width={48} height={48} /><div><h3>Hybride</h3><p>Efficiënt zonder laadstress. Vertrouwd op lange afstanden en zuinig in stad en regio.</p></div></article></div>
+        <div className="choiceCopy"><p className="eyebrow">Drie duidelijke werelden</p><h2 id="keuze-title">Welke auto past bij uw gebruik?</h2><p className="lead">Niet de trend, maar uw ritten, laadmogelijkheden en voorkeuren bepalen wat verstandig is. Wij leggen de verschillen uit en maken de gebruikskosten vergelijkbaar.</p><a className="textButton" href="#advies">Vraag persoonlijk advies <span aria-hidden="true">→</span></a></div>
+        <div className="choiceCards"><article><Image className="choiceIcon" src="/brand/icons/hybride.svg" alt="" width={48} height={48} /><div><h3>Hybride</h3><p>Elektrische ondersteuning met de vertrouwdheid van een brandstofmotor. Geschikt voor wisselende afstanden.</p></div></article><article><Image className="choiceIcon" src="/brand/icons/elektrisch.svg" alt="" width={48} height={48} /><div><h3>Elektrisch</h3><p>Stil en direct rijden. Wij tonen bereik, laadmogelijkheden en gemeten accugezondheid.</p></div></article><article className="iconsChoice"><span className="iconsMark" aria-hidden="true">&amp;</span><div><h3>Icons</h3><p>Youngtimers, klassiekers in spe en bijzondere sportieve auto’s, geselecteerd op historie en techniek.</p></div></article></div>
       </div></section>
 
       <section id="voorraad" className="section container">
-        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Uitgelichte voorraad</p><h2>Auto’s met een helder verhaal.</h2></div><p className="sectionIntro">De eerste selectie staat klaar. Voertuigpagina’s worden nog verder aangevuld; voor alle actuele informatie kun je ons direct benaderen.</p></div>
+        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Uitgelichte voorraad</p><h2>Geteste auto’s. Begrijpelijk uitgelegd.</h2></div><p className="sectionIntro">Bij iedere auto tonen wij prijs, aandrijving, kilometerstand, historie en accugezondheid. De voertuigpagina’s worden nog aangevuld; actuele informatie geven wij graag persoonlijk.</p></div>
         <div className="grid vehicleGrid">{vehicles.map(vehicle => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}</div>
       </section>
 
       <section className="section processSection" aria-labelledby="werkwijze-title"><div className="container">
-        <div className="sectionHeading splitHeading"><div><p className="eyebrow">Zo werken wij</p><h2 id="werkwijze-title">Van twijfel naar een keuze die klopt.</h2></div><p className="sectionIntro">Geen ingewikkeld verkoopproces. Drie rustige stappen, met alle ruimte om vragen te stellen.</p></div>
+        <div className="sectionHeading splitHeading"><div><p className="eyebrow">Zo werken wij</p><h2 id="werkwijze-title">Deskundig zonder afstand. Verkoop zonder druk.</h2></div><p className="sectionIntro">In drie heldere stappen krijgt u de informatie en aandacht om zelf een goede keuze te maken.</p></div>
         <ol className="processGrid">{steps.map(([number,title,text]) => <li key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></li>)}</ol>
       </div></section>
 
       <section id="advies" className="section contactSection"><div className="container contactLayout">
-        <div className="contactCopy"><p className="eyebrow">Vrijblijvend advies</p><h2>Vertel ons hoe je rijdt.</h2><p className="lead">Wij nemen persoonlijk contact op en helpen je op weg met een passend, eerlijk advies.</p><div className="contactFacts"><a href="tel:+31502113883"><span>Bel direct</span><strong>050 211 3883</strong></a><a href="mailto:mik@voltvroom.nl"><span>Stuur een e-mail</span><strong>mik@voltvroom.nl</strong></a><div><span>Bezoek op afspraak</span><strong>Euvelgunnerweg 50, Groningen</strong></div></div></div>
+        <div className="contactCopy"><p className="eyebrow">Persoonlijk advies</p><h2>Vertel ons hoe u rijdt.</h2><p className="lead">Wij leggen uit wat bij uw gebruik past en nemen persoonlijk contact met u op, zonder verkooppraat.</p><div className="contactFacts"><a href="tel:+31502113883"><span>Bel direct</span><strong>050 211 3883</strong></a><a href="mailto:mik@voltvroom.nl"><span>Stuur een e-mail</span><strong>mik@voltvroom.nl</strong></a><div><span>Bezoek op afspraak</span><strong>Euvelgunnerweg 50, Groningen</strong></div></div></div>
         <ContactForm vehicles={vehicles.map(vehicle => ({ id: vehicle.id, label: `${vehicle.brand} ${vehicle.model}` }))} />
       </div></section>
     </main>
