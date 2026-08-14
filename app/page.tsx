@@ -9,11 +9,11 @@ import { vehicles } from "@/lib/sample-data";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const assurances = [
-  { icon: "/brand/icons/proefrit.svg", title: "Maximaal 5 jaar oud", text: "Een jonge selectie met moderne techniek en actuele veiligheidssystemen." },
-  { icon: "/brand/icons/financiering.svg", title: "Tot 100.000 kilometer", text: "De kilometerstand wordt gecontroleerd en helder in het voertuigdossier vermeld." },
-  { icon: "/brand/icons/hybride.svg", title: "Eén vorige eigenaar", text: "Een overzichtelijke herkomst, zodat u weet wie de auto vóór u heeft gereden." },
-  { icon: "/brand/icons/elektrisch.svg", title: "Dealeronderhouden", text: "Onderhoudshistorie is aantoonbaar en uitgevoerd door de merkdealer." },
-  { icon: "/brand/icons/accugezondheid.svg", title: "SOH-rapport", text: "De gemeten accugezondheid wordt begrijpelijk uitgelegd en met u gedeeld." },
+  { icon: "/brand/icons/accugezondheid.svg", title: "SOH-accucontrole", text: "De gemeten accugezondheid wordt in een helder rapport vastgelegd en persoonlijk uitgelegd." },
+  { icon: "/brand/icons/praktijkverbruik.svg", title: "Onze ervaring uit de praktijk", text: "Wij vertalen praktijkverbruik, bereik en laadgedrag naar wat u tijdens uw eigen ritten kunt verwachten." },
+  { icon: "/brand/icons/historie.svg", title: "Aantoonbare historie", text: "Eigenaarschap, kilometerstand en voertuigverleden worden gecontroleerd en begrijpelijk gepresenteerd." },
+  { icon: "/brand/icons/onderhoud.svg", title: "Dealeronderhouden", text: "De onderhoudshistorie is aantoonbaar en uitgevoerd door de merkdealer." },
+  { icon: "/brand/icons/kilometerstand.svg", title: "Kilometerstand gecontroleerd", text: "Wij selecteren tot 100.000 kilometer en leggen de geregistreerde kilometerhistorie vast." },
 ];
 
 const steps = [
@@ -52,7 +52,7 @@ export default function HomePage() {
       </div></section>
 
       <section id="waarom" className="section container introSection">
-        <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>Zekerheid zit in onze selectie.</h2></div><p className="sectionIntro">Elke auto moet aan vijf heldere voorwaarden voldoen. De historie, techniek en accugezondheid worden controleerbaar onderdeel van het verhaal.</p></div>
+        <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>Zekerheid wordt zichtbaar in vijf bewijzen.</h2></div><p className="sectionIntro">Wij combineren meetgegevens met onze ervaring uit de praktijk. Zo worden historie, onderhoud, kilometerstand en accugezondheid controleerbaar onderdeel van het verhaal.</p></div>
         <div className="assuranceGrid">{assurances.map(item => <article className="assuranceCard" key={item.title}><Image src={item.icon} alt="" width={46} height={46} /><div><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>
       </section>
 
