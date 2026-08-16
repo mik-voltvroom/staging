@@ -35,7 +35,7 @@ describe("publieke Volt & Vroom website", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Maximaal 5 jaar");
     expect(homepage).toContain("Maximaal 100.000 km");
-    expect(homepage).toContain("Eén vorige eigenaar");
+    expect(homepage).toContain("Eén eigenaar");
     expect(homepage).toContain("Dealeronderhouden");
     expect(homepage).toContain("SOH-accucontrole");
     expect(homepage).toContain("Onze ervaring uit de praktijk");
