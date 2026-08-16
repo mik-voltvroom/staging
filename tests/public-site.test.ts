@@ -24,10 +24,10 @@ describe("publieke Volt & Vroom website", () => {
 
   it("maakt aanbod, bewijs en primaire vervolgstap direct duidelijk", () => {
     const homepage = read("app/page.tsx");
-    expect(homepage).toContain("Hybride en elektrische occasions.");
-    expect(homepage).toContain("Aantoonbaar gecontroleerd.");
-    expect(homepage).toContain("Doe de Hybrid &amp; EV Match");
-    expect(homepage.indexOf('href="/keuzehulp"')).toBeLessThan(homepage.indexOf('href="#voorraad"'));
+    expect(homepage).toContain("Slim rijden.");
+    expect(homepage).toContain("Meer genieten.");
+    expect(homepage).toContain("Zorgvuldig geselecteerde hybride en elektrische occasions.");
+    expect(homepage.indexOf('href="#voorraad"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
     expect(homepage).not.toContain("Geen prijs zonder bewijs");
   });
 
@@ -38,6 +38,7 @@ describe("publieke Volt & Vroom website", () => {
     expect(homepage).toContain("Eén eigenaar");
     expect(homepage).toContain("Dealeronderhouden");
     expect(homepage).toContain("SOH-accucontrole");
+    expect(homepage).toContain("Zorgvuldig geselecteerd");
     expect(homepage).toContain("Onze ervaring uit de praktijk");
     expect(homepage).toContain(">Hybride<");
     expect(homepage).toContain(">Elektrisch<");
@@ -50,6 +51,8 @@ describe("publieke Volt & Vroom website", () => {
     expect(css).toContain(".proofGrid{grid-template-columns:repeat(2,minmax(0,1fr))}");
     expect(css).toContain(".hero .actions{display:grid;grid-template-columns:1fr}");
     expect(css).toContain("min-height:44px");
+    expect(css).toContain("--vv-electric:#168bff");
+    expect(css).toContain(".assuranceGrid{grid-template-columns:repeat(4,1fr)");
   });
 
   it("biedt afzonderlijke landingspagina's en een gevalideerde keuzehulp", () => {

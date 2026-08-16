@@ -3,17 +3,14 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
 import { SiteFooter } from "@/components/SiteFooter";
-import { VehicleCard } from "@/components/VehicleCard";
-import { vehicles } from "@/lib/sample-data";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const assurances = [
-  { icon: "/brand/icons/accugezondheid.svg", title: "SOH-accucontrole", text: "De gemeten accugezondheid wordt in een helder rapport vastgelegd en persoonlijk uitgelegd." },
-  { icon: "/brand/icons/praktijkverbruik.svg", title: "Onze ervaring uit de praktijk", text: "Wij vertalen praktijkverbruik, bereik en laadgedrag naar wat u tijdens uw eigen ritten kunt verwachten." },
-  { icon: "/brand/icons/historie.svg", title: "Aantoonbare historie", text: "Eigenaarschap, kilometerstand en voertuigverleden worden gecontroleerd en begrijpelijk gepresenteerd." },
-  { icon: "/brand/icons/onderhoud.svg", title: "Dealeronderhouden", text: "De onderhoudshistorie is aantoonbaar en uitgevoerd door de merkdealer." },
-  { icon: "/brand/icons/kilometerstand.svg", title: "Kilometerstand gecontroleerd", text: "Wij selecteren tot 100.000 kilometer en leggen de geregistreerde kilometerhistorie vast." },
+  { icon: "/brand/icons/accugezondheid.svg", title: "SOH-accucontrole", text: "De conditie van de hoogvoltaccu wordt gecontroleerd. Wij leggen helder uit wat de gemeten waarde voor deze auto betekent." },
+  { icon: "/brand/icons/praktijkverbruik.svg", title: "Onze ervaring uit de praktijk", text: "Geen verwachting uitsluitend uit de brochure. U krijgt een realistisch beeld van verbruik en elektrische actieradius bij normaal gebruik." },
+  { icon: "/brand/icons/historie.svg", title: "Aantoonbare historie", text: "Onderhoud, kilometerstand, eigenaarsinformatie en relevante voertuiggegevens worden vóór verkoop gecontroleerd." },
+  { icon: "/brand/icons/onderhoud.svg", title: "Zorgvuldig geselecteerd", text: "Geen willekeurige voorraad. Wij selecteren op leeftijd, kilometerstand, historie, uitvoering en technisch risico." },
 ];
 
 const steps = [
@@ -31,12 +28,13 @@ export default function HomePage() {
       <section className="heroShell" aria-labelledby="hero-title">
         <div className="container hero">
           <div className="heroCopy">
-            <p className="eyebrow">Hybride en elektrische occasions in Groningen</p>
-            <h1 id="hero-title">Hybride en elektrische occasions.<br /><em>Aantoonbaar gecontroleerd.</em></h1>
-            <p className="lead">Wij selecteren jonge auto’s op kilometerstand, eigenaarschap, dealeronderhoud en accugezondheid. Zo kiest u met begrijpelijk bewijs en persoonlijk advies.</p>
+            <p className="eyebrow">De hybride en elektrische specialist van Noord-Nederland</p>
+            <h1 id="hero-title">Slim rijden.<br /><em>Meer genieten.</em></h1>
+            <p className="heroDescriptor">Zorgvuldig geselecteerde hybride en elektrische occasions.</p>
+            <p className="lead">Aantoonbare historie, inzicht in de hoogvoltaccu en persoonlijk advies op basis van hoe u werkelijk rijdt.</p>
             <div className="actions">
-              <a className="button" href="/keuzehulp">Doe de Hybrid &amp; EV Match <span aria-hidden="true">→</span></a>
-              <a className="textButton" href="#voorraad">Bekijk geselecteerde auto’s</a>
+              <a className="button" href="#voorraad">Bekijk ons aanbod <span aria-hidden="true">→</span></a>
+              <a className="button secondary" href="/keuzehulp">Welke auto past bij mij?</a>
             </div>
           </div>
           <div className="heroVisual">
@@ -51,7 +49,7 @@ export default function HomePage() {
       </div></section>
 
       <section id="waarom" className="section container introSection">
-        <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>Zekerheid wordt zichtbaar in vijf bewijzen.</h2></div><p className="sectionIntro">Wij combineren meetgegevens met onze ervaring uit de praktijk. Zo worden historie, onderhoud, kilometerstand en accugezondheid controleerbaar onderdeel van het verhaal.</p></div>
+        <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>De juiste aandrijflijn. Aantoonbaar de juiste auto.</h2></div><p className="sectionIntro">Wij combineren meetgegevens met onze ervaring uit de praktijk. Zo worden historie, onderhoud, kilometerstand en accugezondheid controleerbaar onderdeel van het verhaal.</p></div>
         <div className="assuranceGrid">{assurances.map(item => <article className="assuranceCard" key={item.title}><Image src={item.icon} alt="" width={46} height={46} /><div><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>
       </section>
 
@@ -61,8 +59,8 @@ export default function HomePage() {
       </div></section>
 
       <section id="voorraad" className="section container">
-        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Uitgelichte voorraad</p><h2>Geteste auto’s. Begrijpelijk uitgelegd.</h2></div><p className="sectionIntro">Bekijk onze uitgelichte selectie. Beschikbare voertuigdocumentatie, actuele status en de onderbouwing van onze norm nemen wij persoonlijk met u door.</p></div>
-        <div className="grid vehicleGrid">{vehicles.map(vehicle => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}</div>
+        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Geselecteerd aanbod</p><h2>Alleen publiceren wat wij kunnen onderbouwen.</h2></div><p className="sectionIntro">Actuele auto’s verschijnen hier pas nadat historie, kilometerstand, technische staat en beschikbare accudata zijn gecontroleerd. Wij tonen geen verzonnen SOH- of praktijkwaarden.</p></div>
+        <div className="inventoryPlaceholder"><div><span>Voorraad in voorbereiding</span><h3>Wilt u als eerste weten welke auto’s beschikbaar komen?</h3><p>Vertel ons wat u zoekt. Wij nemen persoonlijk contact op zodra een passende, gecontroleerde auto beschikbaar is.</p></div><a className="button" href="#advies">Deel uw zoekopdracht <span aria-hidden="true">→</span></a></div>
       </section>
 
       <section className="section processSection" aria-labelledby="werkwijze-title"><div className="container">
@@ -72,7 +70,7 @@ export default function HomePage() {
 
       <section id="advies" className="section contactSection"><div className="container contactLayout">
         <div className="contactCopy"><p className="eyebrow">Persoonlijk advies</p><h2>Vertel ons hoe u rijdt.</h2><p className="lead">Wij leggen uit wat bij uw gebruik past en nemen persoonlijk contact met u op, zonder verkooppraat.</p><div className="contactFacts"><a href="tel:+31502113883"><span>Bel direct</span><strong>050 211 3883</strong></a><a href="mailto:mik@voltvroom.nl"><span>Stuur een e-mail</span><strong>mik@voltvroom.nl</strong></a><div><span>Bezoek op afspraak</span><strong>Euvelgunnerweg 50, Groningen</strong></div></div></div>
-        <ContactForm vehicles={vehicles.map(vehicle => ({ id: vehicle.id, label: `${vehicle.brand} ${vehicle.model}` }))} />
+        <ContactForm vehicles={[]} />
       </div></section>
     </main>
     <SiteFooter />

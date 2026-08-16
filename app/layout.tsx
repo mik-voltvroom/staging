@@ -10,7 +10,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Volt & Vroom | Slim rijden. Meer genieten.",
-  description: "Geteste hybride en elektrische auto’s met aantoonbare historie, heldere kosten, gemeten accugezondheid en persoonlijk advies vanuit Groningen.",
+  description: "Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie, inzicht in de hoogvoltaccu en persoonlijk advies vanuit Groningen.",
   openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Hybride of elektrisch? Volt & Vroom legt uit wat bij uw gebruik past." }] },
   twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", images: ["/editorial/hero-v2.png"] },
   robots: { index: true, follow: true },
