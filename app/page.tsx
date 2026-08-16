@@ -31,24 +31,23 @@ export default function HomePage() {
       <section className="heroShell" aria-labelledby="hero-title">
         <div className="container hero">
           <div className="heroCopy">
-            <p className="eyebrow">Hybride · Elektrisch · Icons</p>
-            <h1 id="hero-title">Slim rijden.<br /><em>Meer genieten.</em></h1>
-            <p className="lead">Geteste auto’s. Eerlijke informatie. Persoonlijk advies. Wij maken accugezondheid, verbruik, historie en kosten inzichtelijk voordat u kiest.</p>
+            <p className="eyebrow">Hybride en elektrische occasions in Groningen</p>
+            <h1 id="hero-title">Hybride en elektrische occasions.<br /><em>Aantoonbaar gecontroleerd.</em></h1>
+            <p className="lead">Wij selecteren jonge auto’s op kilometerstand, eigenaarschap, dealeronderhoud en accugezondheid. Zo kiest u met begrijpelijk bewijs en persoonlijk advies.</p>
             <div className="actions">
-              <a className="button" href="#voorraad">Bekijk ons aanbod <span aria-hidden="true">→</span></a>
-              <a className="textButton" href="/keuzehulp">Ontdek wat bij u past</a>
+              <a className="button" href="/keuzehulp">Doe de Hybrid &amp; EV Match <span aria-hidden="true">→</span></a>
+              <a className="textButton" href="#voorraad">Bekijk geselecteerde auto’s</a>
             </div>
-            <ul className="trustList" aria-label="Onze zekerheden"><li>Aantoonbaar gecontroleerd</li><li>SOH-rapport</li><li>Advies zonder druk</li></ul>
           </div>
           <div className="heroVisual">
             <div className="heroArtwork"><Image src="/editorial/hero-v2.png" alt="Een witte elektrische auto en een grafietgrijze hybride auto in een rustige studio" fill priority sizes="(max-width: 980px) 100vw, 52vw" /></div>
-            <div className="heroProof"><span>Onze norm</span><strong>Geen prijs zonder bewijs.</strong></div>
+            <div className="heroProof"><span>Onze selectienorm</span><strong>Vijf harde selectiecriteria.</strong></div>
           </div>
         </div>
       </section>
 
       <section className="proofBar" aria-label="Volt & Vroom in het kort"><div className="container proofGrid">
-        <div><strong>Maximaal 5 jaar</strong><span>Jonge, moderne auto’s</span></div><div><strong>Tot 100.000 km</strong><span>Gecontroleerde kilometerstand</span></div><div><strong>Eén vorige eigenaar</strong><span>Overzichtelijke herkomst</span></div><div><strong>SOH gemeten</strong><span>Accugezondheid in beeld</span></div>
+        <div><strong>Maximaal 5 jaar</strong><span>Jonge, moderne auto’s</span></div><div><strong>Maximaal 100.000 km</strong><span>Gecontroleerde kilometerstand</span></div><div><strong>Eén eigenaar</strong><span>Overzichtelijke herkomst</span></div><div><strong>Dealeronderhouden</strong><span>Onderhoud aantoonbaar vastgelegd</span></div><div><strong>SOH-controle</strong><span>Accugezondheid in beeld</span></div>
       </div></section>
 
       <section id="waarom" className="section container introSection">
@@ -57,12 +56,12 @@ export default function HomePage() {
       </section>
 
       <section className="choiceSection" aria-labelledby="keuze-title"><div className="container choiceGrid">
-        <div className="choiceCopy"><p className="eyebrow">Drie duidelijke werelden</p><h2 id="keuze-title">Welke auto past bij uw gebruik?</h2><p className="lead">Niet de trend, maar uw ritten, laadmogelijkheden en voorkeuren bepalen wat verstandig is. Wij leggen de verschillen uit en maken de gebruikskosten vergelijkbaar.</p><a className="textButton" href="#advies">Vraag persoonlijk advies <span aria-hidden="true">→</span></a></div>
+        <div className="choiceCopy"><p className="eyebrow">Drie duidelijke werelden</p><h2 id="keuze-title">Welke auto past bij uw gebruik?</h2><p className="lead">Niet de trend, maar uw ritten, laadmogelijkheden en voorkeuren bepalen wat verstandig is. Wij leggen de verschillen uit en maken de gebruikskosten vergelijkbaar.</p><a className="textButton" href="/keuzehulp">Start de keuzehulp <span aria-hidden="true">→</span></a></div>
         <div className="choiceCards"><article><Image className="choiceIcon" src="/brand/icons/hybride.svg" alt="" width={48} height={48} /><div><h3>Hybride</h3><p>Elektrische ondersteuning met de vertrouwdheid van een brandstofmotor. Geschikt voor wisselende afstanden.</p><a href="/hybride">Lees over hybride <span aria-hidden="true">→</span></a></div></article><article><Image className="choiceIcon" src="/brand/icons/elektrisch.svg" alt="" width={48} height={48} /><div><h3>Elektrisch</h3><p>Stil en direct rijden. Wij tonen bereik, laadmogelijkheden en gemeten accugezondheid.</p><a href="/elektrisch">Lees over elektrisch <span aria-hidden="true">→</span></a></div></article><article className="iconsChoice"><span className="iconsMark" aria-hidden="true">&amp;</span><div><h3>Icons</h3><p>Youngtimers, klassiekers in spe en bijzondere sportieve auto’s, geselecteerd op historie en techniek.</p><a href="/icons">Ontdek Icons <span aria-hidden="true">→</span></a></div></article></div>
       </div></section>
 
       <section id="voorraad" className="section container">
-        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Uitgelichte voorraad</p><h2>Geteste auto’s. Begrijpelijk uitgelegd.</h2></div><p className="sectionIntro">Bij iedere auto tonen wij prijs, aandrijving, kilometerstand, historie en accugezondheid. De voertuigpagina’s worden nog aangevuld; actuele informatie geven wij graag persoonlijk.</p></div>
+        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Uitgelichte voorraad</p><h2>Geteste auto’s. Begrijpelijk uitgelegd.</h2></div><p className="sectionIntro">Bekijk onze uitgelichte selectie. Beschikbare voertuigdocumentatie, actuele status en de onderbouwing van onze norm nemen wij persoonlijk met u door.</p></div>
         <div className="grid vehicleGrid">{vehicles.map(vehicle => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}</div>
       </section>
 
