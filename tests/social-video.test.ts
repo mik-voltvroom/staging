@@ -1,0 +1,62 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
+import { resolveSocialVideoUrl } from "@/lib/social-video/providers";
+
+const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
+
+describe("VV Stories / Social Video Engine", () => {
+  it("herkent YouTube watch, shorts en youtu.be URL's", async () => {
+    const watch = await resolveSocialVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    const short = await resolveSocialVideoUrl("https://www.youtube.com/shorts/dQw4w9WgXcQ");
+    const compact = await resolveSocialVideoUrl("https://youtu.be/dQw4w9WgXcQ");
+    expect(watch.platform).toBe("youtube");
+    expect(watch.aspectRatio).toBe("16:9");
+    expect(short.aspectRatio).toBe("9:16");
+    expect(compact.externalId).toBe("dQw4w9WgXcQ");
+    expect(watch.embedUrl).toContain("youtube-nocookie.com");
+  });
+
+  it("herkent volledige TikTok-video URL's zonder accountkoppeling", async () => {
+    const video = await resolveSocialVideoUrl("https://www.tiktok.com/@voltvroom/video/7512345678901234567");
+    expect(video.platform).toBe("tiktok");
+    expect(video.externalId).toBe("7512345678901234567");
+    expect(video.aspectRatio).toBe("9:16");
+  });
+
+  it("weigert onbekende platformen en onveilige protocollen", async () => {
+    await expect(resolveSocialVideoUrl("https://example.com/video/123")).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("http://www.youtube.com/watch?v=dQw4w9WgXcQ")).rejects.toThrow("HTTPS");
+  });
+
+  it("publiceert alleen allow-listed SocialVideo velden", () => {
+    const model = read("lib/social-video/model.ts");
+    expect(model).toContain("publicSocialVideoSchema");
+    expect(model).not.toContain("vin:");
+    expect(model).not.toContain("purchasePrice");
+    expect(model).not.toContain("margin");
+    expect(model).not.toContain("customer");
+  });
+
+  it("laadt externe spelers alleen na expliciete interactie", () => {
+    const component = read("components/SocialVideo.tsx");
+    expect(component).toContain("active && video.embedUrl");
+    expect(component).toContain("onClick={activate}");
+    expect(component).toContain("video_play");
+    expect(component).toContain("video_impression");
+  });
+
+  it("heeft een beveiligde VVOS-inbox en publieke videohub", () => {
+    expect(read("app/api/social-videos/route.ts")).toContain('authorizeApi(request, "socialVideos.write")');
+    expect(read("app/api/social-videos/[id]/route.ts")).toContain('authorizeApi(request, "socialVideos.write")');
+    expect(read("app/uit-de-praktijk/page.tsx")).toContain("SocialVideoHub");
+    expect(read("components/dashboard/DashboardNav.tsx")).toContain("/dashboard/social-video");
+  });
+
+  it("houdt accountkoppelingen en credentials buiten versie 1", () => {
+    const providers = read("lib/social-video/providers.ts");
+    expect(providers).not.toContain("clientSecret");
+    expect(providers).not.toContain("accessToken");
+    expect(providers).not.toContain("oauth");
+  });
+});
