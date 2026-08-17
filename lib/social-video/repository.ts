@@ -1,3 +1,4 @@
+import type { Query } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { publicSocialVideoSchema, socialVideoSchema, type PublicSocialVideo, type SocialVideo } from "@/lib/social-video/model";
 
@@ -34,7 +35,7 @@ export async function updateSocialVideo(id: string, patch: Partial<SocialVideo>)
 }
 
 export async function listPublishedSocialVideos(options: { placement?: keyof SocialVideo["placements"]; vehicleId?: string; limit?: number } = {}): Promise<PublicSocialVideo[]> {
-  let query: FirebaseFirestore.Query = requireDb().collection(COLLECTION).where("status", "==", "published");
+  let query: Query = requireDb().collection(COLLECTION).where("status", "==", "published");
   if (options.placement) query = query.where(`placements.${options.placement}`, "==", true);
   if (options.vehicleId) query = query.where("vehicleIds", "array-contains", options.vehicleId);
   const snapshot = await query.limit(Math.min(options.limit ?? 50, 100)).get();
