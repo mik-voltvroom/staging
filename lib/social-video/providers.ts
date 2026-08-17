@@ -1,4 +1,5 @@
-import type { SocialVideoPlatform } from "@/lib/social-video/model";
+import { createHash } from "node:crypto";
+import type { SocialVideo, SocialVideoPlatform, SocialVideoSourceState } from "@/lib/social-video/model";
 
 export type ResolvedSocialVideo = {
   platform: SocialVideoPlatform;
@@ -8,6 +9,12 @@ export type ResolvedSocialVideo = {
   thumbnailUrl?: string;
   aspectRatio: "9:16" | "16:9";
   suggestedTitle: string;
+};
+
+export type SocialVideoAvailability = {
+  state: Exclude<SocialVideoSourceState, "unchecked">;
+  checkedAt: string;
+  httpStatus?: number;
 };
 
 export interface SocialVideoProvider {
@@ -64,7 +71,7 @@ const tiktokProvider: SocialVideoProvider = {
     return {
       platform: "tiktok",
       externalId: id,
-      canonicalUrl: url.toString(),
+      canonicalUrl: `https://www.tiktok.com/@video/video/${id}`,
       embedUrl: `https://www.tiktok.com/player/v1/${id}?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=1`,
       aspectRatio: "9:16",
       suggestedTitle: "TikTok-video",
@@ -80,12 +87,13 @@ const instagramProvider: SocialVideoProvider = {
   async resolve(url) {
     const parts = url.pathname.split("/").filter(Boolean);
     const id = parts[1];
-    if (!id) throw new Error("Ongeldige Instagram-URL.");
+    if (!id || !/^[A-Za-z0-9_-]+$/.test(id)) throw new Error("Ongeldige Instagram-URL.");
+    const contentKind = parts[0] === "p" ? "p" : "reel";
     return {
       platform: "instagram",
       externalId: id,
-      canonicalUrl: url.toString(),
-      embedUrl: `${url.origin}/${parts[0]}/${id}/embed/`,
+      canonicalUrl: `https://www.instagram.com/${contentKind}/${id}/`,
+      embedUrl: `https://www.instagram.com/${contentKind}/${id}/embed/`,
       aspectRatio: "9:16",
       suggestedTitle: "Instagram-video",
     };
@@ -105,4 +113,37 @@ export async function resolveSocialVideoUrl(sourceUrl: string): Promise<Resolved
   const provider = providers.find(candidate => candidate.canHandle(url));
   if (!provider) throw new Error("Dit videoplatform of URL-formaat wordt nog niet ondersteund.");
   return provider.resolve(url);
+}
+
+export function socialVideoDocumentId(video: Pick<ResolvedSocialVideo, "platform" | "externalId" | "canonicalUrl">): string {
+  const identity = `${video.platform}:${video.externalId || video.canonicalUrl}`;
+  const digest = createHash("sha256").update(identity).digest("hex").slice(0, 24);
+  return `VIDEO-${digest}`;
+}
+
+function availabilityUrl(video: Pick<SocialVideo, "platform" | "sourceUrl">): string {
+  if (video.platform === "youtube") return `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(video.sourceUrl)}`;
+  if (video.platform === "tiktok") return `https://www.tiktok.com/oembed?url=${encodeURIComponent(video.sourceUrl)}`;
+  return video.sourceUrl;
+}
+
+export async function checkSocialVideoAvailability(
+  video: Pick<SocialVideo, "platform" | "sourceUrl">,
+  fetcher: typeof fetch = fetch,
+): Promise<SocialVideoAvailability> {
+  const checkedAt = new Date().toISOString();
+  try {
+    const response = await fetcher(availabilityUrl(video), {
+      method: "GET",
+      redirect: "manual",
+      signal: AbortSignal.timeout(5000),
+      headers: { "User-Agent": "VoltVroom-VVOS/1.0 availability-check" },
+      cache: "no-store",
+    });
+    if (response.status === 404 || response.status === 410) return { state: "unavailable", checkedAt, httpStatus: response.status };
+    if (response.status >= 200 && response.status < 400) return { state: "available", checkedAt, httpStatus: response.status };
+    return { state: "unknown", checkedAt, httpStatus: response.status };
+  } catch {
+    return { state: "unknown", checkedAt };
+  }
 }
