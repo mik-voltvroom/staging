@@ -31,6 +31,11 @@ const transitions: Record<SocialVideo["status"], ReadonlySet<SocialVideo["status
   unavailable: new Set(["unavailable", "review", "archived"]),
 };
 
+const editorialFields = new Set([
+  "title", "caption", "description", "contentType", "vehicleIds", "carCheckId", "vvVerifiedId",
+  "brand", "model", "tags", "featured", "placements",
+]);
+
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const auth = await authorizeApi(request, "socialVideos.read");
   if (auth.response) return auth.response;
@@ -60,11 +65,17 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return NextResponse.json({ error: "Deze video kan niet worden gepubliceerd omdat de bron niet beschikbaar is. Controleer de bron opnieuw." }, { status: 409 });
     }
 
+    const hasEditorialMutation = Object.keys(parsed.data).some(key => editorialFields.has(key));
+    if (before.status === "published" && hasEditorialMutation && parsed.data.status === "published") {
+      return NextResponse.json({ error: "Wijzig eerst de reviewgegevens en publiceer de video daarna opnieuw." }, { status: 409 });
+    }
+
     const patch: Partial<SocialVideo> = { ...parsed.data } as Partial<SocialVideo>;
     if (parsed.data.brand === null) patch.brand = undefined;
     if (parsed.data.model === null) patch.model = undefined;
     if (parsed.data.carCheckId === null) patch.carCheckId = undefined;
     if (parsed.data.vvVerifiedId === null) patch.vvVerifiedId = undefined;
+    if (before.status === "published" && hasEditorialMutation && !parsed.data.status) patch.status = "review";
     if (parsed.data.status === "published" && before.status !== "published") patch.publishedAt = new Date().toISOString();
 
     const video = await updateSocialVideo(id, patch);
@@ -79,6 +90,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         vehicleIds: video.vehicleIds,
         contentType: video.contentType,
         placements: video.placements,
+        editorialMutation: hasEditorialMutation,
       },
       request,
     });
