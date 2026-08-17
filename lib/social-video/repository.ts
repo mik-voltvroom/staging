@@ -4,6 +4,13 @@ import { publicSocialVideoSchema, socialVideoSchema, type PublicSocialVideo, typ
 
 const COLLECTION = "socialVideos";
 
+export class DuplicateSocialVideoError extends Error {
+  constructor() {
+    super("Deze socialvideo staat al in VVOS.");
+    this.name = "DuplicateSocialVideoError";
+  }
+}
+
 function requireDb() {
   if (!adminDb) throw new Error("Firestore is niet beschikbaar.");
   return adminDb;
@@ -13,10 +20,21 @@ function firestoreSafe<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+function isAlreadyExists(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: unknown; message?: unknown };
+  return candidate.code === 6 || candidate.code === "already-exists" || String(candidate.message || "").includes("ALREADY_EXISTS");
+}
+
 export async function createSocialVideo(video: SocialVideo): Promise<SocialVideo> {
   const parsed = socialVideoSchema.parse(video);
   const safe = firestoreSafe(parsed);
-  await requireDb().collection(COLLECTION).doc(safe.id).set(safe, { merge: false });
+  try {
+    await requireDb().collection(COLLECTION).doc(safe.id).create(safe);
+  } catch (error) {
+    if (isAlreadyExists(error)) throw new DuplicateSocialVideoError();
+    throw error;
+  }
   return safe;
 }
 
