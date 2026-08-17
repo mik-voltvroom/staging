@@ -1,0 +1,9 @@
+import { VEHICLE_DOSSIER_FOLDERS } from "@/lib/drive/business";
+const DRIVE_API="https://www.googleapis.com/drive/v3/files";
+export interface DriveFolder{id:string;name:string;webViewLink?:string} export interface VehicleDossierResult extends DriveFolder{childFolderIds:Record<string,string>}
+function esc(v:string){return v.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}
+async function req<T>(token:string,url:string,init?:RequestInit):Promise<T>{const r=await fetch(url,{...init,headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json",...(init?.headers??{})},cache:"no-store"});if(!r.ok)throw new Error(`Google Drive API ${r.status}: ${await r.text()}`);return r.json() as Promise<T>}
+async function find(token:string,parent:string,name:string){const q=`'${esc(parent)}' in parents and name='${esc(name)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;const p=new URLSearchParams({q,fields:"files(id,name,webViewLink)",pageSize:"10",supportsAllDrives:"true",includeItemsFromAllDrives:"true"});const x=await req<{files:DriveFolder[]}>(token,`${DRIVE_API}?${p}`);return x.files[0]??null}
+async function create(token:string,parent:string,name:string){return req<DriveFolder>(token,`${DRIVE_API}?supportsAllDrives=true&fields=id,name,webViewLink`,{method:"POST",body:JSON.stringify({name,mimeType:"application/vnd.google-apps.folder",parents:[parent]})})}
+async function ensure(token:string,parent:string,name:string){return(await find(token,parent,name))??create(token,parent,name)}
+export async function provisionVehicleDossier(token:string,parent:string,name:string):Promise<VehicleDossierResult>{const root=await ensure(token,parent,name);const childFolderIds:Record<string,string>={};for(const child of VEHICLE_DOSSIER_FOLDERS){childFolderIds[child]=(await ensure(token,root.id,child)).id}return{...root,webViewLink:root.webViewLink??`https://drive.google.com/drive/folders/${root.id}`,childFolderIds}}
