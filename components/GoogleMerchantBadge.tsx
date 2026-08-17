@@ -23,7 +23,7 @@ export function GoogleMerchantBadge() {
     <Script
       id="merchantWidgetScript"
       src="https://www.gstatic.com/shopping/merchant/merchantwidget.js"
-      strategy="afterInteractive"
+      strategy="lazyOnload"
       onLoad={() => {
         window.merchantwidget?.start({
           merchant_id: 5838389580,
@@ -32,7 +32,7 @@ export function GoogleMerchantBadge() {
           sideMargin: 24,
           bottomMargin: 24,
           mobileSideMargin: 16,
-          mobileBottomMargin: 24,
+          mobileBottomMargin: 92,
         });
       }}
     />
