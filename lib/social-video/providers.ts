@@ -32,6 +32,22 @@ function isHost(hostname: string, domain: string): boolean {
   return hostname === domain || hostname.endsWith(`.${domain}`);
 }
 
+function safeTitle(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized ? normalized.slice(0, 180) : fallback;
+}
+
+function safeHttpsUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 async function publicMetadata(endpoint: string, fetcher: typeof fetch): Promise<OEmbedMetadata | null> {
   try {
     const response = await fetcher(endpoint, {
@@ -43,7 +59,7 @@ async function publicMetadata(endpoint: string, fetcher: typeof fetch): Promise<
     });
     if (!response.ok) return null;
     const data = await response.json() as OEmbedMetadata;
-    return data && typeof data === "object" ? data : null;
+    return data && typeof data === "object" && !Array.isArray(data) ? data : null;
   } catch {
     return null;
   }
@@ -75,9 +91,9 @@ const youtubeProvider: SocialVideoProvider = {
       externalId: id,
       canonicalUrl,
       embedUrl: `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
-      thumbnailUrl: metadata?.thumbnail_url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+      thumbnailUrl: safeHttpsUrl(metadata?.thumbnail_url) || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
       aspectRatio: isShort ? "9:16" : "16:9",
-      suggestedTitle: metadata?.title?.trim() || "YouTube-video",
+      suggestedTitle: safeTitle(metadata?.title, "YouTube-video"),
     };
   },
 };
@@ -105,9 +121,9 @@ const tiktokProvider: SocialVideoProvider = {
       externalId: id,
       canonicalUrl,
       embedUrl: `https://www.tiktok.com/player/v1/${id}?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=1`,
-      thumbnailUrl: metadata?.thumbnail_url,
+      thumbnailUrl: safeHttpsUrl(metadata?.thumbnail_url),
       aspectRatio: "9:16",
-      suggestedTitle: metadata?.title?.trim() || "TikTok-video",
+      suggestedTitle: safeTitle(metadata?.title, "TikTok-video"),
     };
   },
 };
