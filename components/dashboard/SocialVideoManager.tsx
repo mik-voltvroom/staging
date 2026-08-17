@@ -25,7 +25,8 @@ export function SocialVideoManager() {
     event.preventDefault();
     setState("saving");
     setMessage("");
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const payload = {
       sourceUrl: String(form.get("sourceUrl") || ""),
       title: String(form.get("title") || "") || undefined,
@@ -50,13 +51,14 @@ export function SocialVideoManager() {
       setState("error");
       return;
     }
-    event.currentTarget.reset();
+    formElement.reset();
     setMessage("Video staat in review en is nog niet publiek zichtbaar.");
     await load();
   }
 
   async function patchVideo(id: string, patch: Record<string, unknown>) {
     setState("saving");
+    setMessage("");
     const response = await fetch(`/api/social-videos/${encodeURIComponent(id)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) }).catch(() => null);
     if (!response?.ok) {
       const body = response ? await response.json().catch(() => null) : null;
@@ -66,6 +68,23 @@ export function SocialVideoManager() {
     }
     const data = await response.json();
     setVideos(current => current.map(video => video.id === id ? data.video : video));
+    setState("idle");
+  }
+
+  async function checkAvailability(id: string) {
+    setState("saving");
+    setMessage("");
+    const response = await fetch(`/api/social-videos/${encodeURIComponent(id)}/availability`, { method: "POST" }).catch(() => null);
+    if (!response?.ok) {
+      const body = response ? await response.json().catch(() => null) : null;
+      setMessage(body?.error || "Broncontrole is niet gelukt.");
+      setState("error");
+      return;
+    }
+    const data = await response.json();
+    setVideos(current => current.map(video => video.id === id ? data.video : video));
+    const label = data.availability?.state === "available" ? "beschikbaar" : data.availability?.state === "unavailable" ? "niet beschikbaar" : "niet met zekerheid te controleren";
+    setMessage(`Broncontrole afgerond: ${label}.`);
     setState("idle");
   }
 
@@ -104,9 +123,10 @@ export function SocialVideoManager() {
     <section className="panel"><div className="panelHeader"><div><p className="eyebrow">Video-inbox</p><h2>Review &amp; publicatie</h2></div><button className="textLink" type="button" onClick={() => void load()}>Vernieuwen</button></div>
       {state === "loading" ? <p className="muted">Video's laden…</p> : videos.length === 0 ? <p className="muted">Nog geen video's. Voeg hierboven de eerste social-URL toe.</p> : <div className="socialVideoAdminList">{videos.map(video => <article key={video.id}>
         <div className="socialVideoAdminThumb">{video.thumbnailUrl ? <img src={video.thumbnailUrl} alt="" loading="lazy" /> : <span>VV</span>}</div>
-        <div className="socialVideoAdminMain"><div><span className={`statusBadge status-${video.status}`}>{video.status}</span><small>{video.platform} · {video.contentType}</small></div><h3>{video.title}</h3><p>{[video.brand, video.model, video.vehicleIds.join(", ")].filter(Boolean).join(" · ") || "Nog niet aan een voertuig gekoppeld"}</p><p>{video.analytics.impressions} impressies · {video.analytics.playClicks} plays · {video.analytics.vehicleClicks} autokliks</p><div className="socialVideoAdminActions">
-          {video.status !== "published" && video.status !== "archived" && <button type="button" onClick={() => void patchVideo(video.id, { status: "published" })}>Publiceren</button>}
+        <div className="socialVideoAdminMain"><div><span className={`statusBadge status-${video.status}`}>{video.status}</span><small>{video.platform} · {video.contentType}</small></div><h3>{video.title}</h3><p>{[video.brand, video.model, video.vehicleIds.join(", ")].filter(Boolean).join(" · ") || "Nog niet aan een voertuig gekoppeld"}</p><p>{video.analytics.impressions} impressies · {video.analytics.playClicks} plays · {video.analytics.vehicleClicks} autokliks</p><p className="muted">Bron: {video.sourceState}{video.sourceCheckedAt ? ` · gecontroleerd ${new Date(video.sourceCheckedAt).toLocaleString("nl-NL")}` : ""}</p><div className="socialVideoAdminActions">
+          {video.status !== "published" && video.status !== "archived" && video.status !== "unavailable" && <button type="button" onClick={() => void patchVideo(video.id, { status: "published" })}>Publiceren</button>}
           {video.status === "published" && <button type="button" onClick={() => void patchVideo(video.id, { status: "review" })}>Terug naar review</button>}
+          <button type="button" disabled={state === "saving"} onClick={() => void checkAvailability(video.id)}>Controleer bron</button>
           {video.status !== "archived" && <button type="button" onClick={() => void patchVideo(video.id, { status: "archived" })}>Archiveren</button>}
           <a href={video.sourceUrl} target="_blank" rel="noopener noreferrer">Bron ↗</a>
         </div></div>
