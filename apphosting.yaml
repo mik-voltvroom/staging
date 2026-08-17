@@ -44,6 +44,17 @@ env:
     value: 1:241472991923:web:75467e4adfacf620e936c6
     availability: [BUILD, RUNTIME]
 
+  # Google Drive Shared Drive koppeling. Keyless via de App Hosting runtime identity.
+  - variable: GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL
+    value: firebase-app-hosting-compute@voltvroom-staging.iam.gserviceaccount.com
+    availability: [RUNTIME]
+  - variable: GOOGLE_DRIVE_SHARED_DRIVE_ID
+    value: 0ACwIWboayPM-Uk9PVA
+    availability: [RUNTIME]
+  - variable: GOOGLE_DRIVE_VEHICLES_FOLDER_ID
+    value: 1ZoHbhdXiw_05xQeJZIlrLCRKt22rINhu
+    availability: [RUNTIME]
+
   # Same secret names, separate values in each Firebase project.
   - variable: CRON_SECRET
     secret: CRON_SECRET
