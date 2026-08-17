@@ -61,9 +61,27 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     }
 
     const patch: Partial<SocialVideo> = { ...parsed.data } as Partial<SocialVideo>;
+    if (parsed.data.brand === null) patch.brand = undefined;
+    if (parsed.data.model === null) patch.model = undefined;
+    if (parsed.data.carCheckId === null) patch.carCheckId = undefined;
+    if (parsed.data.vvVerifiedId === null) patch.vvVerifiedId = undefined;
     if (parsed.data.status === "published" && before.status !== "published") patch.publishedAt = new Date().toISOString();
+
     const video = await updateSocialVideo(id, patch);
-    await writeAuditEvent({ action: "socialVideo.updated", entityType: "socialVideo", entityId: id, actor: auth.actor, metadata: { fromStatus: before.status, toStatus: video.status, vehicleIds: video.vehicleIds }, request });
+    await writeAuditEvent({
+      action: "socialVideo.updated",
+      entityType: "socialVideo",
+      entityId: id,
+      actor: auth.actor,
+      metadata: {
+        fromStatus: before.status,
+        toStatus: video.status,
+        vehicleIds: video.vehicleIds,
+        contentType: video.contentType,
+        placements: video.placements,
+      },
+      request,
+    });
     return NextResponse.json({ video });
   } catch {
     return NextResponse.json({ error: "Video kon niet worden bijgewerkt." }, { status: 503 });
