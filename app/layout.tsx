@@ -4,6 +4,7 @@ import "@fontsource-variable/manrope";
 import "./globals.css";
 import "./public.css";
 import "./enhancements.css";
+import "./social-video.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { GoogleMerchantBadge } from "@/components/GoogleMerchantBadge";
 import { MobileActionBar } from "@/components/MobileActionBar";
