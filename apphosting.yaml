@@ -15,15 +15,10 @@ env:
     availability: [BUILD, RUNTIME]
   - variable: VVOS_REQUIRE_AUTH
     value: "true"
-    availability:
-      - BUILD
-      - RUNTIME]
-
+    availability: [BUILD, RUNTIME]
   - variable: VVOS_DATA_MODE
     value: firebase
-    availability:
-      - BUILD
-      - RUNTIME
+    availability: [BUILD, RUNTIME]
 
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     value: AIzaSyCSTUhvLEuJsododYPMyY7Am6br1HTMNx4
@@ -45,22 +40,18 @@ env:
     availability: [BUILD, RUNTIME]
 
   # Google Drive / Shared Drive koppeling voor Volt & Vroom.
+  # Keyless: App Hosting runtime identity impersonates this dedicated service account.
+  - variable: GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL
+    value: firebase-adminsdk-fbsvc@voltvroom-ef9f6.iam.gserviceaccount.com
+    availability: [RUNTIME]
   - variable: GOOGLE_DRIVE_SHARED_DRIVE_ID
     value: 0ACwIWboayPM-Uk9PVA
     availability: [RUNTIME]
   - variable: GOOGLE_DRIVE_BUSINESS_ROOT_FOLDER_ID
     value: 1fcxDroI7gNhWN6OJcS5dgVuSXZvKcGgq
     availability: [RUNTIME]
-  # Vaste targetmap `03 Voertuigen` in de Volt & Vroom bedrijfsomgeving.
   - variable: GOOGLE_DRIVE_VEHICLES_FOLDER_ID
     value: 1pRkSoOpUcp8VFFtz3-pDoxmBkBtb3M9R
-    availability: [RUNTIME]
-  # Geheim: service-account identiteit en private key worden via Firebase Secret Manager geleverd.
-  - variable: GOOGLE_DRIVE_CLIENT_EMAIL
-    secret: GOOGLE_DRIVE_CLIENT_EMAIL
-    availability: [RUNTIME]
-  - variable: GOOGLE_DRIVE_PRIVATE_KEY
-    secret: GOOGLE_DRIVE_PRIVATE_KEY
     availability: [RUNTIME]
 
   # Same secret names, separate values in each Firebase project.
