@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { HomepageSocialVideos } from "@/components/HomepageSocialVideos";
 import { SiteFooter } from "@/components/SiteFooter";
 
+export const revalidate = 60;
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const assurances = [
