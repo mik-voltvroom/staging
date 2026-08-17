@@ -4,6 +4,7 @@ import "@fontsource-variable/manrope";
 import "./globals.css";
 import "./public.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { GoogleMerchantBadge } from "@/components/GoogleMerchantBadge";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl";
 
@@ -19,5 +20,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#ffffff", colorScheme: "light", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="nl"><body><AuthProvider>{children}</AuthProvider></body></html>;
+  return <html lang="nl"><body><AuthProvider>{children}</AuthProvider><GoogleMerchantBadge /></body></html>;
 }
