@@ -9,10 +9,15 @@ function requireDb() {
   return adminDb;
 }
 
+function firestoreSafe<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 export async function createSocialVideo(video: SocialVideo): Promise<SocialVideo> {
   const parsed = socialVideoSchema.parse(video);
-  await requireDb().collection(COLLECTION).doc(parsed.id).set(parsed, { merge: false });
-  return parsed;
+  const safe = firestoreSafe(parsed);
+  await requireDb().collection(COLLECTION).doc(safe.id).set(safe, { merge: false });
+  return safe;
 }
 
 export async function listSocialVideos(): Promise<SocialVideo[]> {
@@ -29,7 +34,7 @@ export async function updateSocialVideo(id: string, patch: Partial<SocialVideo>)
   const ref = requireDb().collection(COLLECTION).doc(id);
   const current = await ref.get();
   if (!current.exists) throw new Error("Video niet gevonden.");
-  const next = socialVideoSchema.parse({ ...current.data(), ...patch, id, updatedAt: new Date().toISOString() });
+  const next = firestoreSafe(socialVideoSchema.parse({ ...current.data(), ...patch, id, updatedAt: new Date().toISOString() }));
   await ref.set(next, { merge: false });
   return next;
 }
