@@ -1,7 +1,8 @@
 import { firebaseManagementProjectId, getFirebaseManagementAccessToken } from "@/lib/firebase-management/auth";
 
 const API = "https://secretmanager.googleapis.com/v1";
-export const VVOS_MANAGED_SECRETS = ["GOOGLE_DRIVE_CLIENT_EMAIL", "GOOGLE_DRIVE_PRIVATE_KEY"] as const;
+// Drive authentication is deliberately absent: VVOS uses keyless Google runtime identity.
+export const VVOS_MANAGED_SECRETS = ["CRON_SECRET", "VWE_WEBHOOK_SECRET", "PORTAL_TOKEN_SECRET", "AUDIT_HASH_SALT"] as const;
 export type ManagedSecretName = typeof VVOS_MANAGED_SECRETS[number];
 
 function isManagedSecret(name: string): name is ManagedSecretName {
