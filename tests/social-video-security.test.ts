@@ -50,4 +50,11 @@ describe("Social Video security boundary", () => {
     expect(editor).toContain('name="vvVerifiedId"');
     expect(editor).toContain('name="carCheckId"');
   });
+
+  it("maakt geen voertuig-URL door een intern vehicleId als slug te behandelen", () => {
+    const component = read("components/SocialVideo.tsx");
+    expect(component).toContain("vehicleHref?: string");
+    expect(component).toContain("vehicleHref && video.vehicleIds.length > 0");
+    expect(component).not.toContain("`/voorraad/${video.vehicleIds[0]}`");
+  });
 });
