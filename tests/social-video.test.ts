@@ -51,6 +51,12 @@ describe("VV Stories / Social Video Engine", () => {
     expect(repository).toContain(".create(safe)");
   });
 
+  it("blokkeert publicatie wanneer de bron bekend onbeschikbaar is", () => {
+    const route = read("app/api/social-videos/[id]/route.ts");
+    expect(route).toContain('parsed.data.status === "published" && before.sourceState === "unavailable"');
+    expect(route).toContain("Deze video kan niet worden gepubliceerd omdat de bron niet beschikbaar is");
+  });
+
   it("publiceert alleen allow-listed SocialVideo velden", () => {
     const model = read("lib/social-video/model.ts");
     expect(model).toContain("publicSocialVideoSchema");
