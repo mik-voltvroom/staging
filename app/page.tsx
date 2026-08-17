@@ -7,10 +7,10 @@ import { SiteFooter } from "@/components/SiteFooter";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const assurances = [
-  { icon: "/brand/icons/accugezondheid.svg", title: "SOH-accucontrole", text: "De conditie van de hoogvoltaccu wordt gecontroleerd. Wij leggen helder uit wat de gemeten waarde voor deze auto betekent." },
+  { icon: "/brand/icons/accugezondheid.svg", title: "SOH-accucontrole", text: "De conditie van de hoogvoltaccu wordt gecontroleerd waar dat technisch relevant is. Wij leggen helder uit wat de gemeten waarde voor deze auto betekent." },
   { icon: "/brand/icons/praktijkverbruik.svg", title: "Onze ervaring uit de praktijk", text: "Geen verwachting uitsluitend uit de brochure. U krijgt een realistisch beeld van verbruik en elektrische actieradius bij normaal gebruik." },
   { icon: "/brand/icons/historie.svg", title: "Aantoonbare historie", text: "Onderhoud, kilometerstand, eigenaarsinformatie en relevante voertuiggegevens worden vóór verkoop gecontroleerd." },
-  { icon: "/brand/icons/onderhoud.svg", title: "Zorgvuldig geselecteerd", text: "Geen willekeurige voorraad. Wij selecteren op leeftijd, kilometerstand, historie, uitvoering en technisch risico." },
+  { icon: "/brand/icons/onderhoud.svg", title: "Zorgvuldig geselecteerd", text: "Geen willekeurige voorraad. Wij beoordelen leeftijd, kilometerstand, historie, uitvoering en technisch risico als samenhangend geheel." },
 ];
 
 const steps = [
@@ -39,13 +39,13 @@ export default function HomePage() {
           </div>
           <div className="heroVisual">
             <div className="heroArtwork"><Image src="/editorial/hero-v2.png" alt="Een witte elektrische auto en een grafietgrijze hybride auto in een rustige studio" fill priority sizes="(max-width: 980px) 100vw, 52vw" /></div>
-            <div className="heroProof"><span>Onze selectienorm</span><strong>Vijf harde selectiecriteria.</strong></div>
+            <div className="heroProof"><span>Onze selectienorm</span><strong>Vijf controlepunten vóór publicatie.</strong></div>
           </div>
         </div>
       </section>
 
       <section className="proofBar" aria-label="Volt & Vroom in het kort"><div className="container proofGrid">
-        <div><strong>Maximaal 5 jaar</strong><span>Jonge, moderne auto’s</span></div><div><strong>Maximaal 100.000 km</strong><span>Gecontroleerde kilometerstand</span></div><div><strong>Eén eigenaar</strong><span>Overzichtelijke herkomst</span></div><div><strong>Dealeronderhouden</strong><span>Onderhoud aantoonbaar vastgelegd</span></div><div><strong>SOH-controle</strong><span>Accugezondheid in beeld</span></div>
+        <div><strong>Gecontroleerde kilometerstand</strong><span>Kilometerverloop beoordeeld</span></div><div><strong>Aantoonbare historie</strong><span>Herkomst en onderhoud inzichtelijk</span></div><div><strong>Technisch geselecteerd</strong><span>Geen willekeurige voorraad</span></div><div><strong>Onderhoud inzichtelijk</strong><span>Documentatie vóór publicatie</span></div><div><strong>SOH waar relevant</strong><span>Accugezondheid in beeld</span></div>
       </div></section>
 
       <section id="waarom" className="section container introSection">
