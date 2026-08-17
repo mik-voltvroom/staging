@@ -15,6 +15,7 @@ export function ContactForm({ vehicles }: { vehicles: { id: string; label: strin
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     const interest = String(form.get("interest") || "Adviesgesprek");
+    const contactPreference = String(form.get("contactPreference") || "phone");
     const vehicleId = String(form.get("vehicleId") || "");
     const email = String(form.get("email") || "").trim();
     const phone = String(form.get("phone") || "").trim();
@@ -34,7 +35,7 @@ export function ContactForm({ vehicles }: { vehicles: { id: string; label: strin
         phone: phone || undefined,
         vehicleId: vehicleId || undefined,
         channel: "website",
-        message: `${interest}: ${String(form.get("message") || "Geen aanvullende toelichting.")}`,
+        message: `${interest}. Voorkeur contact: ${contactPreference}. ${String(form.get("message") || "Geen aanvullende toelichting.")}`,
         consent: form.get("consent") === "on",
         website: String(form.get("website") || ""),
       }),
@@ -43,6 +44,7 @@ export function ContactForm({ vehicles }: { vehicles: { id: string; label: strin
     if (response?.ok) {
       setState("success");
       setFeedback("Gelukt. Uw aanvraag is ontvangen; we nemen persoonlijk contact met u op.");
+      window.dispatchEvent(new CustomEvent("vv:lead-submitted", { detail: { form: "contact", interest } }));
       formElement.reset();
     } else {
       setState("error");
