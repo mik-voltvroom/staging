@@ -7,6 +7,7 @@ export function DashboardNav() {
       <Link href="/dashboard">Overzicht</Link>
       <Link href="/dashboard/voorraad">Voorraad</Link>
       <Link href="/dashboard/leads">Leads</Link>
+      <Link href="/dashboard/social-video">Social &amp; Video</Link>
       <Link href="/dashboard/werkplaats">Werkplaats</Link>
       <Link href="/dashboard/finance">Finance</Link>
       <Link href="/dashboard/management">Management</Link>
