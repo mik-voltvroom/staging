@@ -3,6 +3,7 @@ import { z } from "zod";
 export const socialVideoPlatformSchema = z.enum(["tiktok", "youtube", "instagram", "native"]);
 export const socialVideoStatusSchema = z.enum(["draft", "review", "published", "archived", "unavailable"]);
 export const socialVideoContentTypeSchema = z.enum(["vehicle", "carcheck", "review", "explanation", "delivery", "showroom", "news", "short"]);
+export const socialVideoSourceStateSchema = z.enum(["unchecked", "available", "unavailable", "unknown"]);
 
 const socialVideoAnalyticsSchema = z.object({
   impressions: z.number().int().nonnegative().default(0),
@@ -24,6 +25,8 @@ export const socialVideoSchema = z.object({
   thumbnailUrl: z.string().url().optional(),
   embedUrl: z.string().url().optional(),
   status: socialVideoStatusSchema,
+  sourceState: socialVideoSourceStateSchema.default("unchecked"),
+  sourceCheckedAt: z.string().datetime().optional(),
   contentType: socialVideoContentTypeSchema,
   vehicleIds: z.array(z.string()).default([]),
   carCheckId: z.string().optional(),
@@ -49,6 +52,7 @@ export const socialVideoSchema = z.object({
 
 export type SocialVideo = z.infer<typeof socialVideoSchema>;
 export type SocialVideoPlatform = z.infer<typeof socialVideoPlatformSchema>;
+export type SocialVideoSourceState = z.infer<typeof socialVideoSourceStateSchema>;
 
 export const socialVideoCreateSchema = z.object({
   sourceUrl: z.string().url(),
