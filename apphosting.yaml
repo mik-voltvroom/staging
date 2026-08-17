@@ -40,9 +40,9 @@ env:
     availability: [BUILD, RUNTIME]
 
   # Google Drive / Shared Drive koppeling voor Volt & Vroom.
-  # Keyless: App Hosting runtime identity impersonates this dedicated service account.
+  # Keyless: App Hosting runtime identity requests a short-lived Drive token for itself.
   - variable: GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL
-    value: firebase-adminsdk-fbsvc@voltvroom-ef9f6.iam.gserviceaccount.com
+    value: firebase-app-hosting-compute@voltvroom-staging.iam.gserviceaccount.com
     availability: [RUNTIME]
   - variable: GOOGLE_DRIVE_SHARED_DRIVE_ID
     value: 0ACwIWboayPM-Uk9PVA
