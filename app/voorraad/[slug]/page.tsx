@@ -4,6 +4,8 @@ import { VehicleSocialVideos } from "@/components/VehicleSocialVideos";
 import { eur, km } from "@/lib/format";
 import { vehicles } from "@/lib/sample-data";
 
+export const revalidate = 60;
+
 export function generateStaticParams() { return vehicles.map(v => ({ slug: v.slug })); }
 
 export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
