@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
+import { PlacementSocialVideos } from "@/components/PlacementSocialVideos";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
@@ -31,6 +32,8 @@ export default function VVVerifiedPage() {
       <section className="section container"><div className="sectionHeading splitHeading"><div><p className="eyebrow">Onze controle</p><h2>Acht stappen vóór publicatie.</h2></div><p className="sectionIntro">Niet iedere auto vraagt exact dezelfde meting. Wel moet iedere gepubliceerde auto voldoende bewijs hebben voor de claims die wij maken.</p></div><div className="verificationSteps">{checks.map(([title,text]) => <article key={title}><h3>{title}</h3><p>{text}</p></article>)}</div></section>
 
       <section className="evidenceBand"><div className="container evidenceBandGrid"><div><p className="eyebrow">Evidence first</p><h2>Wat we niet kunnen onderbouwen, beloven we niet.</h2><p>Bij Volt & Vroom hoort transparantie ook te betekenen dat onzekerheden zichtbaar blijven. Een ontbrekende meting wordt niet vervangen door een schatting en een folderwaarde wordt niet als praktijkwaarde gepresenteerd.</p></div><ul className="evidenceList"><li>Aantoonbare historie boven verkooppraat.</li><li>Gemeten accudata boven aannames.</li><li>Praktijkinformatie naast fabrieksgegevens.</li><li>Openstaande aandachtspunten vóór de koop bespreken.</li><li>Documentatie en meetresultaten onderdeel van het voertuigdossier.</li></ul></div></section>
+
+      <PlacementSocialVideos placement="carCheck" eyebrow="VV Stories · Bewijs in beeld" title="Bekijk hoe we controleren." intro="Technische uitlegvideo's worden pas hier getoond nadat ze in VVOS zijn beoordeeld en voor deze bewijslaag zijn gepubliceerd." />
 
       <section className="section container"><div className="sectionHeading splitHeading"><div><p className="eyebrow">CarCheck</p><h2>De volgende laag wordt nog uitgebreider.</h2></div><p className="sectionIntro">VV Verified is de publicatie- en kwaliteitsnorm van Volt & Vroom. CarCheck bouwt hierop voort met een uitgebreider evidence-first voertuigdossier. Totdat die module volledig is afgerond, publiceren we alleen gegevens die daadwerkelijk beschikbaar en gecontroleerd zijn.</p></div></section>
     </main>
