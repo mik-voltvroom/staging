@@ -1,0 +1,24 @@
+import type { Metadata } from "next";
+import { Header } from "@/components/Header";
+import { SiteFooter } from "@/components/SiteFooter";
+import { ContactForm } from "@/components/ContactForm";
+
+export const metadata: Metadata = {
+  title: "Contact & route | Volt & Vroom Groningen",
+  description: "Neem contact op met Volt & Vroom aan de Euvelgunnerweg 50 in Groningen voor persoonlijk advies over hybride en elektrische occasions.",
+  alternates: { canonical: "/contact" },
+};
+
+export default function ContactPage() {
+  return <>
+    <Header />
+    <main className="contactPage"><div className="container">
+      <div className="contactPageGrid">
+        <div><p className="eyebrow">Volt & Vroom Groningen</p><h1>Kom langs of neem direct contact op.</h1><p className="lead">Wilt u een auto bekijken, uw situatie bespreken of gewoon weten welke aandrijflijn logisch is? Neem contact op. We houden het persoonlijk en duidelijk.</p><div className="contactDetails"><article><h2>Adres</h2><p>Euvelgunnerweg 50<br />9723 CW Groningen</p></article><article><h2>Contact</h2><p><a href="tel:+31502113883" data-vv-event="phone_click">050 211 3883</a><br /><a href="mailto:mik@voltvroom.nl" data-vv-event="email_click">mik@voltvroom.nl</a></p></article><article><h2>Bezoek plannen</h2><p>Plan uw route vooraf of neem contact op wanneer u speciaal voor een voertuig komt. Zo zorgen we dat er tijd is voor uitleg en een proefrit.</p></article></div></div>
+        <aside className="contactPageCard"><strong>Route naar Volt & Vroom</strong><a className="button" href="https://www.google.com/maps/dir/?api=1&destination=Euvelgunnerweg%2050%2C%209723%20CW%20Groningen&travelmode=driving" target="_blank" rel="noopener noreferrer" data-vv-event="route_click">Plan route via Google Maps ↗</a><span>Euvelgunnerweg 50 · Groningen</span></aside>
+      </div>
+      <section className="section"><div className="sectionHeading splitHeading"><div><p className="eyebrow">Persoonlijk advies</p><h2>Vertel wat u zoekt.</h2></div><p className="sectionIntro">Een telefoonnummer of e-mailadres is voldoende. U hoeft nog geen specifieke auto te hebben gekozen.</p></div><ContactForm vehicles={[]} /></section>
+    </div></main>
+    <SiteFooter />
+  </>;
+}
