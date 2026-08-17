@@ -87,4 +87,16 @@ describe("publieke Volt & Vroom website", () => {
 
     expect(read("app/public.css")).toContain(".routePlannerLink{min-height:44px");
   });
+
+  it("laadt de officiële Google Merchant-reviewbadge sitebreed", () => {
+    const badge = read("components/GoogleMerchantBadge.tsx");
+    const layout = read("app/layout.tsx");
+
+    expect(badge).toContain("https://www.gstatic.com/shopping/merchant/merchantwidget.js");
+    expect(badge).toContain("merchant_id: 5838389580");
+    expect(badge).toContain('position: "RIGHT_BOTTOM"');
+    expect(badge).toContain('region: "NL"');
+    expect(badge).toContain('strategy="afterInteractive"');
+    expect(layout).toContain("<GoogleMerchantBadge />");
+  });
 });
