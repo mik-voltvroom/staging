@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
+import { VehicleSocialVideos } from "@/components/VehicleSocialVideos";
 import { eur, km } from "@/lib/format";
 import { vehicles } from "@/lib/sample-data";
 
@@ -22,6 +23,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
         <div className="metric"><strong>{vehicle.batteryHealthPercent ?? "—"}%</strong><span className="muted">accugezondheid</span></div>
         <div className="metric"><strong>{vehicle.annualSavingEur ? eur.format(vehicle.annualSavingEur) : "—"}</strong><span className="muted">geschatte jaarbesparing</span></div>
       </div>
+      <VehicleSocialVideos vehicleId={vehicle.id} />
     </main>
   </>;
 }
