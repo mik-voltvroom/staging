@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { PublicSocialVideo } from "@/lib/social-video/model";
 
@@ -46,7 +45,7 @@ export function SocialVideo({ video, compact = false }: { video: PublicSocialVid
         <iframe src={video.embedUrl} title={video.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" />
       ) : (
         <button type="button" className="socialVideoPoster" onClick={activate} aria-label={`Speel video af: ${video.title}`}>
-          {video.thumbnailUrl ? <Image src={video.thumbnailUrl} alt="" fill sizes={video.aspectRatio === "9:16" ? "(max-width: 640px) 82vw, 280px" : "(max-width: 900px) 100vw, 560px"} /> : <span className="socialVideoFallback" aria-hidden="true"><b>VV</b></span>}
+          {video.thumbnailUrl ? <img src={video.thumbnailUrl} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <span className="socialVideoFallback" aria-hidden="true"><b>VV</b></span>}
           <span className="socialVideoPlay" aria-hidden="true">▶</span>
           <span className="socialVideoPlatform">{video.platform}</span>
         </button>
