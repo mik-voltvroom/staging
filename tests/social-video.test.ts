@@ -10,6 +10,10 @@ const metadataFetch = (async () => new Response(JSON.stringify({ title: "Praktij
   headers: { "Content-Type": "application/json" },
 })) as typeof fetch;
 const metadataUnavailable = (async () => new Response(null, { status: 503 })) as typeof fetch;
+const unsafeMetadataFetch = (async () => new Response(JSON.stringify({ title: `  ${"Lange caption ".repeat(30)}  `, thumbnail_url: "http://insecure.example.test/thumb.jpg" }), {
+  status: 200,
+  headers: { "Content-Type": "application/json" },
+})) as typeof fetch;
 
 describe("VV Stories / Social Video Engine", () => {
   it("herkent YouTube watch, shorts en youtu.be URL's en verrijkt metadata", async () => {
@@ -43,6 +47,13 @@ describe("VV Stories / Social Video Engine", () => {
     expect(youtube.thumbnailUrl).toContain("i.ytimg.com");
     expect(tiktok.suggestedTitle).toBe("TikTok-video");
     expect(tiktok.thumbnailUrl).toBeUndefined();
+  });
+
+  it("normaliseert lange titels en weigert onveilige thumbnails", async () => {
+    const video = await resolveSocialVideoUrl("https://www.tiktok.com/@voltvroom/video/7512345678901234567", unsafeMetadataFetch);
+    expect(video.suggestedTitle.length).toBe(180);
+    expect(video.suggestedTitle).not.toContain("  ");
+    expect(video.thumbnailUrl).toBeUndefined();
   });
 
   it("weigert onbekende, lookalike en onveilige platform-URL's", async () => {
