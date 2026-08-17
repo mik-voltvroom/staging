@@ -56,6 +56,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (parsed.data.status && !transitions[before.status].has(parsed.data.status)) {
       return NextResponse.json({ error: `Statusovergang ${before.status} → ${parsed.data.status} is niet toegestaan.` }, { status: 409 });
     }
+    if (parsed.data.status === "published" && before.sourceState === "unavailable") {
+      return NextResponse.json({ error: "Deze video kan niet worden gepubliceerd omdat de bron niet beschikbaar is. Controleer de bron opnieuw." }, { status: 409 });
+    }
 
     const patch: Partial<SocialVideo> = { ...parsed.data } as Partial<SocialVideo>;
     if (parsed.data.status === "published" && before.status !== "published") patch.publishedAt = new Date().toISOString();
