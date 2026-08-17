@@ -5,8 +5,6 @@ import type { SocialVideo } from "@/lib/social-video/model";
 
 type LoadState = "idle" | "loading" | "saving" | "error";
 
-const emptyPlacements = { homepage: false, inventory: false, vehicleDetail: false, carCheck: false, knowledge: false };
-
 export function SocialVideoManager() {
   const [videos, setVideos] = useState<SocialVideo[]>([]);
   const [state, setState] = useState<LoadState>("loading");
@@ -75,13 +73,18 @@ export function SocialVideoManager() {
     total: videos.length,
     published: videos.filter(video => video.status === "published").length,
     linked: videos.filter(video => video.vehicleIds.length > 0).length,
-    review: videos.filter(video => video.status === "review").length,
+    plays: videos.reduce((sum, video) => sum + video.analytics.playClicks, 0),
+    vehicleClicks: videos.reduce((sum, video) => sum + video.analytics.vehicleClicks, 0),
   }), [videos]);
+
+  const topVideo = useMemo(() => videos.slice().sort((a, b) => (b.analytics.vehicleClicks + b.analytics.contactClicks + b.analytics.testDriveClicks) - (a.analytics.vehicleClicks + a.analytics.contactClicks + a.analytics.testDriveClicks))[0], [videos]);
 
   return <main className="container dashboardPage socialVideoDashboard">
     <div className="pageTitle"><div><p className="eyebrow">VVOS · Content Engine</p><h1>Social &amp; Video</h1><p className="muted">Importeer socialvideo's, koppel ze aan voertuigen en bepaal gecontroleerd waar ze op de website verschijnen.</p></div></div>
 
-    <div className="metrics"><div className="metric"><strong>{metrics.total}</strong><span className="muted">video's</span></div><div className="metric"><strong>{metrics.published}</strong><span className="muted">publiek</span></div><div className="metric"><strong>{metrics.linked}</strong><span className="muted">voertuigkoppelingen</span></div><div className="metric"><strong>{metrics.review}</strong><span className="muted">wacht op review</span></div></div>
+    <div className="metrics"><div className="metric"><strong>{metrics.total}</strong><span className="muted">video's</span></div><div className="metric"><strong>{metrics.published}</strong><span className="muted">publiek</span></div><div className="metric"><strong>{metrics.plays}</strong><span className="muted">website plays</span></div><div className="metric"><strong>{metrics.vehicleClicks}</strong><span className="muted">doorkliks naar auto's</span></div></div>
+
+    {topVideo && <section className="panel"><div className="panelHeader"><div><p className="eyebrow">Top content</p><h2>{topVideo.title}</h2></div><span className="successDot">{topVideo.analytics.playClicks} plays</span></div><p className="muted">{topVideo.analytics.impressions} impressies · {topVideo.analytics.vehicleClicks} voertuigklikken · {topVideo.analytics.contactClicks + topVideo.analytics.testDriveClicks} directe contactacties · {metrics.linked} video's gekoppeld aan voorraad.</p></section>}
 
     <section className="panel socialVideoImportPanel"><div className="panelHeader"><div><p className="eyebrow">Manual import</p><h2>Video toevoegen</h2></div><span className="muted">TikTok · YouTube · Instagram</span></div>
       <form className="socialVideoImportForm" onSubmit={addVideo}>
@@ -92,7 +95,7 @@ export function SocialVideoManager() {
         <label>Model<input name="model" placeholder="Corolla Touring Sports" /></label>
         <label>Vehicle ID's<input name="vehicleIds" placeholder="VV-2026-041" /></label>
         <label className="span2">Tags<input name="tags" placeholder="hybride, praktijkverbruik, occasion" /></label>
-        <fieldset className="span2 socialVideoPlacementField"><legend>Plaatsingen</legend><label><input type="checkbox" name="homepage" /> Homepage</label><label><input type="checkbox" name="inventory" /> Voorraad</label><label><input type="checkbox" name="vehicleDetail" /> Voertuigdetail</label><label><input type="checkbox" name="carCheck" /> CarCheck</label><label><input type="checkbox" name="knowledge" /> Kennisbank</label><label><input type="checkbox" name="featured" /> Uitgelicht</label></fieldset>
+        <fieldset className="span2 socialVideoPlacementField"><legend>Plaatsingen</legend><label><input type="checkbox" name="homepage" /> Homepage</label><label><input type="checkbox" name="inventory" /> Voorraad</label><label><input type="checkbox" name="vehicleDetail" /> Voertuigdetail</label><label><input type="checkbox" name="carCheck" /> CarCheck / VV Verified</label><label><input type="checkbox" name="knowledge" /> Kennisbank</label><label><input type="checkbox" name="featured" /> Uitgelicht</label></fieldset>
         <button className="button" disabled={state === "saving"}>{state === "saving" ? "Opslaan…" : "Voeg toe aan review"}</button>
       </form>
       {message && <p className={`formFeedback ${state === "error" ? "error" : "success"}`} aria-live="polite">{message}</p>}
@@ -101,8 +104,8 @@ export function SocialVideoManager() {
     <section className="panel"><div className="panelHeader"><div><p className="eyebrow">Video-inbox</p><h2>Review &amp; publicatie</h2></div><button className="textLink" type="button" onClick={() => void load()}>Vernieuwen</button></div>
       {state === "loading" ? <p className="muted">Video's laden…</p> : videos.length === 0 ? <p className="muted">Nog geen video's. Voeg hierboven de eerste social-URL toe.</p> : <div className="socialVideoAdminList">{videos.map(video => <article key={video.id}>
         <div className="socialVideoAdminThumb">{video.thumbnailUrl ? <img src={video.thumbnailUrl} alt="" loading="lazy" /> : <span>VV</span>}</div>
-        <div className="socialVideoAdminMain"><div><span className={`statusBadge status-${video.status}`}>{video.status}</span><small>{video.platform} · {video.contentType}</small></div><h3>{video.title}</h3><p>{[video.brand, video.model, video.vehicleIds.join(", ")].filter(Boolean).join(" · ") || "Nog niet aan een voertuig gekoppeld"}</p><div className="socialVideoAdminActions">
-          {video.status !== "published" && <button type="button" onClick={() => void patchVideo(video.id, { status: "published" })}>Publiceren</button>}
+        <div className="socialVideoAdminMain"><div><span className={`statusBadge status-${video.status}`}>{video.status}</span><small>{video.platform} · {video.contentType}</small></div><h3>{video.title}</h3><p>{[video.brand, video.model, video.vehicleIds.join(", ")].filter(Boolean).join(" · ") || "Nog niet aan een voertuig gekoppeld"}</p><p>{video.analytics.impressions} impressies · {video.analytics.playClicks} plays · {video.analytics.vehicleClicks} autokliks</p><div className="socialVideoAdminActions">
+          {video.status !== "published" && video.status !== "archived" && <button type="button" onClick={() => void patchVideo(video.id, { status: "published" })}>Publiceren</button>}
           {video.status === "published" && <button type="button" onClick={() => void patchVideo(video.id, { status: "review" })}>Terug naar review</button>}
           {video.status !== "archived" && <button type="button" onClick={() => void patchVideo(video.id, { status: "archived" })}>Archiveren</button>}
           <a href={video.sourceUrl} target="_blank" rel="noopener noreferrer">Bron ↗</a>
