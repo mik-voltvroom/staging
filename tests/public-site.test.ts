@@ -72,4 +72,19 @@ describe("publieke Volt & Vroom website", () => {
     expect(read("app/robots.ts")).toContain('disallow: ["/dashboard/", "/api/", "/login"]');
     expect(read("app/page.tsx")).toContain('"@type": "AutoDealer"');
   });
+
+  it("biedt een veilige Google Maps-routeplanner naar de showroom", () => {
+    const homepage = read("app/page.tsx");
+    const footer = read("components/SiteFooter.tsx");
+
+    for (const source of [homepage, footer]) {
+      expect(source).toContain("https://www.google.com/maps/dir/?api=1");
+      expect(source).toContain("Euvelgunnerweg%2050%2C%209723%20CW%20Groningen");
+      expect(source).toContain('target="_blank"');
+      expect(source).toContain('rel="noopener noreferrer"');
+      expect(source).toContain('aria-label="Plan uw route naar Volt & Vroom via Google Maps"');
+    }
+
+    expect(read("app/public.css")).toContain(".routePlannerLink{min-height:44px");
+  });
 });
