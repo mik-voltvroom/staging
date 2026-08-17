@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { authorizeApi } from "@/lib/auth/api";
 import { writeAuditEvent } from "@/lib/audit/audit-log";
 import { socialVideoCreateSchema, type SocialVideo } from "@/lib/social-video/model";
-import { resolveSocialVideoUrl } from "@/lib/social-video/providers";
-import { createSocialVideo, listSocialVideos } from "@/lib/social-video/repository";
+import { resolveSocialVideoUrl, socialVideoDocumentId } from "@/lib/social-video/providers";
+import { createSocialVideo, DuplicateSocialVideoError, listSocialVideos } from "@/lib/social-video/repository";
 
 export async function GET(request: Request) {
   const auth = await authorizeApi(request, "socialVideos.read");
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const now = new Date().toISOString();
-  const id = `VIDEO-${crypto.randomUUID()}`;
+  const id = socialVideoDocumentId(resolved);
   const video: SocialVideo = {
     id,
     platform: resolved.platform,
@@ -39,6 +39,7 @@ export async function POST(request: Request) {
     thumbnailUrl: resolved.thumbnailUrl,
     embedUrl: resolved.embedUrl,
     status: "review",
+    sourceState: "unchecked",
     contentType: parsed.data.contentType,
     vehicleIds: parsed.data.vehicleIds,
     carCheckId: parsed.data.carCheckId,
@@ -58,7 +59,10 @@ export async function POST(request: Request) {
     const saved = await createSocialVideo(video);
     await writeAuditEvent({ action: "socialVideo.created", entityType: "socialVideo", entityId: id, actor: auth.actor, metadata: { platform: saved.platform, status: saved.status, vehicleIds: saved.vehicleIds }, request });
     return NextResponse.json({ video: saved }, { status: 201 });
-  } catch {
+  } catch (error) {
+    if (error instanceof DuplicateSocialVideoError) {
+      return NextResponse.json({ error: error.message, videoId: id }, { status: 409 });
+    }
     return NextResponse.json({ error: "Video kon niet persistent worden opgeslagen." }, { status: 503 });
   }
 }
