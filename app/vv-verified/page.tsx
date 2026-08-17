@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { PlacementSocialVideos } from "@/components/PlacementSocialVideos";
 import { SiteFooter } from "@/components/SiteFooter";
 
+export const revalidate = 60;
 export const metadata: Metadata = {
   title: "VV Verified | Zo controleert Volt & Vroom een occasion",
   description: "Bekijk hoe Volt & Vroom historie, kilometerstand, techniek, hoogvoltaccu, onderhoud en praktijkdata controleert voordat een auto wordt gepubliceerd.",
