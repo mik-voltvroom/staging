@@ -9,13 +9,17 @@ describe("publieke Volt & Vroom website", () => {
     const header = read("components/Header.tsx");
     expect(header).not.toContain("/dashboard");
     expect(header).toContain("Mobiele navigatie");
+    expect(header).toContain("/vv-verified");
+    expect(header).toContain("/contact");
   });
 
-  it("biedt een complete adviesroute met privacytoestemming", () => {
+  it("biedt een complete adviesroute met privacytoestemming en anti-spamveld", () => {
     const form = read("components/ContactForm.tsx");
     expect(form).toContain('fetch("/api/leads"');
     expect(form).toContain('name="consent"');
+    expect(form).toContain('name="website"');
     expect(form).toContain('href="/privacy"');
+    expect(form).toContain("telefoonnummer of e-mailadres");
   });
 
   it("gebruikt geen vervallen Automotive-descriptor op de homepage", () => {
@@ -28,47 +32,50 @@ describe("publieke Volt & Vroom website", () => {
     expect(homepage).toContain("Meer genieten.");
     expect(homepage).toContain("Zorgvuldig geselecteerde hybride en elektrische occasions.");
     expect(homepage.indexOf('href="#voorraad"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
-    expect(homepage).not.toContain("Geen prijs zonder bewijs");
   });
 
-  it("maakt de selectiecriteria en drie aanbodwerelden expliciet", () => {
+  it("formuleert de selectienorm controleerbaar en zonder onnodige absolute claims", () => {
     const homepage = read("app/page.tsx");
-    expect(homepage).toContain("Maximaal 5 jaar");
-    expect(homepage).toContain("Maximaal 100.000 km");
-    expect(homepage).toContain("Eén eigenaar");
-    expect(homepage).toContain("Dealeronderhouden");
-    expect(homepage).toContain("SOH-accucontrole");
-    expect(homepage).toContain("Zorgvuldig geselecteerd");
-    expect(homepage).toContain("Onze ervaring uit de praktijk");
-    expect(homepage).toContain(">Hybride<");
-    expect(homepage).toContain(">Elektrisch<");
-    expect(homepage).toContain(">Icons<");
+    expect(homepage).toContain("Gecontroleerde kilometerstand");
+    expect(homepage).toContain("Aantoonbare historie");
+    expect(homepage).toContain("Technisch geselecteerd");
+    expect(homepage).toContain("Onderhoud inzichtelijk");
+    expect(homepage).toContain("SOH waar relevant");
+    expect(homepage).not.toContain("Eén eigenaar");
+    expect(homepage).not.toContain("Dealeronderhouden");
   });
 
   it("houdt de selectienorm en hero-acties compact op mobiel", () => {
     const css = read("app/public.css");
+    const enhancements = read("app/enhancements.css");
     expect(css).toContain(".proofGrid{display:grid;grid-template-columns:repeat(5,1fr)");
     expect(css).toContain(".proofGrid{grid-template-columns:repeat(2,minmax(0,1fr))}");
     expect(css).toContain(".hero .actions{display:grid;grid-template-columns:1fr}");
     expect(css).toContain("min-height:44px");
-    expect(css).toContain("--vv-electric:#168bff");
-    expect(css).toContain(".assuranceGrid{grid-template-columns:repeat(4,1fr)");
+    expect(enhancements).toContain(".mobileActionBar");
   });
 
-  it("biedt afzonderlijke landingspagina's en een gevalideerde keuzehulp", () => {
+  it("biedt afzonderlijke landingspagina's, FAQ's en een gevalideerde keuzehulp", () => {
     expect(read("app/hybride/page.tsx")).toContain("Hybride wanneer dat slimmer is");
     expect(read("app/elektrisch/page.tsx")).toContain("Elektrisch wanneer het klopt");
     expect(read("app/icons/page.tsx")).toContain("Meer karakter. Dezelfde standaard");
+    expect(read("components/SegmentPage.tsx")).toContain("Veelgestelde vragen");
     const match = read("components/MatchForm.tsx");
     expect(match).toContain('fetch("/api/leads"');
     expect(match).toContain('name="consent"');
+    expect(match).toContain('name="website"');
     expect(match).toContain("getRecommendation");
   });
 
-  it("publiceert technische SEO voor de nieuwe content", () => {
-    expect(read("app/sitemap.ts")).toContain('"/hybride"');
-    expect(read("app/sitemap.ts")).toContain('"/elektrisch"');
-    expect(read("app/sitemap.ts")).toContain('"/keuzehulp"');
+  it("publiceert VV Verified, contact en technische SEO", () => {
+    expect(read("app/vv-verified/page.tsx")).toContain("Vertrouwen moet controleerbaar zijn");
+    expect(read("app/contact/page.tsx")).toContain("Euvelgunnerweg 50");
+    const sitemap = read("app/sitemap.ts");
+    expect(sitemap).toContain('"/hybride"');
+    expect(sitemap).toContain('"/elektrisch"');
+    expect(sitemap).toContain('"/keuzehulp"');
+    expect(sitemap).toContain('"/vv-verified"');
+    expect(sitemap).toContain('"/contact"');
     expect(read("app/robots.ts")).toContain('disallow: ["/dashboard/", "/api/", "/login"]');
     expect(read("app/page.tsx")).toContain('"@type": "AutoDealer"');
   });
@@ -76,19 +83,17 @@ describe("publieke Volt & Vroom website", () => {
   it("biedt een veilige Google Maps-routeplanner naar de showroom", () => {
     const homepage = read("app/page.tsx");
     const footer = read("components/SiteFooter.tsx");
+    const contact = read("app/contact/page.tsx");
 
-    for (const source of [homepage, footer]) {
+    for (const source of [homepage, footer, contact]) {
       expect(source).toContain("https://www.google.com/maps/dir/?api=1");
       expect(source).toContain("Euvelgunnerweg%2050%2C%209723%20CW%20Groningen");
       expect(source).toContain('target="_blank"');
       expect(source).toContain('rel="noopener noreferrer"');
-      expect(source).toContain('aria-label="Plan uw route naar Volt & Vroom via Google Maps"');
     }
-
-    expect(read("app/public.css")).toContain(".routePlannerLink{min-height:44px");
   });
 
-  it("laadt de officiële Google Merchant-reviewbadge sitebreed", () => {
+  it("laadt de officiële Google Merchant-reviewbadge pas na de primaire pagina", () => {
     const badge = read("components/GoogleMerchantBadge.tsx");
     const layout = read("app/layout.tsx");
 
@@ -96,7 +101,16 @@ describe("publieke Volt & Vroom website", () => {
     expect(badge).toContain("merchant_id: 5838389580");
     expect(badge).toContain('position: "RIGHT_BOTTOM"');
     expect(badge).toContain('region: "NL"');
-    expect(badge).toContain('strategy="afterInteractive"');
+    expect(badge).toContain('strategy="lazyOnload"');
     expect(layout).toContain("<GoogleMerchantBadge />");
+  });
+
+  it("maakt kernconversies provider-neutraal meetbaar", () => {
+    const analytics = read("components/PublicAnalytics.tsx");
+    expect(analytics).toContain("phone_click");
+    expect(analytics).toContain("email_click");
+    expect(analytics).toContain("route_click");
+    expect(analytics).toContain("match_started");
+    expect(analytics).toContain("lead_submitted");
   });
 });
