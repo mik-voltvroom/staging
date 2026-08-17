@@ -13,6 +13,8 @@ const id = () => `VV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random
 export function VehicleForm({ initial }: { initial?: Vehicle }) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
+  const [driveStatus, setDriveStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [driveMessage, setDriveMessage] = useState("");
   const [vehicle, setVehicle] = useState<Vehicle>(initial ?? {
     id: id(), slug: "", brand: "", model: "", trim: "", year: new Date().getFullYear(), mileageKm: 0, priceEur: 0,
     driveType: "full-hybrid", fuelType: "Benzine / elektrisch", transmission: "Automaat", bodyStyle: "", color: "",
@@ -37,6 +39,22 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
     };
     await saveVehicle(next); setVehicle(next); setSaved(true); setTimeout(() => setSaved(false), 1800);
     if (!initial) router.replace(`/dashboard/voorraad/${next.id}`);
+  }
+
+  async function createDriveDossier() {
+    setDriveStatus("loading");
+    setDriveMessage("");
+    try {
+      const response = await fetch(`/api/vehicles/${vehicle.id}/drive-dossier`, { method: "POST" });
+      const payload = await response.json() as { error?: string; reused?: boolean; dossier?: { folderId?: string; webViewLink?: string } };
+      if (!response.ok) throw new Error(payload.error ?? `Drive-dossier mislukt (HTTP ${response.status}).`);
+      const label = payload.reused ? "Bestaand dossier hergebruikt" : "Drive-dossier aangemaakt";
+      setDriveMessage(`${label}: ${payload.dossier?.folderId ?? "map-ID onbekend"}`);
+      setDriveStatus("success");
+    } catch (error) {
+      setDriveMessage(error instanceof Error ? error.message : "Drive-dossier kon niet worden aangemaakt.");
+      setDriveStatus("error");
+    }
   }
 
   return <div className="editorLayout">
@@ -82,6 +100,8 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
         {errors.length ? <ul className="errorList">{errors.map(error => <li key={error}>{error}</li>)}</ul> : <div className="successBox">Klaar voor publicatie</div>}
         <label>Status<select value={vehicle.status} onChange={e => set("status", e.target.value as VehicleStatus)}><option value="draft">Concept</option><option value="photography">Fotografie</option><option value="review">Controle</option><option value="available">Beschikbaar</option><option value="reserved">Gereserveerd</option><option value="sold">Verkocht</option><option value="archived">Archief</option></select></label>
         <button className="button wide" type="button" onClick={() => save()}>Opslaan</button>
+        {initial && <button className="button secondary wide" type="button" disabled={driveStatus === "loading"} onClick={createDriveDossier}>{driveStatus === "loading" ? "Drive-dossier aanmaken…" : "Drive-dossier aanmaken"}</button>}
+        {driveMessage && <p className={driveStatus === "error" ? "formError" : "savedNotice"}>{driveMessage}</p>}
         <button className="button secondary wide" type="button" disabled={errors.length > 0} onClick={() => save("available")}>Publiceren</button>
         {saved && <p className="savedNotice">Wijzigingen opgeslagen.</p>}
       </section>
