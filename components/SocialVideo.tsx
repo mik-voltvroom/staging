@@ -24,7 +24,15 @@ function track(event: string, video: PublicSocialVideo, extra: Record<string, un
   }
 }
 
-export function SocialVideo({ video, compact = false }: { video: PublicSocialVideo; compact?: boolean }) {
+export function SocialVideo({
+  video,
+  compact = false,
+  vehicleHref,
+}: {
+  video: PublicSocialVideo;
+  compact?: boolean;
+  vehicleHref?: string;
+}) {
   const [active, setActive] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
   const observed = useRef(false);
@@ -65,7 +73,7 @@ export function SocialVideo({ video, compact = false }: { video: PublicSocialVid
       {(video.brand || video.model) && <span className="socialVideoMeta">{[video.brand, video.model].filter(Boolean).join(" · ")}</span>}
       <h3>{video.title}</h3>
       {video.description && !compact && <p>{video.description}</p>}
-      {video.vehicleIds.length > 0 && <a href={`/voorraad/${video.vehicleIds[0]}`} data-vv-event="video_vehicle_click" onClick={() => track("video_vehicle_click", video, { vehicle_id: video.vehicleIds[0] })}>Bekijk de auto <span aria-hidden="true">→</span></a>}
+      {vehicleHref && video.vehicleIds.length > 0 && <a href={vehicleHref} data-vv-event="video_vehicle_click" onClick={() => track("video_vehicle_click", video, { vehicle_id: video.vehicleIds[0] })}>Bekijk de auto <span aria-hidden="true">→</span></a>}
       {video.vvVerifiedId && <a href="/vv-verified" data-vv-event="video_carcheck_click" onClick={() => track("video_carcheck_click", video)}>Bekijk VV Verified <span aria-hidden="true">→</span></a>}
     </div>
   </article>;
