@@ -1,6 +1,6 @@
 {
   "name": "volt-vroom-operating-system",
-  "version": "1.0.0-rc.2-otap",
+  "version": "1.2.1-hardened",
   "private": true,
   "packageManager": "npm@10.9.4",
   "scripts": {
@@ -9,9 +9,10 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "check": "npm run repo:guard && npm run agent:audit && npm run typecheck && npm run test && npm run build",
+    "check": "npm run repo:guard && npm run agent:audit && npm run brand:audit && npm run typecheck && npm run test && npm run build",
     "check:ci": "npm run check",
     "repo:guard": "node scripts/repo-guard.mjs",
+    "brand:audit": "node scripts/brand-audit.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
     "clean": "rm -rf .next",
     "agent:audit": "node scripts/agent-audit.mjs",
