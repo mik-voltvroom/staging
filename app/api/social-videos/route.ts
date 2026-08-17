@@ -49,6 +49,7 @@ export async function POST(request: Request) {
     featured: parsed.data.featured,
     placements: parsed.data.placements,
     aspectRatio: resolved.aspectRatio,
+    analytics: { impressions: 0, playClicks: 0, vehicleClicks: 0, carCheckClicks: 0, testDriveClicks: 0, contactClicks: 0 },
     createdAt: now,
     updatedAt: now,
   };
