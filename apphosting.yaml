@@ -44,6 +44,19 @@ env:
     value: 1:241472991923:web:75467e4adfacf620e936c6
     availability: [BUILD, RUNTIME]
 
+  # Google Drive voertuigdossiers.
+  # Niet geheim: vaste targetmap `03 Voertuigen` in de Volt & Vroom bedrijfsomgeving.
+  - variable: GOOGLE_DRIVE_VEHICLES_FOLDER_ID
+    value: 1pRkSoOpUcp8VFFtz3-pDoxmBkBtb3M9R
+    availability: [RUNTIME]
+  # Geheim: service-account identiteit en private key worden via Firebase Secret Manager geleverd.
+  - variable: GOOGLE_DRIVE_CLIENT_EMAIL
+    secret: GOOGLE_DRIVE_CLIENT_EMAIL
+    availability: [RUNTIME]
+  - variable: GOOGLE_DRIVE_PRIVATE_KEY
+    secret: GOOGLE_DRIVE_PRIVATE_KEY
+    availability: [RUNTIME]
+
   # Same secret names, separate values in each Firebase project.
   - variable: CRON_SECRET
     secret: CRON_SECRET
