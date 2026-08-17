@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { SocialVideoEditor } from "@/components/dashboard/SocialVideoEditor";
 import type { SocialVideo } from "@/lib/social-video/model";
 
 type LoadState = "idle" | "loading" | "saving" | "error";
@@ -9,6 +10,10 @@ export function SocialVideoManager() {
   const [videos, setVideos] = useState<SocialVideo[]>([]);
   const [state, setState] = useState<LoadState>("loading");
   const [message, setMessage] = useState("");
+
+  function replaceVideo(video: SocialVideo) {
+    setVideos(current => current.map(item => item.id === video.id ? video : item));
+  }
 
   const load = useCallback(async () => {
     setState("loading");
@@ -67,7 +72,7 @@ export function SocialVideoManager() {
       return;
     }
     const data = await response.json();
-    setVideos(current => current.map(video => video.id === id ? data.video : video));
+    replaceVideo(data.video);
     setState("idle");
   }
 
@@ -82,7 +87,7 @@ export function SocialVideoManager() {
       return;
     }
     const data = await response.json();
-    setVideos(current => current.map(video => video.id === id ? data.video : video));
+    replaceVideo(data.video);
     const label = data.availability?.state === "available" ? "beschikbaar" : data.availability?.state === "unavailable" ? "niet beschikbaar" : "niet met zekerheid te controleren";
     setMessage(`Broncontrole afgerond: ${label}.`);
     setState("idle");
@@ -129,7 +134,14 @@ export function SocialVideoManager() {
           <button type="button" disabled={state === "saving"} onClick={() => void checkAvailability(video.id)}>Controleer bron</button>
           {video.status !== "archived" && <button type="button" onClick={() => void patchVideo(video.id, { status: "archived" })}>Archiveren</button>}
           <a href={video.sourceUrl} target="_blank" rel="noopener noreferrer">Bron ↗</a>
-        </div></div>
+        </div>
+        <SocialVideoEditor
+          video={video}
+          disabled={state === "saving"}
+          onSaved={saved => replaceVideo(saved)}
+          onMessage={(text, error) => { setMessage(text); setState(error ? "error" : "idle"); }}
+        />
+        </div>
         <div className="socialVideoAdminPlacement">{Object.entries(video.placements).filter(([, enabled]) => enabled).map(([key]) => <span key={key}>{key}</span>)}</div>
       </article>)}</div>}
     </section>
