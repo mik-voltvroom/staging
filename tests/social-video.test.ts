@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { resolveSocialVideoUrl } from "@/lib/social-video/providers";
+import { checkSocialVideoAvailability, resolveSocialVideoUrl, socialVideoDocumentId } from "@/lib/social-video/providers";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
+const fakeFetch = (status: number) => (async () => new Response(null, { status })) as typeof fetch;
 
 describe("VV Stories / Social Video Engine", () => {
   it("herkent YouTube watch, shorts en youtu.be URL's", async () => {
@@ -15,18 +16,36 @@ describe("VV Stories / Social Video Engine", () => {
     expect(short.aspectRatio).toBe("9:16");
     expect(compact.externalId).toBe("dQw4w9WgXcQ");
     expect(watch.embedUrl).toContain("youtube-nocookie.com");
+    expect(socialVideoDocumentId(watch)).toBe(socialVideoDocumentId(compact));
   });
 
   it("herkent volledige TikTok-video URL's zonder accountkoppeling", async () => {
-    const video = await resolveSocialVideoUrl("https://www.tiktok.com/@voltvroom/video/7512345678901234567");
+    const video = await resolveSocialVideoUrl("https://www.tiktok.com/@voltvroom/video/7512345678901234567?is_from_webapp=1");
     expect(video.platform).toBe("tiktok");
     expect(video.externalId).toBe("7512345678901234567");
     expect(video.aspectRatio).toBe("9:16");
+    expect(video.canonicalUrl).not.toContain("is_from_webapp");
   });
 
   it("weigert onbekende platformen en onveilige protocollen", async () => {
     await expect(resolveSocialVideoUrl("https://example.com/video/123")).rejects.toThrow("niet ondersteund");
     await expect(resolveSocialVideoUrl("http://www.youtube.com/watch?v=dQw4w9WgXcQ")).rejects.toThrow("HTTPS");
+  });
+
+  it("classificeert bronbeschikbaarheid conservatief", async () => {
+    const video = { platform: "youtube" as const, sourceUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" };
+    await expect(checkSocialVideoAvailability(video, fakeFetch(200))).resolves.toMatchObject({ state: "available", httpStatus: 200 });
+    await expect(checkSocialVideoAvailability(video, fakeFetch(404))).resolves.toMatchObject({ state: "unavailable", httpStatus: 404 });
+    await expect(checkSocialVideoAvailability(video, fakeFetch(429))).resolves.toMatchObject({ state: "unknown", httpStatus: 429 });
+  });
+
+  it("blokkeert dubbele imports via een deterministisch document-id en atomische create", () => {
+    const route = read("app/api/social-videos/route.ts");
+    const repository = read("lib/social-video/repository.ts");
+    expect(route).toContain("socialVideoDocumentId(resolved)");
+    expect(route).toContain("DuplicateSocialVideoError");
+    expect(route).toContain("status: 409");
+    expect(repository).toContain(".create(safe)");
   });
 
   it("publiceert alleen allow-listed SocialVideo velden", () => {
@@ -46,9 +65,12 @@ describe("VV Stories / Social Video Engine", () => {
     expect(component).toContain("video_impression");
   });
 
-  it("heeft een beveiligde VVOS-inbox en publieke videohub", () => {
+  it("heeft een beveiligde VVOS-inbox, broncontrole en publieke videohub", () => {
     expect(read("app/api/social-videos/route.ts")).toContain('authorizeApi(request, "socialVideos.write")');
     expect(read("app/api/social-videos/[id]/route.ts")).toContain('authorizeApi(request, "socialVideos.write")');
+    const availability = read("app/api/social-videos/[id]/availability/route.ts");
+    expect(availability).toContain('authorizeApi(request, "socialVideos.write")');
+    expect(availability).toContain('status = "unavailable"');
     expect(read("app/uit-de-praktijk/page.tsx")).toContain("SocialVideoHub");
     expect(read("components/dashboard/DashboardNav.tsx")).toContain("/dashboard/social-video");
   });
