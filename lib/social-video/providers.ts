@@ -17,14 +17,36 @@ export type SocialVideoAvailability = {
   httpStatus?: number;
 };
 
+type OEmbedMetadata = {
+  title?: string;
+  thumbnail_url?: string;
+};
+
 export interface SocialVideoProvider {
   platform: SocialVideoPlatform;
   canHandle(url: URL): boolean;
-  resolve(url: URL): Promise<ResolvedSocialVideo>;
+  resolve(url: URL, fetcher: typeof fetch): Promise<ResolvedSocialVideo>;
 }
 
 function isHost(hostname: string, domain: string): boolean {
   return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
+async function publicMetadata(endpoint: string, fetcher: typeof fetch): Promise<OEmbedMetadata | null> {
+  try {
+    const response = await fetcher(endpoint, {
+      method: "GET",
+      redirect: "follow",
+      signal: AbortSignal.timeout(3500),
+      headers: { "User-Agent": "VoltVroom-VVOS/1.0 metadata-import" },
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    const data = await response.json() as OEmbedMetadata;
+    return data && typeof data === "object" ? data : null;
+  } catch {
+    return null;
+  }
 }
 
 function youtubeId(url: URL): string | null {
@@ -42,18 +64,20 @@ const youtubeProvider: SocialVideoProvider = {
   canHandle(url) {
     return Boolean(youtubeId(url));
   },
-  async resolve(url) {
+  async resolve(url, fetcher) {
     const id = youtubeId(url);
     if (!id || !/^[A-Za-z0-9_-]{6,20}$/.test(id)) throw new Error("Ongeldige YouTube-video-URL.");
+    const canonicalUrl = `https://www.youtube.com/watch?v=${id}`;
+    const metadata = await publicMetadata(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(canonicalUrl)}`, fetcher);
     const isShort = url.pathname.includes("/shorts/");
     return {
       platform: "youtube",
       externalId: id,
-      canonicalUrl: `https://www.youtube.com/watch?v=${id}`,
+      canonicalUrl,
       embedUrl: `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
-      thumbnailUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+      thumbnailUrl: metadata?.thumbnail_url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
       aspectRatio: isShort ? "9:16" : "16:9",
-      suggestedTitle: "YouTube-video",
+      suggestedTitle: metadata?.title?.trim() || "YouTube-video",
     };
   },
 };
@@ -69,18 +93,21 @@ const tiktokProvider: SocialVideoProvider = {
   canHandle(url) {
     return Boolean(tiktokId(url));
   },
-  async resolve(url) {
+  async resolve(url, fetcher) {
     const id = tiktokId(url);
     if (!id) throw new Error("Gebruik een volledige TikTok video-URL met /video/{id}.");
     url.search = "";
     url.hash = "";
+    const canonicalUrl = url.toString();
+    const metadata = await publicMetadata(`https://www.tiktok.com/oembed?url=${encodeURIComponent(canonicalUrl)}`, fetcher);
     return {
       platform: "tiktok",
       externalId: id,
-      canonicalUrl: url.toString(),
+      canonicalUrl,
       embedUrl: `https://www.tiktok.com/player/v1/${id}?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=1`,
+      thumbnailUrl: metadata?.thumbnail_url,
       aspectRatio: "9:16",
-      suggestedTitle: "TikTok-video",
+      suggestedTitle: metadata?.title?.trim() || "TikTok-video",
     };
   },
 };
@@ -108,7 +135,7 @@ const instagramProvider: SocialVideoProvider = {
 
 const providers: SocialVideoProvider[] = [youtubeProvider, tiktokProvider, instagramProvider];
 
-export async function resolveSocialVideoUrl(sourceUrl: string): Promise<ResolvedSocialVideo> {
+export async function resolveSocialVideoUrl(sourceUrl: string, fetcher: typeof fetch = fetch): Promise<ResolvedSocialVideo> {
   let url: URL;
   try {
     url = new URL(sourceUrl);
@@ -118,7 +145,7 @@ export async function resolveSocialVideoUrl(sourceUrl: string): Promise<Resolved
   if (url.protocol !== "https:") throw new Error("Alleen HTTPS-video-URL's zijn toegestaan.");
   const provider = providers.find(candidate => candidate.canHandle(url));
   if (!provider) throw new Error("Dit videoplatform of URL-formaat wordt nog niet ondersteund.");
-  return provider.resolve(url);
+  return provider.resolve(url, fetcher);
 }
 
 export function socialVideoDocumentId(video: Pick<ResolvedSocialVideo, "platform" | "externalId" | "canonicalUrl">): string {
