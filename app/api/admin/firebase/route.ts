@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await authorizeApi(request, "integrations.write");
+  const auth = await authorizeApi(request, "integrations.manage");
   if (auth.response) return auth.response;
   try {
     const body = await request.json() as { name?: string; value?: string };
