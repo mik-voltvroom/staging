@@ -1,3 +1,5 @@
+import { driveConfigured } from "@/lib/drive/auth";
+
 export type IntegrationHealthState = "healthy" | "degraded" | "unconfigured";
 
 export interface IntegrationHealth {
@@ -28,6 +30,7 @@ export async function getIntegrationHealth(runRemoteChecks = false): Promise<Int
   const checkedAt = new Date().toISOString();
   const definitions = [
     { key: "firebase", label: "Firebase", configured: Boolean(process.env.FIREBASE_ADMIN_PROJECT_ID && process.env.FIREBASE_ADMIN_CLIENT_EMAIL && process.env.FIREBASE_ADMIN_PRIVATE_KEY) },
+    { key: "drive", label: "Google Drive", configured: driveConfigured() },
     { key: "rdw", label: "RDW voertuigdata", configured: Boolean(process.env.RDW_API_BASE_URL), url: process.env.RDW_HEALTH_URL },
     { key: "vwe", label: "VWE voorraad", configured: Boolean(process.env.VWE_WEBHOOK_SECRET), url: process.env.VWE_HEALTH_URL },
     { key: "merchant", label: "Google Merchant Center", configured: Boolean(process.env.GOOGLE_MERCHANT_ID && process.env.GOOGLE_MERCHANT_DATASOURCE) },
@@ -40,14 +43,6 @@ export async function getIntegrationHealth(runRemoteChecks = false): Promise<Int
     if (!item.configured) return { key: item.key, label: item.label, configured: false, state: "unconfigured", checkedAt, message: "Nog niet geconfigureerd." };
     if (!runRemoteChecks || !item.url) return { key: item.key, label: item.label, configured: true, state: "healthy", checkedAt, message: "Configuratie aanwezig; remote controle niet uitgevoerd." };
     const result = await timedCheck(item.url);
-    return {
-      key: item.key,
-      label: item.label,
-      configured: true,
-      state: result.ok ? "healthy" : "degraded",
-      latencyMs: result.latencyMs,
-      checkedAt,
-      message: result.ok ? "Provider bereikbaar." : "Provider niet bereikbaar binnen de controletermijn.",
-    };
+    return { key: item.key, label: item.label, configured: true, state: result.ok ? "healthy" : "degraded", latencyMs: result.latencyMs, checkedAt, message: result.ok ? "Provider bereikbaar." : "Provider niet bereikbaar binnen de controletermijn." };
   }));
 }
