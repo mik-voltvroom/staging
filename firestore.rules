@@ -17,5 +17,9 @@ service cloud.firestore {
     match /customers/{customerId} { allow read, write: if staff(); }
     match /tasks/{taskId} { allow read, write: if staff(); }
     match /audit_logs/{logId} { allow read: if hasRole('owner') || hasRole('admin'); allow write: if false; }
+
+    // Social Video is deliberately server-only. Public access goes through the
+    // allow-listed Next.js API; VVOS mutations use Firebase Admin after API auth.
+    match /socialVideos/{videoId} { allow read, write: if false; }
   }
 }
