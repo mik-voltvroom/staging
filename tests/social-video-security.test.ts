@@ -45,7 +45,7 @@ describe("Social Video security boundary", () => {
     const manager = read("components/dashboard/SocialVideoManager.tsx");
     const editor = read("components/dashboard/SocialVideoEditor.tsx");
     expect(manager).toContain("<SocialVideoEditor");
-    expect(editor).toContain("Review gegevens & plaatsingen");
+    expect(editor).toContain("Review gegevens &amp; plaatsingen");
     expect(editor).toContain('name="vehicleIds"');
     expect(editor).toContain('name="vvVerifiedId"');
     expect(editor).toContain('name="carCheckId"');
