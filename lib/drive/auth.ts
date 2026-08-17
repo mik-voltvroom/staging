@@ -1,5 +1,56 @@
-import { createSign } from "node:crypto";
-const TOKEN_URL="https://oauth2.googleapis.com/token",SCOPE="https://www.googleapis.com/auth/drive.file";
-const b64=(v:string|Buffer)=>Buffer.from(v).toString("base64url");
-export function driveConfigured(){return Boolean(process.env.GOOGLE_DRIVE_CLIENT_EMAIL&&process.env.GOOGLE_DRIVE_PRIVATE_KEY&&process.env.GOOGLE_DRIVE_VEHICLES_FOLDER_ID)}
-export async function getDriveAccessToken():Promise<string>{const email=process.env.GOOGLE_DRIVE_CLIENT_EMAIL,key=process.env.GOOGLE_DRIVE_PRIVATE_KEY;if(!email||!key)throw new Error("Google Drive service account is niet geconfigureerd.");const now=Math.floor(Date.now()/1000),h=b64(JSON.stringify({alg:"RS256",typ:"JWT"})),c=b64(JSON.stringify({iss:email,scope:SCOPE,aud:TOKEN_URL,iat:now,exp:now+3600})),u=`${h}.${c}`,s=createSign("RSA-SHA256");s.update(u);s.end();const assertion=`${u}.${b64(s.sign(key.replace(/\\n/g,"\n")))}`;const r=await fetch(TOKEN_URL,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"urn:ietf:params:oauth:grant-type:jwt-bearer",assertion}),cache:"no-store"});if(!r.ok)throw new Error(`Google OAuth ${r.status}: ${await r.text()}`);const x=await r.json() as {access_token?:string};if(!x.access_token)throw new Error("Google OAuth gaf geen access token terug.");return x.access_token}
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const CLOUD_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+const METADATA_TOKEN_URL = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
+const IAM_CREDENTIALS_API = "https://iamcredentials.googleapis.com/v1";
+
+interface MetadataTokenResponse {
+  access_token?: string;
+}
+
+interface GeneratedAccessTokenResponse {
+  accessToken?: string;
+  expireTime?: string;
+}
+
+export function driveConfigured(): boolean {
+  return Boolean(process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_DRIVE_VEHICLES_FOLDER_ID);
+}
+
+async function getRuntimeCloudToken(): Promise<string> {
+  const response = await fetch(`${METADATA_TOKEN_URL}?scopes=${encodeURIComponent(CLOUD_SCOPE)}`, {
+    headers: { "Metadata-Flavor": "Google" },
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(`Google runtime identity token ${response.status}: ${await response.text()}`);
+  }
+  const payload = await response.json() as MetadataTokenResponse;
+  if (!payload.access_token) throw new Error("Google runtime identity gaf geen access token terug.");
+  return payload.access_token;
+}
+
+export async function getDriveAccessToken(): Promise<string> {
+  const serviceAccountEmail = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL;
+  if (!serviceAccountEmail) throw new Error("GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL ontbreekt.");
+
+  const runtimeToken = await getRuntimeCloudToken();
+  const response = await fetch(
+    `${IAM_CREDENTIALS_API}/projects/-/serviceAccounts/${encodeURIComponent(serviceAccountEmail)}:generateAccessToken`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${runtimeToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ scope: [DRIVE_SCOPE], lifetime: "3600s" }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Google IAM Credentials ${response.status}: ${await response.text()}`);
+  }
+  const payload = await response.json() as GeneratedAccessTokenResponse;
+  if (!payload.accessToken) throw new Error("Google IAM Credentials gaf geen Drive access token terug.");
+  return payload.accessToken;
+}
