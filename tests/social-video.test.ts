@@ -57,6 +57,21 @@ describe("VV Stories / Social Video Engine", () => {
     expect(route).toContain("Deze video kan niet worden gepubliceerd omdat de bron niet beschikbaar is");
   });
 
+  it("heeft Firestore-indexen voor placement- en voertuigqueries", () => {
+    const config = JSON.parse(read("firestore.indexes.json")) as { indexes: Array<{ collectionGroup: string; fields: Array<{ fieldPath: string; order?: string; arrayConfig?: string }> }> };
+    const videoIndexes = config.indexes.filter(index => index.collectionGroup === "socialVideos");
+    expect(videoIndexes.length).toBeGreaterThanOrEqual(6);
+    expect(videoIndexes.some(index => index.fields.some(field => field.fieldPath === "placements.vehicleDetail") && index.fields.some(field => field.fieldPath === "vehicleIds" && field.arrayConfig === "CONTAINS"))).toBe(true);
+    expect(videoIndexes.some(index => index.fields.some(field => field.fieldPath === "placements.carCheck"))).toBe(true);
+  });
+
+  it("ververst dynamische video-plaatsingen zonder nieuwe release", () => {
+    expect(read("app/page.tsx")).toContain("export const revalidate = 60");
+    expect(read("app/vv-verified/page.tsx")).toContain("export const revalidate = 60");
+    expect(read("app/voorraad/[slug]/page.tsx")).toContain("export const revalidate = 60");
+    expect(read("app/uit-de-praktijk/page.tsx")).toContain('export const dynamic = "force-dynamic"');
+  });
+
   it("publiceert alleen allow-listed SocialVideo velden", () => {
     const model = read("lib/social-video/model.ts");
     expect(model).toContain("publicSocialVideoSchema");
