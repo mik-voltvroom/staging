@@ -68,10 +68,12 @@ const tiktokProvider: SocialVideoProvider = {
   async resolve(url) {
     const id = tiktokId(url);
     if (!id) throw new Error("Gebruik een volledige TikTok video-URL met /video/{id}.");
+    url.search = "";
+    url.hash = "";
     return {
       platform: "tiktok",
       externalId: id,
-      canonicalUrl: `https://www.tiktok.com/@video/video/${id}`,
+      canonicalUrl: url.toString(),
       embedUrl: `https://www.tiktok.com/player/v1/${id}?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=1&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=1`,
       aspectRatio: "9:16",
       suggestedTitle: "TikTok-video",
