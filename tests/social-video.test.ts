@@ -5,34 +5,52 @@ import { checkSocialVideoAvailability, resolveSocialVideoUrl, socialVideoDocumen
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const fakeFetch = (status: number) => (async () => new Response(null, { status })) as typeof fetch;
+const metadataFetch = (async () => new Response(JSON.stringify({ title: "Praktijkvideo", thumbnail_url: "https://cdn.example.test/thumb.jpg" }), {
+  status: 200,
+  headers: { "Content-Type": "application/json" },
+})) as typeof fetch;
+const metadataUnavailable = (async () => new Response(null, { status: 503 })) as typeof fetch;
 
 describe("VV Stories / Social Video Engine", () => {
-  it("herkent YouTube watch, shorts en youtu.be URL's", async () => {
-    const watch = await resolveSocialVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-    const short = await resolveSocialVideoUrl("https://www.youtube.com/shorts/dQw4w9WgXcQ");
-    const compact = await resolveSocialVideoUrl("https://youtu.be/dQw4w9WgXcQ");
+  it("herkent YouTube watch, shorts en youtu.be URL's en verrijkt metadata", async () => {
+    const watch = await resolveSocialVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ", metadataFetch);
+    const short = await resolveSocialVideoUrl("https://www.youtube.com/shorts/dQw4w9WgXcQ", metadataFetch);
+    const compact = await resolveSocialVideoUrl("https://youtu.be/dQw4w9WgXcQ", metadataFetch);
     expect(watch.platform).toBe("youtube");
     expect(watch.aspectRatio).toBe("16:9");
     expect(short.aspectRatio).toBe("9:16");
     expect(compact.externalId).toBe("dQw4w9WgXcQ");
     expect(watch.embedUrl).toContain("youtube-nocookie.com");
+    expect(watch.suggestedTitle).toBe("Praktijkvideo");
+    expect(watch.thumbnailUrl).toBe("https://cdn.example.test/thumb.jpg");
     expect(socialVideoDocumentId(watch)).toBe(socialVideoDocumentId(compact));
   });
 
-  it("herkent volledige TikTok-video URL's zonder accountkoppeling", async () => {
-    const video = await resolveSocialVideoUrl("https://www.tiktok.com/@voltvroom/video/7512345678901234567?is_from_webapp=1");
+  it("herkent volledige TikTok-video URL's zonder accountkoppeling en gebruikt publieke metadata", async () => {
+    const video = await resolveSocialVideoUrl("https://www.tiktok.com/@voltvroom/video/7512345678901234567?is_from_webapp=1", metadataFetch);
     expect(video.platform).toBe("tiktok");
     expect(video.externalId).toBe("7512345678901234567");
     expect(video.aspectRatio).toBe("9:16");
     expect(video.canonicalUrl).not.toContain("is_from_webapp");
+    expect(video.suggestedTitle).toBe("Praktijkvideo");
+    expect(video.thumbnailUrl).toBe("https://cdn.example.test/thumb.jpg");
+  });
+
+  it("blijft importeren wanneer publieke metadata tijdelijk niet beschikbaar is", async () => {
+    const youtube = await resolveSocialVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ", metadataUnavailable);
+    const tiktok = await resolveSocialVideoUrl("https://www.tiktok.com/@voltvroom/video/7512345678901234567", metadataUnavailable);
+    expect(youtube.suggestedTitle).toBe("YouTube-video");
+    expect(youtube.thumbnailUrl).toContain("i.ytimg.com");
+    expect(tiktok.suggestedTitle).toBe("TikTok-video");
+    expect(tiktok.thumbnailUrl).toBeUndefined();
   });
 
   it("weigert onbekende, lookalike en onveilige platform-URL's", async () => {
-    await expect(resolveSocialVideoUrl("https://example.com/video/123")).rejects.toThrow("niet ondersteund");
-    await expect(resolveSocialVideoUrl("https://notyoutube.com/watch?v=dQw4w9WgXcQ")).rejects.toThrow("niet ondersteund");
-    await expect(resolveSocialVideoUrl("https://nottiktok.com/@voltvroom/video/7512345678901234567")).rejects.toThrow("niet ondersteund");
-    await expect(resolveSocialVideoUrl("https://notinstagram.com/reel/ABC123/")).rejects.toThrow("niet ondersteund");
-    await expect(resolveSocialVideoUrl("http://www.youtube.com/watch?v=dQw4w9WgXcQ")).rejects.toThrow("HTTPS");
+    await expect(resolveSocialVideoUrl("https://example.com/video/123", metadataUnavailable)).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("https://notyoutube.com/watch?v=dQw4w9WgXcQ", metadataUnavailable)).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("https://nottiktok.com/@voltvroom/video/7512345678901234567", metadataUnavailable)).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("https://notinstagram.com/reel/ABC123/", metadataUnavailable)).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("http://www.youtube.com/watch?v=dQw4w9WgXcQ", metadataUnavailable)).rejects.toThrow("HTTPS");
   });
 
   it("classificeert bronbeschikbaarheid conservatief", async () => {
