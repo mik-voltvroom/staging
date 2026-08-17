@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authorizeApi } from "@/lib/auth/api";
 import { writeAuditEvent } from "@/lib/audit/audit-log";
-import { socialVideoContentTypeSchema, socialVideoStatusSchema } from "@/lib/social-video/model";
+import { socialVideoContentTypeSchema, socialVideoStatusSchema, type SocialVideo } from "@/lib/social-video/model";
 import { getSocialVideo, updateSocialVideo } from "@/lib/social-video/repository";
 
 const patchSchema = z.object({
@@ -23,6 +23,14 @@ const patchSchema = z.object({
   }).optional(),
 }).strict();
 
+const transitions: Record<SocialVideo["status"], ReadonlySet<SocialVideo["status"]>> = {
+  draft: new Set(["draft", "review", "archived"]),
+  review: new Set(["review", "published", "archived", "unavailable"]),
+  published: new Set(["published", "review", "archived", "unavailable"]),
+  archived: new Set(["archived", "review"]),
+  unavailable: new Set(["unavailable", "review", "archived"]),
+};
+
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const auth = await authorizeApi(request, "socialVideos.read");
   if (auth.response) return auth.response;
@@ -42,13 +50,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const parsed = patchSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Ongeldige wijziging.", issues: parsed.error.flatten() }, { status: 400 });
 
-  const patch = { ...parsed.data } as Record<string, unknown>;
-  for (const key of ["carCheckId", "vvVerifiedId", "brand", "model"]) if (patch[key] === null) delete patch[key];
-  if (parsed.data.status === "published") patch.publishedAt = new Date().toISOString();
-
   try {
     const before = await getSocialVideo(id);
     if (!before) return NextResponse.json({ error: "Video niet gevonden." }, { status: 404 });
+    if (parsed.data.status && !transitions[before.status].has(parsed.data.status)) {
+      return NextResponse.json({ error: `Statusovergang ${before.status} → ${parsed.data.status} is niet toegestaan.` }, { status: 409 });
+    }
+
+    const patch: Partial<SocialVideo> = { ...parsed.data } as Partial<SocialVideo>;
+    if (parsed.data.status === "published" && before.status !== "published") patch.publishedAt = new Date().toISOString();
     const video = await updateSocialVideo(id, patch);
     await writeAuditEvent({ action: "socialVideo.updated", entityType: "socialVideo", entityId: id, actor: auth.actor, metadata: { fromStatus: before.status, toStatus: video.status, vehicleIds: video.vehicleIds }, request });
     return NextResponse.json({ video });
