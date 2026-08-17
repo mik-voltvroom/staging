@@ -27,8 +27,11 @@ describe("VV Stories / Social Video Engine", () => {
     expect(video.canonicalUrl).not.toContain("is_from_webapp");
   });
 
-  it("weigert onbekende platformen en onveilige protocollen", async () => {
+  it("weigert onbekende, lookalike en onveilige platform-URL's", async () => {
     await expect(resolveSocialVideoUrl("https://example.com/video/123")).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("https://notyoutube.com/watch?v=dQw4w9WgXcQ")).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("https://nottiktok.com/@voltvroom/video/7512345678901234567")).rejects.toThrow("niet ondersteund");
+    await expect(resolveSocialVideoUrl("https://notinstagram.com/reel/ABC123/")).rejects.toThrow("niet ondersteund");
     await expect(resolveSocialVideoUrl("http://www.youtube.com/watch?v=dQw4w9WgXcQ")).rejects.toThrow("HTTPS");
   });
 
