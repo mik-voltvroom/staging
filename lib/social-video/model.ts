@@ -4,6 +4,15 @@ export const socialVideoPlatformSchema = z.enum(["tiktok", "youtube", "instagram
 export const socialVideoStatusSchema = z.enum(["draft", "review", "published", "archived", "unavailable"]);
 export const socialVideoContentTypeSchema = z.enum(["vehicle", "carcheck", "review", "explanation", "delivery", "showroom", "news", "short"]);
 
+const socialVideoAnalyticsSchema = z.object({
+  impressions: z.number().int().nonnegative().default(0),
+  playClicks: z.number().int().nonnegative().default(0),
+  vehicleClicks: z.number().int().nonnegative().default(0),
+  carCheckClicks: z.number().int().nonnegative().default(0),
+  testDriveClicks: z.number().int().nonnegative().default(0),
+  contactClicks: z.number().int().nonnegative().default(0),
+}).default({ impressions: 0, playClicks: 0, vehicleClicks: 0, carCheckClicks: 0, testDriveClicks: 0, contactClicks: 0 });
+
 export const socialVideoSchema = z.object({
   id: z.string().min(1),
   platform: socialVideoPlatformSchema,
@@ -31,6 +40,7 @@ export const socialVideoSchema = z.object({
     knowledge: z.boolean().default(false),
   }),
   aspectRatio: z.enum(["9:16", "16:9"]).default("9:16"),
+  analytics: socialVideoAnalyticsSchema,
   socialPublishedAt: z.string().datetime().optional(),
   publishedAt: z.string().datetime().optional(),
   createdAt: z.string().datetime(),
