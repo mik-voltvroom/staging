@@ -23,9 +23,13 @@ export interface SocialVideoProvider {
   resolve(url: URL): Promise<ResolvedSocialVideo>;
 }
 
+function isHost(hostname: string, domain: string): boolean {
+  return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
 function youtubeId(url: URL): string | null {
   if (url.hostname === "youtu.be") return url.pathname.split("/").filter(Boolean)[0] ?? null;
-  if (url.hostname.endsWith("youtube.com")) {
+  if (isHost(url.hostname, "youtube.com")) {
     if (url.pathname === "/watch") return url.searchParams.get("v");
     const parts = url.pathname.split("/").filter(Boolean);
     if (["shorts", "embed"].includes(parts[0] ?? "")) return parts[1] ?? null;
@@ -55,7 +59,7 @@ const youtubeProvider: SocialVideoProvider = {
 };
 
 function tiktokId(url: URL): string | null {
-  if (!url.hostname.endsWith("tiktok.com")) return null;
+  if (!isHost(url.hostname, "tiktok.com")) return null;
   const match = url.pathname.match(/\/video\/(\d+)/);
   return match?.[1] ?? null;
 }
@@ -84,7 +88,7 @@ const tiktokProvider: SocialVideoProvider = {
 const instagramProvider: SocialVideoProvider = {
   platform: "instagram",
   canHandle(url) {
-    return url.hostname.endsWith("instagram.com") && /^\/(reel|p)\//.test(url.pathname);
+    return isHost(url.hostname, "instagram.com") && /^\/(reel|p)\//.test(url.pathname);
   },
   async resolve(url) {
     const parts = url.pathname.split("/").filter(Boolean);
