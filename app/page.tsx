@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
 import { Header } from "@/components/Header";
+import { HomepageSocialVideos } from "@/components/HomepageSocialVideos";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -62,6 +63,8 @@ export default function HomePage() {
         <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Geselecteerd aanbod</p><h2>Alleen publiceren wat wij kunnen onderbouwen.</h2></div><p className="sectionIntro">Actuele auto’s verschijnen hier pas nadat historie, kilometerstand, technische staat en beschikbare accudata zijn gecontroleerd. Wij tonen geen verzonnen SOH- of praktijkwaarden.</p></div>
         <div className="inventoryPlaceholder"><div><span>Voorraad in voorbereiding</span><h3>Wilt u als eerste weten welke auto’s beschikbaar komen?</h3><p>Vertel ons wat u zoekt. Wij nemen persoonlijk contact op zodra een passende, gecontroleerde auto beschikbaar is.</p></div><a className="button" href="#advies">Deel uw zoekopdracht <span aria-hidden="true">→</span></a></div>
       </section>
+
+      <HomepageSocialVideos />
 
       <section className="section processSection" aria-labelledby="werkwijze-title"><div className="container">
         <div className="sectionHeading splitHeading"><div><p className="eyebrow">Zo werken wij</p><h2 id="werkwijze-title">Deskundig zonder afstand. Verkoop zonder druk.</h2></div><p className="sectionIntro">In drie heldere stappen krijgt u de informatie en aandacht om zelf een goede keuze te maken.</p></div>
