@@ -25,6 +25,15 @@ export function MatchForm() {
     const longTrips = String(form.get("longTrips"));
     const recommendation = getRecommendation(charging, dailyDistance, longTrips);
     const budget = Number(form.get("budgetEur"));
+    const email = String(form.get("email") || "").trim();
+    const phone = String(form.get("phone") || "").trim();
+
+    if (!email && !phone) {
+      setResult({ title: "Contactgegeven ontbreekt", text: "Vul een telefoonnummer of e-mailadres in zodat we uw profiel persoonlijk kunnen bespreken." });
+      setState("error");
+      return;
+    }
+
     const profile = [
       `Hybrid & EV Match: ${recommendation.title}.`,
       `Jaarafstand: ${form.get("annualKm")}.`,
@@ -34,10 +43,27 @@ export function MatchForm() {
       `Trekgewicht nodig: ${form.get("towing") === "yes" ? "ja" : "nee"}.`,
       `Voorkeur: ${form.get("preference")}.`,
     ].join(" ");
-    const response = await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: String(form.get("name")), email: String(form.get("email")), phone: String(form.get("phone") || "") || undefined, channel: "website", message: profile, consent: form.get("consent") === "on", budgetEur: Number.isFinite(budget) && budget > 0 ? budget : undefined, hasTradeIn: form.get("tradeIn") === "yes" }) }).catch(() => null);
+
+    const response = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: String(form.get("name")),
+        email: email || undefined,
+        phone: phone || undefined,
+        channel: "website",
+        message: profile,
+        consent: form.get("consent") === "on",
+        budgetEur: Number.isFinite(budget) && budget > 0 ? budget : undefined,
+        hasTradeIn: form.get("tradeIn") === "yes",
+        website: String(form.get("website") || ""),
+      }),
+    }).catch(() => null);
 
     setResult(recommendation);
-    setState(response?.ok ? "success" : "error");
+    const success = Boolean(response?.ok);
+    setState(success ? "success" : "error");
+    if (success) window.dispatchEvent(new CustomEvent("vv:lead-submitted", { detail: { form: "hybrid_ev_match" } }));
   }
 
   return <form className="matchForm" onSubmit={submit}>
@@ -51,7 +77,8 @@ export function MatchForm() {
       <fieldset><legend>6. Heeft u al een voorkeur?</legend><div className="optionGrid"><label><input type="radio" name="preference" value="hybride" required /><span>Hybride</span></label><label><input type="radio" name="preference" value="elektrisch" /><span>Elektrisch</span></label><label><input type="radio" name="preference" value="open" /><span>Nog open</span></label></div></fieldset>
       <fieldset><legend>7. Wat is uw budget?</legend><label className="matchInput"><span>Budget in euro</span><input name="budgetEur" type="number" min="10000" max="150000" step="500" placeholder="Bijvoorbeeld 32.500" required /></label><div className="optionGrid optionGridTwo"><label><input type="radio" name="tradeIn" value="no" required /><span>Geen inruil</span></label><label><input type="radio" name="tradeIn" value="yes" /><span>Wel inruil</span></label></div></fieldset>
     </div>
-    <div className="matchContact"><label>Naam<input name="name" autoComplete="name" minLength={2} required /></label><label>E-mailadres<input name="email" type="email" autoComplete="email" required /></label><label>Telefoon (optioneel)<input name="phone" type="tel" autoComplete="tel" minLength={8} /></label></div>
+    <div className="matchContact"><label>Naam<input name="name" autoComplete="name" minLength={2} required /></label><label>E-mailadres<input name="email" type="email" autoComplete="email" /></label><label>Telefoon<input name="phone" type="tel" autoComplete="tel" minLength={8} /></label></div>
+    <div className="formHoneypot" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
     <label className="consent"><input name="consent" type="checkbox" required /><span>Ik ga ermee akkoord dat Volt &amp; Vroom mijn gegevens gebruikt om de uitslag te tonen en persoonlijk contact op te nemen. Lees het <a href="/privacy">privacybeleid</a>.</span></label>
     <button className="button matchSubmit" type="submit" disabled={state === "submitting"}>{state === "submitting" ? "Profiel wordt beoordeeld…" : "Bekijk mijn indicatie"}</button>
     {result && <div className={`matchResult ${state}`} aria-live="polite"><span>Uw eerste indicatie</span><h2>{result.title}</h2><p>{result.text} Dit is een eerste richting; wij controleren de keuze persoonlijk op budget, modellen en totale kosten.</p>{state === "success" ? <strong>Uw profiel is ontvangen. Wij nemen persoonlijk contact met u op.</strong> : <strong>Opslaan lukte niet. Bel 050 211 3883 of mail naar mik@voltvroom.nl.</strong>}</div>}
