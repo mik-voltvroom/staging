@@ -17,7 +17,7 @@ env:
     value: "true"
     availability:
       - BUILD
-      - RUNTIME
+      - RUNTIME]
 
   - variable: VVOS_DATA_MODE
     value: firebase
@@ -44,8 +44,14 @@ env:
     value: 1:241472991923:web:75467e4adfacf620e936c6
     availability: [BUILD, RUNTIME]
 
-  # Google Drive voertuigdossiers.
-  # Niet geheim: vaste targetmap `03 Voertuigen` in de Volt & Vroom bedrijfsomgeving.
+  # Google Drive / Shared Drive koppeling voor Volt & Vroom.
+  - variable: GOOGLE_DRIVE_SHARED_DRIVE_ID
+    value: 0ACwIWboayPM-Uk9PVA
+    availability: [RUNTIME]
+  - variable: GOOGLE_DRIVE_BUSINESS_ROOT_FOLDER_ID
+    value: 1fcxDroI7gNhWN6OJcS5dgVuSXZvKcGgq
+    availability: [RUNTIME]
+  # Vaste targetmap `03 Voertuigen` in de Volt & Vroom bedrijfsomgeving.
   - variable: GOOGLE_DRIVE_VEHICLES_FOLDER_ID
     value: 1pRkSoOpUcp8VFFtz3-pDoxmBkBtb3M9R
     availability: [RUNTIME]
