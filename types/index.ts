@@ -194,20 +194,20 @@ export interface WarrantyPackage {
   id: string;
   name: string;
   months: number;
-  priceEur: number;
+  priceCents: number;
   description: string;
   batteryCoverage: boolean;
-  deductibleEur: number;
+  deductibleCents: number;
 }
 
 export interface FinanceApplication {
   id: string;
   dealId: string;
   provider?: string;
-  requestedAmountEur: number;
-  downPaymentEur: number;
+  requestedAmountCents: number;
+  downPaymentCents: number;
   termMonths: number;
-  monthlyPaymentEur?: number;
+  monthlyPaymentCents?: number;
   status: FinanceStatus;
   consentAt?: string;
   submittedAt?: string;
@@ -218,7 +218,7 @@ export interface PaymentRecord {
   id: string;
   dealId: string;
   type: "deposit" | "balance" | "refund";
-  amountEur: number;
+  amountCents: number;
   status: PaymentStatus;
   provider: "manual" | "mollie" | "stripe" | "bank";
   paymentUrl?: string;
@@ -257,17 +257,18 @@ export interface Deal {
   vehicleId: string;
   customer: CustomerSnapshot;
   status: DealStatus;
-  salePriceEur: number;
-  tradeInCreditEur: number;
-  accessoriesEur: number;
-  deliveryPackageEur: number;
+  salePriceCents: number;
+  tradeInCreditCents: number;
+  accessoriesCents: number;
+  deliveryPackageCents: number;
   warranty?: WarrantyPackage;
-  depositRequiredEur: number;
-  totalEur: number;
+  depositRequiredCents: number;
+  totalCents: number;
   financeStatus: FinanceStatus;
   registrationStatus: RegistrationStatus;
   plannedDeliveryAt?: string;
-  portalToken: string;
+  portalToken?: string;
+  portalGrantHash?: string;
   createdAt: string;
   updatedAt: string;
 }

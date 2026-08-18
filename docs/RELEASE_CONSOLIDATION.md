@@ -101,7 +101,7 @@ Public sample/business data is therefore blocked on the identified public produc
 - [x] compare remaining unique PR #14 changes against canonical RC
 - [x] identify demo/sample-backed public endpoints for Work Package B/C
 - [x] restrict authentication bypass to an explicit local demo environment
-- [ ] mark PR #4 / #6 / #14 as superseded only after canonical RC proves equivalent or better
+- [x] mark PR #4 / #6 / #14 as superseded only after canonical RC proves equivalent or better
 
 ## Validation evidence
 
@@ -112,3 +112,7 @@ The Actions runner emitted one non-blocking maintenance annotation: `actions/che
 ## Promotion rule
 
 Only an exact tested SHA may move forward to staging acceptance. This branch is not production-ready merely because code has been consolidated.
+
+## Work Package A closure
+
+PR #4, PR #6 and PR #14 were each given an explicit supersession comment and closed without merge on 2026-08-18. Their branches and commit history remain available for audit. Draft PR #15 is the only canonical release candidate. Work Package B now continues on the same RC branch; see `docs/WORK_PACKAGE_B.md`.

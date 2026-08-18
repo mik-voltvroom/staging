@@ -56,7 +56,7 @@ describe("production data boundaries", () => {
     const response = await createPayment(new Request("https://staging.voltvroom.nl/api/payments/create", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ dealId: "DEAL-test", amountEur: 100 }),
+      body: JSON.stringify({ dealId: "DEAL-test", amountCents: 10000 }),
     }));
     const body = await response.json();
     expect(response.status).toBe(503);

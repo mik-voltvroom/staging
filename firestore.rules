@@ -16,6 +16,12 @@ service cloud.firestore {
     }
     match /customers/{customerId} { allow read, write: if staff(); }
     match /tasks/{taskId} { allow read, write: if staff(); }
+    // Commercial Core writes go through server-authorized repositories only.
+    match /deals/{dealId} { allow read, write: if false; }
+    match /deliveryTasks/{taskId} { allow read, write: if false; }
+    match /payments/{paymentId} { allow read, write: if false; }
+    match /dealDocuments/{documentId} { allow read, write: if false; }
+    match /financeApplications/{applicationId} { allow read, write: if false; }
     match /audit_logs/{logId} { allow read: if hasRole('owner') || hasRole('admin'); allow write: if false; }
 
     // Social Video is deliberately server-only. Public access goes through the
