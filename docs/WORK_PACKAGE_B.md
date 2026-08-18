@@ -86,3 +86,18 @@ Implemented in repository code, without touching live documents:
 - unit tests prove fractional legacy conversion, readback, rollback, conflict rejection and cents-only no-op behavior.
 
 This slice does not execute the migration planner against Firebase. A controlled follow-up must export a backup, run the planner read-only, review conflict counts, apply bounded batches, verify readback and retain rollback patches before the compatibility reader can be removed.
+
+## Slice B4b — Invoice, bank and ledger eurocent chain
+
+Implemented in the preview-backed finance boundary:
+
+- invoice lines, subtotal, VAT, total and paid values use integer cents;
+- VAT is rounded per invoice line in cents before totals are aggregated;
+- bank transactions use signed integer cents, while invoices and ledger entries remain non-negative;
+- reconciliation compares integer cents and allows at most one cent rounding difference;
+- dashboard, invoice, cashflow and management views convert to euros only for display;
+- audit metadata and API responses expose `totalCents` and `differenceCents` instead of floats;
+- compatibility normalizers convert legacy invoice, bank and ledger documents and reject conflicting dual writes;
+- sample finance data and regression tests use the canonical cents contract.
+
+These finance endpoints remain preview-backed and are not described as persisted. No invoice, bank transaction or ledger document was written or migrated in Firebase.

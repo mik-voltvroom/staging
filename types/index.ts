@@ -402,15 +402,15 @@ export type InvoiceKind = "sales" | "purchase" | "credit";
 export type CashFlowCategory = "vehicle_sales" | "workshop" | "finance" | "warranty" | "inventory" | "payroll" | "rent" | "tax" | "marketing" | "software" | "other";
 export type FundingStatus = "active" | "released" | "overdue" | "defaulted";
 
-export interface VatBreakdown { rate: number; netEur: number; vatEur: number; grossEur: number; }
-export interface InvoiceLine { id: string; description: string; quantity: number; unitPriceEur: number; vatPercent: number; accountCode?: string; vehicleId?: string; workOrderId?: string; }
+export interface VatBreakdown { rate: number; netCents: number; vatCents: number; grossCents: number; }
+export interface InvoiceLine { id: string; description: string; quantity: number; unitPriceCents: number; vatPercent: number; accountCode?: string; vehicleId?: string; workOrderId?: string; }
 export interface Invoice {
   id: string; number: string; kind: InvoiceKind; status: InvoiceStatus; customerOrSupplier: string; email?: string;
-  invoiceDate: string; dueDate: string; lines: InvoiceLine[]; subtotalEur: number; vatEur: number; totalEur: number; paidEur: number;
+  invoiceDate: string; dueDate: string; lines: InvoiceLine[]; subtotalCents: number; vatCents: number; totalCents: number; paidCents: number;
   dealId?: string; vehicleId?: string; workOrderId?: string; paymentReference?: string; notes?: string; createdAt: string; updatedAt: string;
 }
 export interface BankTransaction {
-  id: string; bookedAt: string; amountEur: number; description: string; counterparty?: string; iban?: string; reference?: string;
+  id: string; bookedAt: string; amountCents: number; description: string; counterparty?: string; iban?: string; reference?: string;
   matchedInvoiceId?: string; category: CashFlowCategory; status: "unmatched" | "suggested" | "matched" | "ignored";
 }
 export interface Expense {
@@ -433,6 +433,6 @@ export interface ManagementKpiSnapshot {
   carsSold: number; averageGrossContributionEur: number; workshopRevenueEur: number; workshopGrossProfitEur: number;
 }
 export interface LedgerEntry {
-  id: string; bookedAt: string; type: LedgerEntryType; description: string; debitAccount: string; creditAccount: string; amountEur: number;
+  id: string; bookedAt: string; type: LedgerEntryType; description: string; debitAccount: string; creditAccount: string; amountCents: number;
   vatCode?: string; invoiceId?: string; vehicleId?: string; workOrderId?: string; immutable: boolean;
 }

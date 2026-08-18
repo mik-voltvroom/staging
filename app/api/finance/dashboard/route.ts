@@ -9,8 +9,8 @@ export async function GET(request: Request) {
   const current = kpiSnapshots.at(-1);
   return NextResponse.json({
     current,
-    receivablesEur: financeInvoices.filter((item) => item.kind === "sales").reduce((sum, item) => sum + invoiceOpenAmount(item), 0),
-    payablesEur: financeInvoices.filter((item) => item.kind === "purchase").reduce((sum, item) => sum + invoiceOpenAmount(item), 0),
+    receivablesCents: financeInvoices.filter((item) => item.kind === "sales").reduce((sum, item) => sum + invoiceOpenAmount(item), 0),
+    payablesCents: financeInvoices.filter((item) => item.kind === "purchase").reduce((sum, item) => sum + invoiceOpenAmount(item), 0),
     activeFundingEur: inventoryFunding.filter((item) => item.status === "active").reduce((sum, item) => sum + item.principalEur, 0),
     generatedAt: new Date().toISOString(),
     mode: "demo",

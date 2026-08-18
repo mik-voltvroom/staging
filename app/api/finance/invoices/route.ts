@@ -8,7 +8,7 @@ import { writeAuditEvent } from "@/lib/audit/audit-log";
 const lineSchema = z.object({
   description: z.string().min(2),
   quantity: z.number().positive(),
-  unitPriceEur: z.number(),
+  unitPriceCents: z.number().int(),
   vatPercent: z.number().min(0).max(100),
   vehicleId: z.string().optional(),
   workOrderId: z.string().optional(),
@@ -39,11 +39,11 @@ export async function POST(request: Request) {
     status: "draft",
     ...parsed.data,
     ...totals,
-    paidEur: 0,
+    paidCents: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     mode: "preview",
   };
-  await writeAuditEvent({ action: "invoice.created", entityType: "invoice", entityId: invoice.id, actor: auth.actor, metadata: { kind: invoice.kind, totalEur: totals.totalEur }, request });
+  await writeAuditEvent({ action: "invoice.created", entityType: "invoice", entityId: invoice.id, actor: auth.actor, metadata: { kind: invoice.kind, totalCents: totals.totalCents }, request });
   return NextResponse.json(invoice, { status: 201 });
 }
