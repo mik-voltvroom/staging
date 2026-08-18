@@ -90,18 +90,24 @@ Public sample/business data is therefore blocked on the identified public produc
 
 ## P0 validation before Work Package A can close
 
-- [ ] clean locked dependency install
-- [ ] dependency audit high-severity gate
-- [ ] repository guard
-- [ ] agent audit
-- [ ] brand audit
-- [ ] TypeScript typecheck
-- [ ] complete Vitest suite
-- [ ] Next.js production build
+- [x] clean locked dependency install
+- [x] dependency audit high-severity gate
+- [x] repository guard
+- [x] agent audit
+- [x] brand audit
+- [x] TypeScript typecheck
+- [x] complete Vitest suite
+- [x] Next.js production build
 - [x] compare remaining unique PR #14 changes against canonical RC
 - [x] identify demo/sample-backed public endpoints for Work Package B/C
 - [x] restrict authentication bypass to an explicit local demo environment
 - [ ] mark PR #4 / #6 / #14 as superseded only after canonical RC proves equivalent or better
+
+## Validation evidence
+
+The authentication-boundary head `078d400b9a3afefb7490e6a3d04ea1a52463b469` passed the complete local quality suite: repository guard, agent audit, brand audit, TypeScript, 70 Vitest tests and the staging/Firebase/auth production build. GitHub Actions then passed the clean lockfile install, production dependency audit and the same quality/build gates in both the push run (`32126872745`, 1m26s) and pull-request run (`32126876266`, 1m40s).
+
+The Actions runner emitted one non-blocking maintenance annotation: `actions/checkout@v4` and `actions/setup-node@v4` still target the deprecated Node 20 action runtime and were forced onto Node 24. This does not change the application test runtime, which remains explicitly configured as Node 22, but the action majors should be reviewed when GitHub publishes the supported upgrade path.
 
 ## Promotion rule
 
