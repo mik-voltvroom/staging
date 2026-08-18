@@ -108,6 +108,7 @@ Implemented in repository code and staging integration:
 
 - Mobilox/Hexon is configured to send one explicitly selected vehicle to the authenticated staging webhook;
 - the webhook validates and normalizes the XML mutation before writing integer-cent vehicle data to Firestore;
+- Hexon v2.25 nested consumer prices, canonical `voertuignr` identifiers and the `E` electric fuel code are normalized explicitly; an omitted odometer is stored for review and never published;
 - the public repository reads only `available` vehicles whose website publication channel is enabled and whose validation error list is empty;
 - the homepage renders repository-backed vehicle cards and passes the same inventory into the contact form;
 - vehicle detail pages use the same public repository boundary, preventing draft, review, archived, reserved or sold inventory from being exposed;

@@ -116,6 +116,7 @@ function findPriceCents(root: unknown): number {
 
 function inferDriveType(fuel: string): DriveType {
   const value = fuel.toLowerCase();
+  if (value === "e") return "electric";
   if (value.includes("plug") || (value.includes("elektr") && /benzine|diesel/.test(value))) return "plug-in-hybrid";
   if (value.includes("hybrid") || value.includes("hybride")) return "full-hybrid";
   if (value.includes("elektr")) return "electric";
@@ -162,7 +163,7 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   if (validation !== true) throw new Error("Hexon XML is niet geldig.");
 
   const parsed = parser.parse(xml) as unknown;
-  const externalId = safeExternalId(firstText(parsed, ["voertuignr_hexon", "voertuignummer", "stocknummer"]) ?? "");
+  const externalId = safeExternalId(firstText(parsed, ["voertuignr", "voertuignr_klant", "voertuignummer", "stocknummer", "voertuignr_hexon"]) ?? "");
   const action = mutationAction(parsed);
   if (action === "archive") return { action, externalId };
 
@@ -171,7 +172,8 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   const trim = firstText(parsed, ["uitvoering", "type", "titel"]) ?? "";
   const fuelType = firstText(parsed, ["brandstof", "brandstof_omschrijving"]) ?? "Elektrisch";
   const year = parseInteger(firstField(parsed, ["bouwjaar"])) ?? 0;
-  const mileageKm = parseInteger(firstField(parsed, ["tellerstand", "kilometerstand"])) ?? 0;
+  const mileageValue = firstField(parsed, ["tellerstand", "kilometerstand"]);
+  const mileageKm = parseInteger(mileageValue) ?? 0;
   const images = collectHttpsUrls(firstField(parsed, ["afbeeldingen", "fotos", "foto_s"]));
   const sold = parseBoolean(firstField(parsed, ["verkocht"]));
   const id = `hexon-${externalId}`;
@@ -203,6 +205,9 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   };
 
   const validationErrors = validateVehicle(vehicle);
+  if (parseInteger(mileageValue) === undefined && !validationErrors.includes("Kilometerstand ontbreekt")) {
+    validationErrors.push("Kilometerstand ontbreekt");
+  }
   if (!sold && validationErrors.length === 0) vehicle.status = "available";
   vehicle.publication = {
     channels: {

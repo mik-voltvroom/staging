@@ -39,6 +39,32 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.vehicle?.publication?.channels.website).toBe(true);
   });
 
+  it("maps the nested Hexon v2.25 price and uses the vehicle number instead of the request number", () => {
+    const nestedXml = vehicleXml
+      .replace("<voertuignr_hexon>5016729</voertuignr_hexon>", "<voertuignr_hexon>56015851</voertuignr_hexon><voertuignr>5016729</voertuignr>")
+      .replace("<brandstof>Elektrisch</brandstof>", "<brandstof>E</brandstof>")
+      .replace(
+        "<verkoopprijs_particulier><bedrag>39.950,00</bedrag><munteenheid>EUR</munteenheid></verkoopprijs_particulier>",
+        '<verkoopprijs_particulier><prijzen land="nl"><prijs nr="1"><bedrag>25911</bedrag><munteenheid>EUR</munteenheid></prijs></prijzen></verkoopprijs_particulier>',
+      );
+
+    const mutation = parseHexonMutation(nestedXml, new Date("2026-08-18T12:00:00.000Z"));
+    expect(mutation.externalId).toBe("5016729");
+    expect(mutation.vehicle).toMatchObject({
+      id: "hexon-5016729",
+      priceCents: 2591100,
+      driveType: "electric",
+      status: "available",
+    });
+  });
+
+  it("stores a vehicle for review instead of publishing when Hexon omits the odometer", () => {
+    const mutation = parseHexonMutation(vehicleXml.replace("<tellerstand>12.345</tellerstand>", "<tellerstand/>"));
+    expect(mutation.vehicle?.status).toBe("review");
+    expect(mutation.vehicle?.publication?.channels.website).toBe(false);
+    expect(mutation.vehicle?.publication?.validationErrors).toContain("Kilometerstand ontbreekt");
+  });
+
   it("archives a vehicle for a delete mutation without requiring commercial fields", () => {
     const mutation = parseHexonMutation("<voertuig><actie>verwijderen</actie><voertuignr_hexon>5016729</voertuignr_hexon></voertuig>");
     expect(mutation).toEqual({ action: "archive", externalId: "5016729" });
