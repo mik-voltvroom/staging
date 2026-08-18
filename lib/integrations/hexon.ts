@@ -85,7 +85,11 @@ function firstField(root: unknown, names: string[]): unknown {
 }
 
 function firstText(root: unknown, names: string[]): string | undefined {
-  return textFrom(firstField(root, names));
+  for (const name of names) {
+    const text = textFrom(firstField(root, [name]));
+    if (text) return text;
+  }
+  return undefined;
 }
 
 function parseNumber(value: unknown): number | undefined {

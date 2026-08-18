@@ -43,6 +43,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
   it("maps the nested Hexon v2.25 price and uses the vehicle number instead of the request number", () => {
     const nestedXml = vehicleXml
       .replace("<voertuignr_hexon>5016729</voertuignr_hexon>", "<voertuignr_hexon>56015851</voertuignr_hexon><voertuignr>5016729</voertuignr>")
+      .replace("<type>", "<uitvoering/><type>")
       .replace("<brandstof>Elektrisch</brandstof>", "<brandstof>E</brandstof>")
       .replace(
         "<verkoopprijs_particulier><bedrag>39.950,00</bedrag><munteenheid>EUR</munteenheid></verkoopprijs_particulier>",
@@ -55,6 +56,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
       id: "hexon-5016729",
       priceCents: 2591100,
       driveType: "electric",
+      trim: "Long Range Single Motor Plus 82 kWh",
       status: "available",
     });
   });
