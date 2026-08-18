@@ -51,6 +51,20 @@ All five files changed by PR #14 were compared against the canonical RC:
 
 No remaining PR #14 application file needs to be copied. The hardening branch is seven commits beyond its merge base, but its complete five-file deliverable is represented in this RC with the deliberate differences above.
 
+## Main reconciliation
+
+The current `main` head (`1d4607b`) contains two design commits that were created after the RC merge base. Both capabilities already exist in newer form on the canonical RC. `main` is therefore recorded as an ancestor without replacing the RC tree.
+
+| Conflicting file | Resolution |
+|---|---|
+| `app/globals.css` | Keep RC. It contains the complete current public and dashboard styling; the four older logo rules from `main` are already covered by `app/public.css` and the RC globals. |
+| `app/icon.svg` | Keep RC. It uses the approved VV symbol and current Paper White, Deep Ink and Electric Blue palette instead of the older placeholder mark. |
+| `components/BrandLogo.tsx` | Keep RC. It extends the reusable logo with compact and dark variants required by the current public site. |
+| `components/Header.tsx` | Keep RC. It contains the current website navigation, conversion CTA and mobile menu; the older `main` header would remove these routes and features. |
+| `public/brand/vv-symbol.svg` | Keep RC. The artwork is content-equivalent to `main`; the conflict was caused by parallel file creation/newline history. |
+
+This reconciliation changes no runtime file relative to the previously tested RC tree. Its purpose is to remove the stale branch conflict while preserving the newer approved design implementation.
+
 ## Demo/sample-backed endpoint inventory
 
 Classification is based on the RC route policy with `VVOS_REQUIRE_AUTH=true` and `VVOS_DATA_MODE=firebase`.
