@@ -34,6 +34,16 @@ describe("publieke Volt & Vroom website", () => {
     expect(homepage.indexOf('href="#voorraad"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
   });
 
+  it("toont uitsluitend repository-backed publiceerbare voorraad", () => {
+    const homepage = read("app/page.tsx");
+    const repository = read("lib/repositories/public-vehicle-repository.ts");
+    expect(homepage).toContain("listPublicVehicles(6)");
+    expect(homepage).toContain("<VehicleCard vehicle={vehicle}");
+    expect(repository).toContain('vehicle.status === "available"');
+    expect(repository).toContain('vehicle.publication?.channels.website === true');
+    expect(repository).toContain("validationErrors");
+  });
+
   it("formuleert de selectienorm controleerbaar en zonder onnodige absolute claims", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Gecontroleerde kilometerstand");

@@ -101,3 +101,17 @@ Implemented in the preview-backed finance boundary:
 - sample finance data and regression tests use the canonical cents contract.
 
 These finance endpoints remain preview-backed and are not described as persisted. No invoice, bank transaction or ledger document was written or migrated in Firebase.
+
+## Slice B5 — Mobilox-backed public inventory
+
+Implemented in repository code and staging integration:
+
+- Mobilox/Hexon is configured to send one explicitly selected vehicle to the authenticated staging webhook;
+- the webhook validates and normalizes the XML mutation before writing integer-cent vehicle data to Firestore;
+- the public repository reads only `available` vehicles whose website publication channel is enabled and whose validation error list is empty;
+- the homepage renders repository-backed vehicle cards and passes the same inventory into the contact form;
+- vehicle detail pages use the same public repository boundary, preventing draft, review, archived, reserved or sold inventory from being exposed;
+- missing images use the Volt & Vroom mark instead of fabricated vehicle photography;
+- unavailable or malformed Firestore inventory degrades to the existing inventory placeholder and is logged server-side.
+
+This slice does not merge to `main`, deploy production, loosen Firestore Rules or expose Mobilox credentials to the browser.

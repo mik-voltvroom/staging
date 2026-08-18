@@ -36,9 +36,13 @@ describe("production data boundaries", () => {
   });
 
   it("does not statically publish sample vehicle detail pages in Firebase mode", () => {
-    const source = readFileSync(resolve(process.cwd(), "app/voorraad/[slug]/page.tsx"), "utf8");
-    expect(source).toContain('process.env.VVOS_DATA_MODE === "firebase" ? []');
-    expect(source).toContain('.where("status", "==", "available")');
+    const page = readFileSync(resolve(process.cwd(), "app/voorraad/[slug]/page.tsx"), "utf8");
+    const repository = readFileSync(resolve(process.cwd(), "lib/repositories/public-vehicle-repository.ts"), "utf8");
+    expect(page).toContain("return [];");
+    expect(page).toContain("getPublicVehicleBySlug(slug)");
+    expect(repository).toContain('process.env.VVOS_DATA_MODE !== "firebase"');
+    expect(repository).toContain('.where("status", "==", "available")');
+    expect(repository).toContain('vehicle.publication?.channels.website === true');
   });
 
   it("does not expose the sample customer portal in Firebase mode", async () => {
