@@ -71,3 +71,18 @@ Implemented in repository code and CI configuration:
 - GitHub CI provisions Java 21 and runs the Rules emulator suite as an explicit quality gate.
 
 Local execution of the emulator suite requires Java 21 or newer. The current Codex Windows runtime has no Java installation, so the authoritative emulator execution evidence for this slice is the clean GitHub Actions runner. No emulator configuration points to staging or production.
+
+## Slice B4a — Vehicle eurocent boundary
+
+Implemented in repository code, without touching live documents:
+
+- vehicle retail price, monthly indication, annual saving and all direct vehicle-cost fields now use integer `...Cents` values;
+- dashboard forms still accept and display euros, but convert at the UI boundary and never store floats;
+- public inventory pages and the Merchant feed format cents back to euros only for presentation/export;
+- Firestore and local-demo readers normalize legacy `...Eur` documents to the canonical cents model;
+- mismatching dual-written euro/cents values fail closed instead of choosing one silently;
+- ordinary vehicle writes remove legacy euro fields and Firestore Rules require non-negative integer cents;
+- the migration planner produces document-specific dry-run `set`/`deletePaths`, readback-compatible output and an exact rollback patch;
+- unit tests prove fractional legacy conversion, readback, rollback, conflict rejection and cents-only no-op behavior.
+
+This slice does not execute the migration planner against Firebase. A controlled follow-up must export a backup, run the planner read-only, review conflict counts, apply bounded batches, verify readback and retain rollback patches before the compatibility reader can be removed.

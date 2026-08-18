@@ -1,6 +1,7 @@
 "use client";
 import type { Appointment, AutomationRule, Lead, LeadActivity, Quote, TradeIn, Vehicle } from "@/types";
 import { vehicles as seedVehicles } from "@/lib/sample-data";
+import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 
 const VEHICLES_KEY = "vvos.vehicles.v2";
 const LEADS_KEY = "vvos.leads.v2";
@@ -12,8 +13,16 @@ function safeParse<T>(raw: string | null, fallback: T): T {
 
 export function getVehicles(): Vehicle[] {
   if (typeof window === "undefined") return seedVehicles;
-  const existing = safeParse<Vehicle[]>(localStorage.getItem(VEHICLES_KEY), []);
-  if (existing.length) return existing;
+  const existing = safeParse<Record<string, unknown>[]>(localStorage.getItem(VEHICLES_KEY), []);
+  if (existing.length) {
+    try {
+      const normalized = existing.map((vehicle) => normalizeVehicleDocument(String(vehicle.id ?? ""), vehicle));
+      localStorage.setItem(VEHICLES_KEY, JSON.stringify(normalized));
+      return normalized;
+    } catch {
+      localStorage.removeItem(VEHICLES_KEY);
+    }
+  }
   localStorage.setItem(VEHICLES_KEY, JSON.stringify(seedVehicles));
   return seedVehicles;
 }

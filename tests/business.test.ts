@@ -3,21 +3,21 @@ import { grossMargin, marginPercent, slugify, totalCosts, validateVehicle } from
 import type { VehicleCosts } from "@/types";
 
 const costs: VehicleCosts = {
-  purchasePriceEur: 20000,
-  transportEur: 200,
-  preparationEur: 300,
-  maintenanceEur: 500,
-  warrantyReserveEur: 400,
-  advertisingEur: 100,
-  financingEur: 250,
-  otherEur: 50,
+  purchasePriceCents: 2000000,
+  transportCents: 20000,
+  preparationCents: 30000,
+  maintenanceCents: 50000,
+  warrantyReserveCents: 40000,
+  advertisingCents: 10000,
+  financingCents: 25000,
+  otherCents: 5000,
 };
 
 describe("vehicle business rules", () => {
   it("calculates total costs and margin deterministically", () => {
-    expect(totalCosts(costs)).toBe(21800);
-    expect(grossMargin(24950, costs)).toBe(3150);
-    expect(marginPercent(24950, costs)).toBeCloseTo(12.625, 3);
+    expect(totalCosts(costs)).toBe(2180000);
+    expect(grossMargin(2495000, costs)).toBe(315000);
+    expect(marginPercent(2495000, costs)).toBeCloseTo(12.625, 3);
   });
 
   it("creates stable Dutch-friendly slugs", () => {

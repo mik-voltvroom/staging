@@ -1,27 +1,27 @@
 import type { Vehicle, VehicleCosts } from "@/types";
 
 export const emptyCosts: VehicleCosts = {
-  purchasePriceEur: 0,
-  transportEur: 0,
-  preparationEur: 0,
-  maintenanceEur: 0,
-  warrantyReserveEur: 0,
-  advertisingEur: 0,
-  financingEur: 0,
-  otherEur: 0,
+  purchasePriceCents: 0,
+  transportCents: 0,
+  preparationCents: 0,
+  maintenanceCents: 0,
+  warrantyReserveCents: 0,
+  advertisingCents: 0,
+  financingCents: 0,
+  otherCents: 0,
 };
 
 export function totalCosts(costs: VehicleCosts): number {
   return Object.values(costs).reduce((total, value) => total + Number(value || 0), 0);
 }
 
-export function grossMargin(priceEur: number, costs: VehicleCosts): number {
-  return Number(priceEur || 0) - totalCosts(costs);
+export function grossMargin(priceCents: number, costs: VehicleCosts): number {
+  return Number(priceCents || 0) - totalCosts(costs);
 }
 
-export function marginPercent(priceEur: number, costs: VehicleCosts): number {
-  if (!priceEur) return 0;
-  return (grossMargin(priceEur, costs) / priceEur) * 100;
+export function marginPercent(priceCents: number, costs: VehicleCosts): number {
+  if (!priceCents) return 0;
+  return (grossMargin(priceCents, costs) / priceCents) * 100;
 }
 
 export function slugify(value: string): string {
@@ -35,7 +35,7 @@ export function validateVehicle(vehicle: Partial<Vehicle>): string[] {
   if (!vehicle.trim) errors.push("Uitvoering ontbreekt");
   if (!vehicle.year) errors.push("Bouwjaar ontbreekt");
   if (!vehicle.mileageKm && vehicle.mileageKm !== 0) errors.push("Kilometerstand ontbreekt");
-  if (!vehicle.priceEur) errors.push("Verkoopprijs ontbreekt");
+  if (!vehicle.priceCents) errors.push("Verkoopprijs ontbreekt");
   if (!vehicle.images?.length) errors.push("Minimaal één foto is verplicht");
   if (!vehicle.locationCode) errors.push("Vestigingscode ontbreekt");
   if (vehicle.driveType !== "electric" && !vehicle.consumptionPer100Km) errors.push("Praktijkverbruik ontbreekt");

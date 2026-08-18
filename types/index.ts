@@ -3,14 +3,14 @@ export type VehicleStatus = "draft" | "photography" | "review" | "available" | "
 export type PublishChannel = "website" | "merchant" | "google_ads" | "meta";
 
 export interface VehicleCosts {
-  purchasePriceEur: number;
-  transportEur: number;
-  preparationEur: number;
-  maintenanceEur: number;
-  warrantyReserveEur: number;
-  advertisingEur: number;
-  financingEur: number;
-  otherEur: number;
+  purchasePriceCents: number;
+  transportCents: number;
+  preparationCents: number;
+  maintenanceCents: number;
+  warrantyReserveCents: number;
+  advertisingCents: number;
+  financingCents: number;
+  otherCents: number;
 }
 
 export interface VehiclePublication {
@@ -28,8 +28,8 @@ export interface Vehicle {
   trim: string;
   year: number;
   mileageKm: number;
-  priceEur: number;
-  monthlyPriceEur?: number;
+  priceCents: number;
+  monthlyPriceCents?: number;
   driveType: DriveType;
   fuelType: string;
   transmission: string;
@@ -38,7 +38,7 @@ export interface Vehicle {
   batteryHealthPercent?: number;
   electricRangeKm?: number;
   consumptionPer100Km?: number;
-  annualSavingEur?: number;
+  annualSavingCents?: number;
   warrantyMonths?: number;
   maintenanceHistory: "complete" | "partial" | "unknown";
   vin?: string;

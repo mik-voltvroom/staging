@@ -58,13 +58,16 @@ describe("Firestore Rules commercial boundaries", () => {
     const ownerDb = roleContext("owner").firestore();
     const adminDb = roleContext("admin").firestore();
 
-    await assertSucceeds(setDoc(doc(salesDb, "vehicles/draft"), { status: "draft", make: "Kia" }));
+    await assertSucceeds(setDoc(doc(salesDb, "vehicles/draft"), { status: "draft", make: "Kia", priceCents: 2_500_000 }));
+    await assertFails(setDoc(doc(salesDb, "vehicles/legacy-money"), { status: "draft", make: "Kia", priceEur: 25_000 }));
+    await assertFails(setDoc(doc(salesDb, "vehicles/fractional-cents"), { status: "draft", make: "Kia", priceCents: 2_500_000.5 }));
     await assertFails(setDoc(doc(salesDb, "vehicles/reserved-create"), {
       status: "reserved",
       reservedDealId: "deal-1",
+      priceCents: 2_500_000,
     }));
 
-    await seed("vehicles/available", { status: "available", make: "Volvo" });
+    await seed("vehicles/available", { status: "available", make: "Volvo", priceCents: 2_500_000 });
     await assertSucceeds(updateDoc(doc(salesDb, "vehicles/available"), { make: "Polestar" }));
     await assertFails(updateDoc(doc(ownerDb, "vehicles/available"), {
       status: "reserved",

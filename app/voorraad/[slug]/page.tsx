@@ -5,6 +5,8 @@ import { eur, km } from "@/lib/format";
 import { vehicles } from "@/lib/sample-data";
 import { adminDb } from "@/lib/firebase-admin";
 import type { Vehicle } from "@/types";
+import { centsToEuros } from "@/lib/money";
+import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -20,7 +22,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
     if (!adminDb) notFound();
     const snapshot = await adminDb.collection("vehicles").where("slug", "==", slug).where("status", "==", "available").limit(1).get();
     const document = snapshot.docs[0];
-    vehicle = document ? ({ id: document.id, ...document.data() } as Vehicle) : undefined;
+    vehicle = document ? normalizeVehicleDocument(document.id, document.data()) : undefined;
   } else {
     vehicle = vehicles.find(v => v.slug === slug);
   }
@@ -33,10 +35,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
       <p className="lead">{vehicle.trim} · {vehicle.year} · {km.format(vehicle.mileageKm)} km · {vehicle.transmission}</p>
       <div className="heroCard" style={{marginTop:28}}><img src={vehicle.images[0]} alt={`${vehicle.brand} ${vehicle.model}`} /></div>
       <div className="metrics" style={{marginTop:22}}>
-        <div className="metric"><strong>{eur.format(vehicle.priceEur)}</strong><span className="muted">verkoopprijs</span></div>
-        <div className="metric"><strong>{vehicle.monthlyPriceEur ? eur.format(vehicle.monthlyPriceEur) : "Op aanvraag"}</strong><span className="muted">indicatie per maand</span></div>
+        <div className="metric"><strong>{eur.format(centsToEuros(vehicle.priceCents))}</strong><span className="muted">verkoopprijs</span></div>
+        <div className="metric"><strong>{vehicle.monthlyPriceCents ? eur.format(centsToEuros(vehicle.monthlyPriceCents)) : "Op aanvraag"}</strong><span className="muted">indicatie per maand</span></div>
         <div className="metric"><strong>{vehicle.batteryHealthPercent ?? "—"}%</strong><span className="muted">accugezondheid</span></div>
-        <div className="metric"><strong>{vehicle.annualSavingEur ? eur.format(vehicle.annualSavingEur) : "—"}</strong><span className="muted">geschatte jaarbesparing</span></div>
+        <div className="metric"><strong>{vehicle.annualSavingCents ? eur.format(centsToEuros(vehicle.annualSavingCents)) : "—"}</strong><span className="muted">geschatte jaarbesparing</span></div>
       </div>
       <VehicleSocialVideos vehicleId={vehicle.id} />
     </main>

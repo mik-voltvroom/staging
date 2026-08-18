@@ -21,13 +21,41 @@ service cloud.firestore {
         && !commercialVehicleStatus(request.resource.data)
         && !commercialVehicleFieldsChanged();
     }
+    function validCents(value) { return value is int && value >= 0; }
+    function validVehicleCosts(costs) {
+      return costs.keys().hasAll([
+          'purchasePriceCents', 'transportCents', 'preparationCents', 'maintenanceCents',
+          'warrantyReserveCents', 'advertisingCents', 'financingCents', 'otherCents'
+        ])
+        && !costs.keys().hasAny([
+          'purchasePriceEur', 'transportEur', 'preparationEur', 'maintenanceEur',
+          'warrantyReserveEur', 'advertisingEur', 'financingEur', 'otherEur'
+        ])
+        && validCents(costs.purchasePriceCents)
+        && validCents(costs.transportCents)
+        && validCents(costs.preparationCents)
+        && validCents(costs.maintenanceCents)
+        && validCents(costs.warrantyReserveCents)
+        && validCents(costs.advertisingCents)
+        && validCents(costs.financingCents)
+        && validCents(costs.otherCents);
+    }
+    function validVehicleMoney(data) {
+      return validCents(data.priceCents)
+        && !data.keys().hasAny(['priceEur', 'monthlyPriceEur', 'annualSavingEur'])
+        && (!data.keys().hasAny(['monthlyPriceCents']) || validCents(data.monthlyPriceCents))
+        && (!data.keys().hasAny(['annualSavingCents']) || validCents(data.annualSavingCents))
+        && (!data.keys().hasAny(['costs']) || validVehicleCosts(data.costs));
+    }
 
     match /vehicles/{vehicleId} {
       allow read: if resource.data.status == 'available' || staff();
       allow create: if (hasRole('owner') || hasRole('admin') || hasRole('sales'))
-        && safeVehicleCreate();
+        && safeVehicleCreate()
+        && validVehicleMoney(request.resource.data);
       allow update: if (hasRole('owner') || hasRole('admin') || hasRole('sales'))
-        && safeVehicleUpdate();
+        && safeVehicleUpdate()
+        && validVehicleMoney(request.resource.data);
       allow delete: if (hasRole('owner') || hasRole('admin'))
         && !commercialVehicleStatus(resource.data);
     }

@@ -2,6 +2,7 @@ import { createVehicleFeed } from "@/lib/merchant";
 import { vehicles } from "@/lib/sample-data";
 import { adminDb } from "@/lib/firebase-admin";
 import type { Vehicle } from "@/types";
+import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 
 export async function GET() {
   const productionDataMode = process.env.VVOS_DATA_MODE === "firebase";
@@ -13,7 +14,7 @@ export async function GET() {
   if (productionDataMode && adminDb) {
     try {
       const snapshot = await adminDb.collection("vehicles").where("status", "==", "available").get();
-      feedVehicles = snapshot.docs.map((document) => ({ id: document.id, ...document.data() }) as Vehicle);
+      feedVehicles = snapshot.docs.map((document) => normalizeVehicleDocument(document.id, document.data()));
     } catch {
       return Response.json({ ok: false, error: "Voertuigvoorraad kon niet worden geladen." }, { status: 503 });
     }

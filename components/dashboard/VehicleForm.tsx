@@ -6,6 +6,7 @@ import { emptyCosts, slugify, validateVehicle } from "@/lib/business";
 import { saveVehicle } from "@/lib/repositories/vehicle-repository";
 import { uploadVehicleImage } from "@/lib/integrations/storage";
 import { MarginPanel } from "./MarginPanel";
+import { centsToEuros, eurosToCents } from "@/lib/money";
 
 const now = () => new Date().toISOString();
 const id = () => `VV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -14,7 +15,7 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [vehicle, setVehicle] = useState<Vehicle>(initial ?? {
-    id: id(), slug: "", brand: "", model: "", trim: "", year: new Date().getFullYear(), mileageKm: 0, priceEur: 0,
+    id: id(), slug: "", brand: "", model: "", trim: "", year: new Date().getFullYear(), mileageKm: 0, priceCents: 0,
     driveType: "full-hybrid", fuelType: "Benzine / elektrisch", transmission: "Automaat", bodyStyle: "", color: "",
     maintenanceHistory: "unknown", images: [], highlights: [], status: "draft", locationCode: "VOLT_VROOM_GRONINGEN",
     costs: emptyCosts, publication: { channels: { website: false, merchant: false, google_ads: false, meta: false }, completenessPercent: 0, validationErrors: [] }, updatedAt: now(), createdAt: now()
@@ -49,8 +50,8 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
           <label className="span2">Uitvoering<input value={vehicle.trim} onChange={e => set("trim", e.target.value)} /></label>
           <label>Bouwjaar<input type="number" value={vehicle.year} onChange={e => set("year", Number(e.target.value))} /></label>
           <label>Kilometerstand<input type="number" value={vehicle.mileageKm} onChange={e => set("mileageKm", Number(e.target.value))} /></label>
-          <label>Verkoopprijs<input type="number" value={vehicle.priceEur} onChange={e => set("priceEur", Number(e.target.value))} /></label>
-          <label>Per maand<input type="number" value={vehicle.monthlyPriceEur ?? 0} onChange={e => set("monthlyPriceEur", Number(e.target.value))} /></label>
+          <label>Verkoopprijs<input type="number" min="0" step="0.01" value={centsToEuros(vehicle.priceCents)} onChange={e => set("priceCents", eurosToCents(Number(e.target.value), "priceCents"))} /></label>
+          <label>Per maand<input type="number" min="0" step="0.01" value={centsToEuros(vehicle.monthlyPriceCents ?? 0)} onChange={e => set("monthlyPriceCents", eurosToCents(Number(e.target.value), "monthlyPriceCents"))} /></label>
           <label>Aandrijving<select value={vehicle.driveType} onChange={e => set("driveType", e.target.value as DriveType)}><option value="full-hybrid">Full hybrid</option><option value="plug-in-hybrid">Plug-in hybrid</option><option value="electric">Elektrisch</option></select></label>
           <label>Carrosserie<input value={vehicle.bodyStyle} onChange={e => set("bodyStyle", e.target.value)} /></label>
           <label>Kleur<input value={vehicle.color} onChange={e => set("color", e.target.value)} /></label>
@@ -73,7 +74,7 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
         <p className="helper">URL-invoer werkt altijd. Bestandsupload gebruikt Firebase Storage zodra de koppeling actief is.</p>
       </section>
 
-      <MarginPanel price={vehicle.priceEur} costs={vehicle.costs ?? emptyCosts} onChange={costs => set("costs", costs)} />
+      <MarginPanel priceCents={vehicle.priceCents} costs={vehicle.costs ?? emptyCosts} onChange={costs => set("costs", costs)} />
     </div>
 
     <aside className="editorSide">

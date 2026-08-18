@@ -1,4 +1,5 @@
 import type { Vehicle } from "@/types";
+import { centsToEuros } from "@/lib/money";
 
 const escapeXml = (value: unknown) => String(value ?? "")
   .replaceAll("&", "&amp;")
@@ -19,7 +20,7 @@ export function createVehicleFeed(vehicles: Vehicle[], baseUrl: string): string 
         <g:image_link>${escapeXml(vehicle.images[0])}</g:image_link>
         <g:availability>in_stock</g:availability>
         <g:condition>used</g:condition>
-        <g:price>${vehicle.priceEur.toFixed(2)} EUR</g:price>
+        <g:price>${centsToEuros(vehicle.priceCents).toFixed(2)} EUR</g:price>
         <g:brand>${escapeXml(vehicle.brand)}</g:brand>
         <g:product_type>Vehicles &gt; Cars</g:product_type>
         <g:custom_label_0>${escapeXml(vehicle.driveType)}</g:custom_label_0>

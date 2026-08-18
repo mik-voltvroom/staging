@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { sampleDeals, sampleDocuments, sampleFinance, samplePayments, sampleTasks } from "@/lib/deal/sample-data";
 import { buildAcceptedDealSnapshot, buildDeal, buildDefaultDeliveryTasks, canTransitionDeal, type DealCreateInput } from "@/lib/deal/model";
 import { assertEurocents, eurosToCents } from "@/lib/money";
+import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 
 export class DealRepositoryUnavailableError extends Error {}
 export class DealNotFoundError extends Error {}
@@ -157,7 +158,7 @@ export async function updateDealStatus(id: string, nextStatus: Deal["status"]): 
       vehicleReference = db.collection("vehicles").doc(deal.vehicleId);
       const vehicleSnapshot = await transaction.get(vehicleReference);
       if (!vehicleSnapshot.exists) throw new VehicleReservationError("Voertuig voor deze deal is niet gevonden.");
-      vehicle = { id: vehicleSnapshot.id, ...vehicleSnapshot.data() } as Vehicle;
+      vehicle = normalizeVehicleDocument(vehicleSnapshot.id, vehicleSnapshot.data() ?? {});
     }
     if (nextStatus === "delivered") {
       const [tasks, payments] = await Promise.all([
