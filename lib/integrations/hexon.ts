@@ -178,6 +178,9 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   const sold = parseBoolean(firstField(parsed, ["verkocht"]));
   const id = `hexon-${externalId}`;
   const updatedAt = now.toISOString();
+  const vin = firstText(parsed, ["chassisnummer", "vin"]);
+  const licensePlate = firstText(parsed, ["kenteken"]);
+  const description = firstText(parsed, ["opmerkingen", "omschrijving"]);
 
   const vehicle: Vehicle = {
     id,
@@ -194,11 +197,11 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
     bodyStyle: firstText(parsed, ["carrosserie", "carrosserievorm"]) ?? "Onbekend",
     color: firstText(parsed, ["kleur", "basiskleur"]) ?? "Onbekend",
     maintenanceHistory: "unknown",
-    vin: firstText(parsed, ["chassisnummer", "vin"]),
-    licensePlate: firstText(parsed, ["kenteken"]),
+    ...(vin ? { vin } : {}),
+    ...(licensePlate ? { licensePlate } : {}),
     images,
     highlights: collectHighlights(parsed),
-    description: firstText(parsed, ["opmerkingen", "omschrijving"]),
+    ...(description ? { description } : {}),
     status: sold ? "sold" : "review",
     locationCode: process.env.HEXON_DEFAULT_LOCATION_CODE || "GRONINGEN",
     updatedAt,

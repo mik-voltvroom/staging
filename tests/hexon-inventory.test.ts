@@ -37,6 +37,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
       images: ["https://images.example.test/polestar.jpg"],
     });
     expect(mutation.vehicle?.publication?.channels.website).toBe(true);
+    expect(mutation.vehicle).not.toHaveProperty("vin");
   });
 
   it("maps the nested Hexon v2.25 price and uses the vehicle number instead of the request number", () => {
