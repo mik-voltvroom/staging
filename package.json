@@ -1,6 +1,6 @@
 {
   "name": "volt-vroom-operating-system",
-  "version": "1.3.0-rc.1-consolidation",
+  "version": "1.0.0-rc.2-otap",
   "private": true,
   "packageManager": "npm@10.9.4",
   "scripts": {
