@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isPublicRoute } from "@/lib/routing/access";
+import { isLocalDemoAuthBypassAllowed } from "@/lib/auth/config";
 
 export function middleware(request: NextRequest) {
-  if (process.env.VVOS_REQUIRE_AUTH !== "true" || isPublicRoute(request.nextUrl.pathname)) {
+  if (isLocalDemoAuthBypassAllowed() || isPublicRoute(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
 

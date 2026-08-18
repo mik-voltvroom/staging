@@ -19,6 +19,7 @@ Selected controls are being applied onto the functional baseline instead of repl
 ## Consolidated controls
 
 - `.env.example` is fail-closed: staging + Firebase + auth required by default.
+- Authentication bypass is fail-closed in code: it is allowed only when `VVOS_ENV=local`, `VVOS_DATA_MODE=demo` and `VVOS_REQUIRE_AUTH=false` are all explicit. A missing or false auth flag in staging/production therefore no longer creates a demo-owner.
 - CI uses staging/Firebase/auth defaults and covers `rc/**` branches.
 - repository guard, agent audit and brand audit are separate mandatory CI gates.
 - `brand:audit` blocks legacy Caroutlet identity, legacy AUTOMOTIVE lockups, prohibited red identity colors and glow-style drift.
@@ -83,6 +84,8 @@ Classification is based on the RC route policy with `VVOS_REQUIRE_AUTH=true` and
 | `/api/vwe/import` | secret-protected hook | Fails closed on missing/invalid secret, but still returns a demo preview when Admin Firestore is absent and accepts broad payloads. | Work Package C: strict schema, unknown-field rejection, limits and batches of at most 500 writes. |
 | dashboard pages and client repositories | authenticated UI | Several views still import sample data or use the demo store. | Work Package B/C: replace by server repositories before production acceptance. |
 
+The codebase-wide sample-data inventory also found authenticated preview surfaces for deals, finance, workshop, warranty and dashboard views. They are not publicly reachable under the RC auth policy, but remain production blockers until repository-backed implementations replace them.
+
 Public sample/business data is therefore blocked on the identified public production surfaces in Firebase mode. This does not make the internal Commercial Core production-ready; the authenticated preview endpoints above remain explicit P0 blockers.
 
 ## P0 validation before Work Package A can close
@@ -97,6 +100,7 @@ Public sample/business data is therefore blocked on the identified public produc
 - [ ] Next.js production build
 - [x] compare remaining unique PR #14 changes against canonical RC
 - [x] identify demo/sample-backed public endpoints for Work Package B/C
+- [x] restrict authentication bypass to an explicit local demo environment
 - [ ] mark PR #4 / #6 / #14 as superseded only after canonical RC proves equivalent or better
 
 ## Promotion rule

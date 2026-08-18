@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { integrationMode, isFirebaseAdminConfigured, isFirebaseClientConfigured } from "@/lib/config";
+import { isAuthenticationRequired } from "@/lib/auth/config";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export async function GET() {
     checks: {
       firebaseClient: isFirebaseClientConfigured,
       firebaseAdmin: isFirebaseAdminConfigured,
-      authenticationRequired: process.env.VVOS_REQUIRE_AUTH === "true",
+      authenticationRequired: isAuthenticationRequired(),
       merchantConfigured: Boolean(process.env.GOOGLE_MERCHANT_ID && process.env.GOOGLE_MERCHANT_DATASOURCE),
       rdwConfigured: Boolean(process.env.RDW_API_BASE_URL),
       vweWebhookProtected: Boolean(process.env.VWE_WEBHOOK_SECRET),

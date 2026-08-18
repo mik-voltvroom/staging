@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { adminAuth } from "@/lib/firebase-admin";
+import { isLocalDemoAuthBypassAllowed } from "@/lib/auth/config";
 
 export type VvosRole = "owner" | "admin" | "sales" | "marketing" | "workshop" | "finance" | "readonly";
 
@@ -28,7 +29,7 @@ function resolveRole(claims: DecodedIdToken): VvosRole {
 }
 
 export async function getVerifiedSession(): Promise<VvosSessionUser | null> {
-  if (process.env.VVOS_REQUIRE_AUTH !== "true") return null;
+  if (isLocalDemoAuthBypassAllowed()) return null;
   if (!adminAuth) return null;
 
   const cookieStore = await cookies();
@@ -49,7 +50,7 @@ export async function getVerifiedSession(): Promise<VvosSessionUser | null> {
 }
 
 export async function requireVerifiedSession(): Promise<VvosSessionUser | null> {
-  if (process.env.VVOS_REQUIRE_AUTH !== "true") return null;
+  if (isLocalDemoAuthBypassAllowed()) return null;
   const user = await getVerifiedSession();
   if (!user) redirect("/login?reason=session");
   return user;

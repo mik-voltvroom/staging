@@ -3,6 +3,7 @@ import { adminAuth } from "@/lib/firebase-admin";
 import type { VvosPermission } from "@/lib/auth/permissions";
 import { hasPermission } from "@/lib/auth/permissions";
 import type { VvosRole } from "@/lib/auth/session";
+import { isLocalDemoAuthBypassAllowed } from "@/lib/auth/config";
 
 export interface ApiActor {
   uid: string;
@@ -30,7 +31,7 @@ export async function authorizeApi(
   request: Request,
   permission: VvosPermission,
 ): Promise<{ actor: ApiActor | null; response?: NextResponse }> {
-  if (process.env.VVOS_REQUIRE_AUTH !== "true") {
+  if (isLocalDemoAuthBypassAllowed()) {
     return { actor: { uid: "demo-agent", email: "demo@voltvroom.local", role: "owner" } };
   }
 
