@@ -49,6 +49,13 @@ describe("production data boundaries", () => {
     expect(response.status).toBe(503);
   });
 
+  it("binds Hexon credentials through staging Secret Manager references", () => {
+    const config = readFileSync(resolve(process.cwd(), "apphosting.yaml"), "utf8");
+    expect(config).toContain("variable: HEXON_SYNC_USERNAME\n    secret: HEXON_SYNC_USERNAME");
+    expect(config).toContain("variable: HEXON_SYNC_PASSWORD\n    secret: HEXON_SYNC_PASSWORD");
+    expect(config).not.toMatch(/HEXON_SYNC_(?:USERNAME|PASSWORD):\s*[^\n]+/);
+  });
+
   it("never reports a payment as created before a provider transaction succeeds", async () => {
     process.env.VVOS_ENV = "local";
     process.env.VVOS_DATA_MODE = "demo";

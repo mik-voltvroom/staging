@@ -30,7 +30,7 @@ De middleware classificeert browser- en API-routes centraal. Publieke verkooprou
 - Email/Password Authentication is ingeschakeld. Er is nog geen eigenaaraccount of custom role claim aangemaakt.
 - Firestore Standard en de default Storage-bucket staan in `europe-west4`.
 - Firestore- en Storage Rules zijn gepubliceerd. De samengestelde indexes voor `vehicles` en `leads` zijn aangemaakt.
-- `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT` bestaan in Secret Manager; hun waarden staan niet in git.
+- `CRON_SECRET`, `VWE_WEBHOOK_SECRET`, `PORTAL_TOKEN_SECRET` en `AUDIT_HASH_SALT` bestaan in Secret Manager; hun waarden staan niet in git. `HEXON_SYNC_USERNAME` en `HEXON_SYNC_PASSWORD` zijn repo-backed geconfigureerd maar moeten voor activatie nog als onafhankelijke staging-secrets worden aangemaakt.
 - Environment type blijft `Unspecified`: de Firebase-console bood alleen `Unspecified` en `Production`, niet `Staging`.
 - PR #1 is na expliciete eigenaar-goedkeuring als commit `543586f87f532875b9c5af5a5e5cccd9b46064bd` naar staging `main` gemerged; de post-merge `quality`-check is geslaagd.
 - App Hosting-backend `vvos-staging` is op 14 augustus 2026 aangemaakt in `europe-west4`, gekoppeld aan de bestaande staging Web App en uitgerold vanaf de geteste branch `agent/firebase-apphosting-source-deploy` (commit `e6960b16bf6e15d7a38797015df8efac454c360b`).
