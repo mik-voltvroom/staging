@@ -19,6 +19,7 @@ describe("route access policy", () => {
   it("classifies secret-protected hooks separately", () => {
     expect(isServiceHookRoute("/api/cron/sync")).toBe(true);
     expect(isServiceHookRoute("/api/vwe/import")).toBe(true);
+    expect(isServiceHookRoute("/api/hexon/inventory")).toBe(true);
     expect(isServiceHookRoute("/api/health")).toBe(false);
   });
 });

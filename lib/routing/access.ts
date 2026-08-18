@@ -12,7 +12,7 @@ const publicPrefixes = ["/api/portal/", "/api/public/social-videos/", "/portal/"
 
 // Machine-to-machine hooks are reachable without a browser session, but each
 // handler must fail closed and validate its own secret.
-const serviceHookRoutes = new Set(["/api/cron/sync", "/api/vwe/import"]);
+const serviceHookRoutes = new Set(["/api/cron/sync", "/api/vwe/import", "/api/hexon/inventory"]);
 
 export function isPublicRoute(pathname: string): boolean {
   return exactPublicRoutes.has(pathname)

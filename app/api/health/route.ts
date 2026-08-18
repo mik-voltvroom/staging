@@ -17,6 +17,7 @@ export async function GET() {
       merchantConfigured: Boolean(process.env.GOOGLE_MERCHANT_ID && process.env.GOOGLE_MERCHANT_DATASOURCE),
       rdwConfigured: Boolean(process.env.RDW_API_BASE_URL),
       vweWebhookProtected: Boolean(process.env.VWE_WEBHOOK_SECRET),
+      hexonWebhookProtected: Boolean(process.env.HEXON_SYNC_USERNAME && process.env.HEXON_SYNC_PASSWORD),
     },
     timestamp: new Date().toISOString(),
   });

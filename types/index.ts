@@ -81,7 +81,7 @@ export interface Lead {
 }
 
 export interface IntegrationStatus {
-  key: "firebase" | "rdw" | "vwe" | "merchant" | "whatsapp" | "email";
+  key: "firebase" | "rdw" | "vwe" | "hexon" | "merchant" | "whatsapp" | "email";
   label: string;
   configured: boolean;
   mode: "live" | "demo" | "disabled";
