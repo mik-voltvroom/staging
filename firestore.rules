@@ -4,11 +4,32 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function hasRole(role) { return signedIn() && request.auth.token.role == role; }
     function staff() { return signedIn() && request.auth.token.role in ['owner','admin','sales','marketing','workshop']; }
+    function commercialVehicleStatus(data) { return data.status in ['reserved', 'sold']; }
+    function hasCommercialVehicleFields(data) {
+      return data.keys().hasAny(['reservedDealId', 'reservedAt', 'soldDealId', 'soldAt']);
+    }
+    function commercialVehicleFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['reservedDealId', 'reservedAt', 'soldDealId', 'soldAt']);
+    }
+    function safeVehicleCreate() {
+      return !commercialVehicleStatus(request.resource.data)
+        && !hasCommercialVehicleFields(request.resource.data);
+    }
+    function safeVehicleUpdate() {
+      return !commercialVehicleStatus(resource.data)
+        && !commercialVehicleStatus(request.resource.data)
+        && !commercialVehicleFieldsChanged();
+    }
 
     match /vehicles/{vehicleId} {
       allow read: if resource.data.status == 'available' || staff();
-      allow create, update: if hasRole('owner') || hasRole('admin') || hasRole('sales');
-      allow delete: if hasRole('owner') || hasRole('admin');
+      allow create: if (hasRole('owner') || hasRole('admin') || hasRole('sales'))
+        && safeVehicleCreate();
+      allow update: if (hasRole('owner') || hasRole('admin') || hasRole('sales'))
+        && safeVehicleUpdate();
+      allow delete: if (hasRole('owner') || hasRole('admin'))
+        && !commercialVehicleStatus(resource.data);
     }
     match /leads/{leadId} {
       allow create, read, update: if staff();

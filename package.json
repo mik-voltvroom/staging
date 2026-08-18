@@ -17,6 +17,7 @@
     "clean": "rm -rf .next",
     "agent:audit": "node scripts/agent-audit.mjs",
     "test": "vitest run --configLoader runner",
+    "test:rules": "firebase emulators:exec --only firestore --project vvos-rules-test \"vitest run --configLoader runner --config vitest.rules.config.ts\"",
     "test:watch": "vitest --configLoader runner",
     "readiness": "node scripts/production-readiness.mjs",
     "validate:env": "node scripts/validate-vv-environment.mjs"
@@ -32,9 +33,11 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.1",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "firebase-tools": "15.27.0",
     "typescript": "^5.8.0",
     "vitest": "^3.2.4"
   },

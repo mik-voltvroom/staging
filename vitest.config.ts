@@ -3,5 +3,9 @@ import path from "node:path";
 
 export default defineConfig({
   resolve: { alias: { "@": path.resolve(process.cwd()) } },
-  test: { environment: "node", include: ["tests/**/*.test.ts"] },
+  test: {
+    environment: "node",
+    include: ["tests/**/*.test.ts"],
+    exclude: ["tests/firestore-rules.test.ts"],
+  },
 });

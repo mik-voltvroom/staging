@@ -30,6 +30,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: Pin npm
         run: npm install --global npm@10.9.4
       - name: Install locked dependencies
@@ -42,5 +47,7 @@ jobs:
         run: npm run typecheck
       - name: Tests
         run: npm test
+      - name: Firestore Rules emulator tests
+        run: npm run test:rules
       - name: Production build
         run: npm run build

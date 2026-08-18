@@ -57,3 +57,17 @@ Implemented in code:
 - `delivered` requires the vehicle to still be reserved by that deal and atomically changes it to `sold`;
 - snapshot records deny direct Firestore client reads and writes;
 - no live snapshot, reservation or data migration has been executed.
+
+## Slice B3 — Firestore Rules emulator gate
+
+Implemented in repository code and CI configuration:
+
+- pinned Firebase Rules test tooling compatible with Firebase 12 and Node 22;
+- isolated Firestore emulator project `vvos-rules-test`, with no live Firebase connection or Rules deployment;
+- emulator tests for public inventory reads, staff reads, server-only Commercial Core collections and audit-log boundaries;
+- direct client creation, mutation and deletion of `reserved` or `sold` vehicles is denied, including for owner/admin/sales roles;
+- ordinary non-commercial inventory maintenance remains available to authorized inventory roles;
+- the vehicle form no longer offers `reserved` or `sold` as manual transitions; those states remain deal-repository controlled;
+- GitHub CI provisions Java 21 and runs the Rules emulator suite as an explicit quality gate.
+
+Local execution of the emulator suite requires Java 21 or newer. The current Codex Windows runtime has no Java installation, so the authoritative emulator execution evidence for this slice is the clean GitHub Actions runner. No emulator configuration points to staging or production.

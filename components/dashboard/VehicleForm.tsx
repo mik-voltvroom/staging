@@ -80,7 +80,7 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
       <section className="panel stickyPanel">
         <p className="eyebrow">Publicatiecheck</p><div className="completion"><strong>{completeness}%</strong><div><i style={{width:`${completeness}%`}} /></div></div>
         {errors.length ? <ul className="errorList">{errors.map(error => <li key={error}>{error}</li>)}</ul> : <div className="successBox">Klaar voor publicatie</div>}
-        <label>Status<select value={vehicle.status} onChange={e => set("status", e.target.value as VehicleStatus)}><option value="draft">Concept</option><option value="photography">Fotografie</option><option value="review">Controle</option><option value="available">Beschikbaar</option><option value="reserved">Gereserveerd</option><option value="sold">Verkocht</option><option value="archived">Archief</option></select></label>
+        <label>Status<select value={vehicle.status} onChange={e => set("status", e.target.value as VehicleStatus)} disabled={vehicle.status === "reserved" || vehicle.status === "sold"}><option value="draft">Concept</option><option value="photography">Fotografie</option><option value="review">Controle</option><option value="available">Beschikbaar</option>{vehicle.status === "reserved" && <option value="reserved">Gereserveerd via deal</option>}{vehicle.status === "sold" && <option value="sold">Verkocht via deal</option>}<option value="archived">Archief</option></select></label>
         <button className="button wide" type="button" onClick={() => save()}>Opslaan</button>
         <button className="button secondary wide" type="button" disabled={errors.length > 0} onClick={() => save("available")}>Publiceren</button>
         {saved && <p className="savedNotice">Wijzigingen opgeslagen.</p>}
