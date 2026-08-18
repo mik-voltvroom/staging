@@ -3,14 +3,27 @@ import { Header } from "@/components/Header";
 import { VehicleSocialVideos } from "@/components/VehicleSocialVideos";
 import { eur, km } from "@/lib/format";
 import { vehicles } from "@/lib/sample-data";
+import { adminDb } from "@/lib/firebase-admin";
+import type { Vehicle } from "@/types";
 
 export const revalidate = 60;
+export const dynamicParams = true;
 
-export function generateStaticParams() { return vehicles.map(v => ({ slug: v.slug })); }
+export function generateStaticParams() {
+  return process.env.VVOS_DATA_MODE === "firebase" ? [] : vehicles.map(v => ({ slug: v.slug }));
+}
 
 export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const vehicle = vehicles.find(v => v.slug === slug);
+  let vehicle: Vehicle | undefined;
+  if (process.env.VVOS_DATA_MODE === "firebase") {
+    if (!adminDb) notFound();
+    const snapshot = await adminDb.collection("vehicles").where("slug", "==", slug).where("status", "==", "available").limit(1).get();
+    const document = snapshot.docs[0];
+    vehicle = document ? ({ id: document.id, ...document.data() } as Vehicle) : undefined;
+  } else {
+    vehicle = vehicles.find(v => v.slug === slug);
+  }
   if (!vehicle) notFound();
   return <>
     <Header />

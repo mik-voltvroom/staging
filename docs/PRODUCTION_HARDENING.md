@@ -27,6 +27,15 @@ Status: consolidation candidate. Production promotion remains blocked until all 
 12. External logo/signing uses only approved master artwork.
 13. Only the exact SHA that passes staging acceptance may be promoted.
 
+## Work Package A endpoint boundary status
+
+- Public Merchant feed now refuses sample inventory in Firebase mode.
+- Public RDW lookup now refuses its fabricated local fallback in Firebase mode.
+- Public sample customer portal is disabled in Firebase mode.
+- Payment creation and Merchant sync no longer report simulated external progress as successful or queued.
+- Public Social Video routes are explicitly classified as public; their handlers still enforce allow-listed output/events and same-site event submissions.
+- Authenticated sample-backed deals, workshop and finance endpoints remain production blockers and are inventoried in `docs/RELEASE_CONSOLIDATION.md`.
+
 ## Consolidation rule
 
 The canonical release line is built in this order:

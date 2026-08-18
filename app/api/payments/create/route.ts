@@ -12,6 +12,6 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "dealId en een positief bedrag zijn verplicht" }, { status: 400 });
   const configured = Boolean(process.env.MOLLIE_API_KEY || process.env.STRIPE_SECRET_KEY);
   const paymentId = `pay_${Date.now()}`;
-  await writeAuditEvent({ action: "payment.created", entityType: "payment", entityId: paymentId, actor: auth.actor, outcome: configured ? "success" : "warning", metadata: { dealId: parsed.data.dealId, amountEur: parsed.data.amountEur, mode: configured ? "provider-adapter" : "preview" }, request });
-  return NextResponse.json({ paymentId, status: "open", mode: configured ? "provider-adapter" : "preview", paymentUrl: configured ? null : `/portal/${parsed.data.portalToken || "demo"}?payment=preview`, message: configured ? "Provideradapter is geconfigureerd; implementeer provider-specifieke SDK voordat live betalingen worden geactiveerd." : "Preview: er is geen echte betaling gestart." });
+  await writeAuditEvent({ action: "payment.request_rejected", entityType: "payment", entityId: paymentId, actor: auth.actor, outcome: "warning", metadata: { dealId: parsed.data.dealId, amountEur: parsed.data.amountEur, mode: configured ? "configured-unverified" : "unavailable" }, request });
+  return NextResponse.json({ ok: false, paymentId, status: "not_created", mode: configured ? "configured-unverified" : "unavailable", paymentUrl: null, message: configured ? "Providercredentials zijn aanwezig, maar er is nog geen geverifieerde providertransactie uitgevoerd." : "Betalingsprovider is niet geconfigureerd." }, { status: 503 });
 }

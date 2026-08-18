@@ -9,9 +9,9 @@ export async function POST(request: Request) {
   const configured = Boolean(process.env.GOOGLE_MERCHANT_ID && process.env.GOOGLE_MERCHANT_DATASOURCE);
   if (!configured) {
     await writeAuditEvent({ action: "merchant.sync_requested", entityType: "integration", entityId: "merchant", actor: auth.actor, outcome: "warning", metadata: { configured: false }, request });
-    return NextResponse.json({ mode: "demo", status: "warning", message: "Merchant-credentials ontbreken. XML-feed blijft beschikbaar via /api/merchant-feed." });
+    return NextResponse.json({ ok: false, mode: "unavailable", status: "not_started", message: "Merchant-credentials ontbreken; er is geen synchronisatie gestart." }, { status: 503 });
   }
   const count = adminDb ? (await adminDb.collection("vehicles").where("status", "==", "available").get()).size : 0;
-  await writeAuditEvent({ action: "merchant.sync_queued", entityType: "integration", entityId: "merchant", actor: auth.actor, metadata: { processed: count }, request });
-  return NextResponse.json({ mode: "live", status: "queued", processed: count, message: "Synchronisatie is klaargezet. Voeg OAuth/service-account transport toe voor de definitieve push." });
+  await writeAuditEvent({ action: "merchant.sync_rejected", entityType: "integration", entityId: "merchant", actor: auth.actor, outcome: "warning", metadata: { configured: true, eligibleVehicles: count, transportVerified: false }, request });
+  return NextResponse.json({ ok: false, mode: "configured-unverified", status: "not_started", eligibleVehicles: count, message: "Merchant-configuratie is aanwezig, maar er is nog geen geverifieerde externe push uitgevoerd." }, { status: 503 });
 }
