@@ -37,8 +37,6 @@ The wider vehicle, workshop and finance models still contain euro-float fields. 
 - persistent payment provider records with idempotency and verified webhooks;
 - persistent documents and finance applications;
 - hashed, expiring and revocable portal grants with minimized responses;
-- immutable accepted-deal commercial/customer snapshots;
-- vehicle reservation/sale transition in the same commercial transaction boundary;
 - integer-cent migration for vehicle costs, invoices, ledger, cashflow and workshop parts;
 - emulator-backed repository and Firestore Rules tests;
 - migration dry-run, readback, rollback and staging acceptance evidence.
@@ -46,3 +44,16 @@ The wider vehicle, workshop and finance models still contain euro-float fields. 
 ## Safety boundary
 
 This work changes repository code and Rules definitions only. It does not deploy Rules, migrate Firestore data, activate providers, modify credentials, merge PR #15 or deploy staging/production.
+
+## Slice B2 — Accepted snapshot and vehicle reservation
+
+Implemented in code:
+
+- transition to `signed` creates a single immutable `dealSnapshots` record with a minimized customer, vehicle and commercial snapshot;
+- date of birth is deliberately excluded from the accepted snapshot;
+- the vehicle moves from `available` to `reserved` in the same Firestore transaction;
+- a second deal cannot reserve the same vehicle after the transaction commits;
+- cancellation releases only a reservation owned by that deal;
+- `delivered` requires the vehicle to still be reserved by that deal and atomically changes it to `sold`;
+- snapshot records deny direct Firestore client reads and writes;
+- no live snapshot, reservation or data migration has been executed.

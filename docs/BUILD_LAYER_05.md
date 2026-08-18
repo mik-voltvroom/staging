@@ -26,6 +26,8 @@ A vehicle may only be delivered when payment is complete, registration is comple
 - Legacy Firestore `...Eur` fields are normalized to cents on read for a controlled transition. New writes never create euro-float fields.
 - Deal and delivery task status changes use explicit transition maps and are persisted before the UI reports success.
 - The `delivered` transition requires completed registration, a fully paid cent balance and every delivery task marked done.
+- The `signed` transition atomically creates an immutable accepted-deal snapshot and reserves the selected vehicle.
+- Cancellation releases only the reservation owned by that deal; delivery atomically marks that reserved vehicle as sold.
 
 ## Safety
 Payment and electronic-signature endpoints remain unavailable until provider credentials and provider-specific SDK implementations are tested. Never store identity documents or payment card data directly in Firestore.

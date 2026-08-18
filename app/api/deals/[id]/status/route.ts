@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { DealStatus } from "@/types";
 import { authorizeApi } from "@/lib/auth/api";
 import { writeAuditEvent } from "@/lib/audit/audit-log";
-import { DealNotFoundError, DealReadinessError, DealRepositoryUnavailableError, InvalidDealTransitionError, updateDealStatus } from "@/lib/deal/repository";
+import { DealNotFoundError, DealReadinessError, DealRepositoryUnavailableError, InvalidDealTransitionError, updateDealStatus, VehicleReservationError } from "@/lib/deal/repository";
 
 const statuses: DealStatus[] = ["draft", "awaiting_signature", "signed", "payment_pending", "paid", "registration", "preparation", "ready", "delivered", "cancelled"];
 const schema = z.object({ status: z.enum(statuses as [DealStatus, ...DealStatus[]]) }).strict();
@@ -23,6 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (error instanceof DealNotFoundError) return NextResponse.json({ error: error.message }, { status: 404 });
     if (error instanceof InvalidDealTransitionError) return NextResponse.json({ error: error.message }, { status: 409 });
     if (error instanceof DealReadinessError) return NextResponse.json({ error: error.message }, { status: 409 });
+    if (error instanceof VehicleReservationError) return NextResponse.json({ error: error.message }, { status: 409 });
     const message = error instanceof DealRepositoryUnavailableError ? error.message : "Dealstatus kon niet worden opgeslagen.";
     return NextResponse.json({ error: message }, { status: 503 });
   }

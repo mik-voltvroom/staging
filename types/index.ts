@@ -47,6 +47,10 @@ export interface Vehicle {
   highlights: string[];
   description?: string;
   status: VehicleStatus;
+  reservedDealId?: string;
+  reservedAt?: string;
+  soldDealId?: string;
+  soldAt?: string;
   locationCode: string;
   costs?: VehicleCosts;
   publication?: VehiclePublication;
@@ -267,10 +271,22 @@ export interface Deal {
   financeStatus: FinanceStatus;
   registrationStatus: RegistrationStatus;
   plannedDeliveryAt?: string;
+  acceptedSnapshotId?: string;
+  acceptedAt?: string;
   portalToken?: string;
   portalGrantHash?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AcceptedDealSnapshot {
+  id: string;
+  dealId: string;
+  kind: "accepted";
+  acceptedAt: string;
+  customer: Omit<CustomerSnapshot, "dateOfBirth">;
+  vehicle: Pick<Vehicle, "id" | "slug" | "brand" | "model" | "trim" | "year" | "mileageKm" | "vin" | "licensePlate">;
+  commercial: Pick<Deal, "salePriceCents" | "tradeInCreditCents" | "accessoriesCents" | "deliveryPackageCents" | "depositRequiredCents" | "totalCents" | "warranty">;
 }
 
 export type WorkOrderStatus = "planned" | "checked_in" | "diagnosis" | "waiting_approval" | "in_progress" | "quality_control" | "ready" | "delivered" | "cancelled";

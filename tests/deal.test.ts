@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildDeal, buildDefaultDeliveryTasks, calculateDealTotalCents, canTransitionDeal, dealCreateSchema } from "@/lib/deal/model";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { buildAcceptedDealSnapshot, buildDeal, buildDefaultDeliveryTasks, calculateDealTotalCents, canTransitionDeal, dealCreateSchema } from "@/lib/deal/model";
 import { centsToEuros } from "@/lib/money";
 import { eurosToCents } from "@/lib/money";
 import { normalizeDealDocument } from "@/lib/deal/repository";
 import { hasPermission } from "@/lib/auth/permissions";
+import { vehicles } from "@/lib/sample-data";
+
+const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 const input = {
   leadId: "LEAD-1",
@@ -85,5 +90,29 @@ describe("deal and delivery commercial core", () => {
     expect(legacy.totalCents).toBe(2_174_500);
     expect(legacy).not.toHaveProperty("salePriceEur");
     expect(legacy).not.toHaveProperty("totalEur");
+  });
+
+  it("creates a minimized immutable acceptance snapshot", () => {
+    const deal = buildDeal(dealCreateSchema.parse(input), new Date("2026-08-18T12:00:00.000Z"));
+    deal.customer.dateOfBirth = "1990-01-01";
+    (deal.customer as unknown as Record<string, unknown>).internalNote = "niet kopiëren";
+    const snapshot = buildAcceptedDealSnapshot(deal, vehicles[0], new Date("2026-08-18T13:00:00.000Z"));
+    expect(snapshot.id).toBe(`ACCEPTED-${deal.id}`);
+    expect(snapshot.commercial.totalCents).toBe(deal.totalCents);
+    expect(snapshot.vehicle.id).toBe(vehicles[0].id);
+    expect(snapshot.customer).not.toHaveProperty("dateOfBirth");
+    expect(snapshot.customer).not.toHaveProperty("internalNote");
+    expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot);
+  });
+
+  it("reserves and sells vehicles only inside the deal transaction boundary", () => {
+    const repository = read("lib/deal/repository.ts");
+    const rules = read("firestore.rules");
+    expect(repository).toContain('nextStatus === "signed"');
+    expect(repository).toContain('status: "reserved", reservedDealId: deal.id');
+    expect(repository).toContain('transaction.create(db.collection("dealSnapshots")');
+    expect(repository).toContain('vehicle.reservedDealId !== deal.id');
+    expect(repository).toContain('status: "sold"');
+    expect(rules).toContain("match /dealSnapshots/{snapshotId} { allow read, write: if false; }");
   });
 });

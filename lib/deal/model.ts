@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Deal, DealStatus, DeliveryTask } from "@/types";
+import type { AcceptedDealSnapshot, Deal, DealStatus, DeliveryTask, Vehicle } from "@/types";
 import { assertEurocents } from "@/lib/money";
 
 const cents = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
@@ -79,6 +79,46 @@ export function buildDefaultDeliveryTasks(dealId: string): DeliveryTask[] {
     ownerRole,
     status: "todo",
   }));
+}
+
+export function buildAcceptedDealSnapshot(deal: Deal, vehicle: Vehicle, now = new Date()): AcceptedDealSnapshot {
+  const acceptedAt = now.toISOString();
+  const customer = Object.fromEntries(Object.entries({
+    name: deal.customer.name,
+    email: deal.customer.email,
+    phone: deal.customer.phone,
+    address: deal.customer.address,
+    postalCode: deal.customer.postalCode,
+    city: deal.customer.city,
+  }).filter(([, value]) => value !== undefined)) as AcceptedDealSnapshot["customer"];
+  const vehicleSnapshot = Object.fromEntries(Object.entries({
+    id: vehicle.id,
+    slug: vehicle.slug,
+    brand: vehicle.brand,
+    model: vehicle.model,
+    trim: vehicle.trim,
+    year: vehicle.year,
+    mileageKm: vehicle.mileageKm,
+    vin: vehicle.vin,
+    licensePlate: vehicle.licensePlate,
+  }).filter(([, value]) => value !== undefined)) as AcceptedDealSnapshot["vehicle"];
+  return {
+    id: `ACCEPTED-${deal.id}`,
+    dealId: deal.id,
+    kind: "accepted",
+    acceptedAt,
+    customer,
+    vehicle: vehicleSnapshot,
+    commercial: {
+      salePriceCents: deal.salePriceCents,
+      tradeInCreditCents: deal.tradeInCreditCents,
+      accessoriesCents: deal.accessoriesCents,
+      deliveryPackageCents: deal.deliveryPackageCents,
+      depositRequiredCents: deal.depositRequiredCents,
+      totalCents: deal.totalCents,
+      ...(deal.warranty ? { warranty: deal.warranty } : {}),
+    },
+  };
 }
 
 const transitions: Record<DealStatus, readonly DealStatus[]> = {

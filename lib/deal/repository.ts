@@ -1,13 +1,15 @@
-import type { Deal, DealDocument, DeliveryTask, FinanceApplication, PaymentRecord } from "@/types";
+import { FieldValue } from "firebase-admin/firestore";
+import type { Deal, DealDocument, DeliveryTask, FinanceApplication, PaymentRecord, Vehicle } from "@/types";
 import { adminDb } from "@/lib/firebase-admin";
 import { sampleDeals, sampleDocuments, sampleFinance, samplePayments, sampleTasks } from "@/lib/deal/sample-data";
-import { buildDeal, buildDefaultDeliveryTasks, canTransitionDeal, type DealCreateInput } from "@/lib/deal/model";
+import { buildAcceptedDealSnapshot, buildDeal, buildDefaultDeliveryTasks, canTransitionDeal, type DealCreateInput } from "@/lib/deal/model";
 import { assertEurocents, eurosToCents } from "@/lib/money";
 
 export class DealRepositoryUnavailableError extends Error {}
 export class DealNotFoundError extends Error {}
 export class InvalidDealTransitionError extends Error {}
 export class DealReadinessError extends Error {}
+export class VehicleReservationError extends Error {}
 export class DeliveryTaskNotFoundError extends Error {}
 export class InvalidDeliveryTaskTransitionError extends Error {}
 
@@ -149,6 +151,14 @@ export async function updateDealStatus(id: string, nextStatus: Deal["status"]): 
     if (!canTransitionDeal(deal.status, nextStatus)) {
       throw new InvalidDealTransitionError(`Overgang ${deal.status} -> ${nextStatus} is niet toegestaan.`);
     }
+    let vehicleReference;
+    let vehicle: Vehicle | null = null;
+    if (nextStatus === "signed" || nextStatus === "delivered" || (nextStatus === "cancelled" && deal.acceptedSnapshotId)) {
+      vehicleReference = db.collection("vehicles").doc(deal.vehicleId);
+      const vehicleSnapshot = await transaction.get(vehicleReference);
+      if (!vehicleSnapshot.exists) throw new VehicleReservationError("Voertuig voor deze deal is niet gevonden.");
+      vehicle = { id: vehicleSnapshot.id, ...vehicleSnapshot.data() } as Vehicle;
+    }
     if (nextStatus === "delivered") {
       const [tasks, payments] = await Promise.all([
         transaction.get(db.collection("deliveryTasks").where("dealId", "==", id)),
@@ -163,9 +173,46 @@ export async function updateDealStatus(id: string, nextStatus: Deal["status"]): 
       if (deal.registrationStatus !== "completed" || !tasksComplete || paidCents < deal.totalCents) {
         throw new DealReadinessError("Aflevering vereist voltooide tenaamstelling, volledige betaling en een afgeronde checklist.");
       }
+      if (!vehicle || vehicle.status !== "reserved" || vehicle.reservedDealId !== deal.id) {
+        throw new VehicleReservationError("Alleen het door deze deal gereserveerde voertuig kan worden afgeleverd.");
+      }
     }
-    const updated = { ...deal, status: nextStatus, updatedAt: new Date().toISOString() };
-    transaction.update(reference, { status: nextStatus, updatedAt: updated.updatedAt });
+    const updatedAt = new Date().toISOString();
+    const dealPatch: Record<string, unknown> = { status: nextStatus, updatedAt };
+
+    if (nextStatus === "signed") {
+      if (!vehicle || !vehicleReference || vehicle.status !== "available") {
+        throw new VehicleReservationError("Voertuig is niet beschikbaar voor reservering.");
+      }
+      const acceptedSnapshot = buildAcceptedDealSnapshot(deal, vehicle, new Date(updatedAt));
+      transaction.create(db.collection("dealSnapshots").doc(acceptedSnapshot.id), acceptedSnapshot);
+      transaction.update(vehicleReference, { status: "reserved", reservedDealId: deal.id, reservedAt: updatedAt, updatedAt });
+      dealPatch.acceptedSnapshotId = acceptedSnapshot.id;
+      dealPatch.acceptedAt = acceptedSnapshot.acceptedAt;
+    }
+
+    if (nextStatus === "cancelled" && vehicle && vehicleReference && vehicle.status === "reserved" && vehicle.reservedDealId === deal.id) {
+      transaction.update(vehicleReference, {
+        status: "available",
+        reservedDealId: FieldValue.delete(),
+        reservedAt: FieldValue.delete(),
+        updatedAt,
+      });
+    }
+
+    if (nextStatus === "delivered" && vehicleReference) {
+      transaction.update(vehicleReference, {
+        status: "sold",
+        soldDealId: deal.id,
+        soldAt: updatedAt,
+        reservedDealId: FieldValue.delete(),
+        reservedAt: FieldValue.delete(),
+        updatedAt,
+      });
+    }
+
+    const updated = { ...deal, ...dealPatch } as Deal;
+    transaction.update(reference, dealPatch);
     return updated;
   });
 }
