@@ -1,71 +1,81 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
-import { eur, km } from "@/lib/format";
-import { vehicles } from "@/lib/sample-data";
+import { getPublicVehicle } from "@/lib/public-vehicles";
 import styles from "./vehicle.module.css";
 
-export function generateStaticParams() { return vehicles.map(v => ({ slug: v.slug })); }
+const eur = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+const number = new Intl.NumberFormat("nl-NL");
+
+export const dynamic = "force-dynamic";
+
+function value(value: string | number | undefined | null, suffix = "") {
+  return value === undefined || value === null || value === "" ? null : `${value}${suffix}`;
+}
 
 export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const vehicle = vehicles.find(v => v.slug === slug);
+  const vehicle = await getPublicVehicle(decodeURIComponent(slug));
   if (!vehicle) notFound();
 
-  const score = Math.min(99, Math.round(68 + (vehicle.batteryHealthPercent ?? 80) * .28));
-  const driveLabel = vehicle.driveType.replaceAll("-", " ");
+  const specs = [
+    ["Vermogen", vehicle.powerHp ? `${number.format(vehicle.powerHp)} pk` : vehicle.powerKw ? `${number.format(vehicle.powerKw)} kW` : null],
+    ["Motorinhoud", vehicle.engineCapacityCc ? `${number.format(vehicle.engineCapacityCc)} cc` : null],
+    ["Carrosserie", vehicle.bodyStyle], ["Kleur", vehicle.color],
+    ["Zitplaatsen", value(vehicle.seats)], ["Deuren", value(vehicle.doors)],
+    ["Gewicht", vehicle.weightKg ? `${number.format(vehicle.weightKg)} kg` : null],
+    ["Trekgewicht", vehicle.towWeightBrakedKg ? `${number.format(vehicle.towWeightBrakedKg)} kg` : null],
+    ["APK", vehicle.apkUntil], ["Energielabel", vehicle.energyLabel],
+    ["CO₂", vehicle.co2GKm ? `${number.format(vehicle.co2GKm)} g/km` : null],
+    ["Verbruik", vehicle.consumptionPer100Km ? `${vehicle.consumptionPer100Km} l/100 km` : null],
+  ].filter((item): item is [string, string] => Boolean(item[1]));
+
+  const hybridFacts = [
+    ["Accuconditie", vehicle.batteryHealthPercent !== undefined ? `${vehicle.batteryHealthPercent}%` : null],
+    ["Elektrische actieradius", vehicle.electricRangeKm ? `${number.format(vehicle.electricRangeKm)} km` : null],
+    ["Elektrisch vermogen", vehicle.electricPowerHp ? `${number.format(vehicle.electricPowerHp)} pk` : vehicle.electricPowerKw ? `${number.format(vehicle.electricPowerKw)} kW` : null],
+    ["Laadvermogen", vehicle.chargingPowerKw ? `${vehicle.chargingPowerKw} kW` : null],
+    ["Aansluiting", vehicle.connector],
+  ].filter((item): item is [string, string] => Boolean(item[1]));
 
   return <div className={styles.page}>
     <Header />
     <main className={styles.shell}>
       <div className={styles.breadcrumb}><Link href="/voorraad">← Terug naar voorraad</Link><span>Volt & Vroom Selectie · Groningen</span></div>
-
       <section className={styles.hero}>
         <div className={styles.visual}>
-          <img src={vehicle.images[0]} alt={`${vehicle.brand} ${vehicle.model} ${vehicle.trim}`} />
-          <div className={styles.visualTop}><span className={styles.status}><i /> Beschikbaar</span><span className={styles.carcheckBadge}>CarCheck verified</span></div>
-          <div className={styles.visualBottom}><div><span>Volt & Vroom selectie</span><strong>Zorgvuldig geselecteerd. Transparant gecontroleerd.</strong></div><div><span>Foto</span><strong>01 / {String(vehicle.images.length).padStart(2,"0")}</strong></div></div>
+          {vehicle.imageUrls[0] ? <img src={vehicle.imageUrls[0]} alt={`${vehicle.brand} ${vehicle.model} ${vehicle.trim}`} /> : null}
+          <div className={styles.visualTop}><span className={styles.status}><i /> {vehicle.reserved ? "Gereserveerd" : "Beschikbaar"}</span>{hybridFacts.length ? <span className={styles.carcheckBadge}>Hybrid data</span> : null}</div>
+          <div className={styles.visualBottom}><div><span>Volt & Vroom selectie</span><strong>Zorgvuldig geselecteerd. Transparant gepresenteerd.</strong></div><div><span>Foto’s</span><strong>{String(vehicle.imageUrls.length).padStart(2,"0")}</strong></div></div>
         </div>
-
         <aside className={styles.side}>
-          <p className={styles.eyebrow}>{driveLabel} · VV Selectie</p>
+          <p className={styles.eyebrow}>{vehicle.hybridType || vehicle.fuelType || "Volt & Vroom selectie"}</p>
           <h1>{vehicle.brand}<br />{vehicle.model}</h1>
           <p className={styles.trim}>{vehicle.trim}</p>
-          <div className={styles.price}>{eur.format(vehicle.priceEur)}</div>
-          <div className={styles.monthly}>{vehicle.monthlyPriceEur ? `Financiering indicatief vanaf ${eur.format(vehicle.monthlyPriceEur)} p/m` : "Financiering op aanvraag"}</div>
+          <div className={styles.price}>{vehicle.priceEur ? eur.format(vehicle.priceEur) : "Prijs op aanvraag"}</div>
+          <div className={styles.monthly}>{vehicle.vatMargin ? `${vehicle.vatMargin} voertuig` : "Persoonlijk voorstel op aanvraag"}</div>
           <div className={styles.quickFacts}>
-            <div><span>Bouwjaar</span><strong>{vehicle.year}</strong></div><div><span>Kilometerstand</span><strong>{km.format(vehicle.mileageKm)} km</strong></div>
-            <div><span>Aandrijving</span><strong>{vehicle.fuelType}</strong></div><div><span>Transmissie</span><strong>{vehicle.transmission}</strong></div>
+            {vehicle.year ? <div><span>Bouwjaar</span><strong>{vehicle.year}</strong></div> : null}
+            {vehicle.mileageKm !== undefined ? <div><span>Kilometerstand</span><strong>{number.format(vehicle.mileageKm)} km</strong></div> : null}
+            {vehicle.fuelType ? <div><span>Aandrijving</span><strong>{vehicle.fuelType}</strong></div> : null}
+            {vehicle.transmission ? <div><span>Transmissie</span><strong>{vehicle.transmission}</strong></div> : null}
           </div>
-          <div className={styles.ctaStack}><a className={styles.primary} href="#afspraak">Plan een proefrit</a><a className={styles.secondary} href="#carcheck">Bekijk CarCheck</a></div>
-          <div className={styles.microTrust}><span>Geen verrassingen</span><span>Persoonlijk advies</span><span>12 mnd garantie</span></div>
+          <div className={styles.ctaStack}><a className={styles.primary} href="#afspraak">Plan een proefrit</a>{vehicle.licensePlate ? <span className={styles.secondary}>{vehicle.licensePlate}</span> : null}</div>
         </aside>
       </section>
 
       <section className={styles.story}>
-        <div><span className={styles.sectionLabel}>Waarom deze auto</span><h2>Geen occasion.<br />Een bewuste keuze.</h2><p className={styles.storyLead}>Bij Volt & Vroom draait een auto niet alleen om uitvoering en kilometerstand. We kijken naar het complete verhaal: techniek, historie, accugezondheid, gebruikskosten en hoe de auto past bij jouw dagelijks leven.</p><div className={styles.highlightGrid}>{vehicle.highlights.map(item => <span key={item}>✓ {item}</span>)}</div></div>
-        <aside className={styles.factsCard}><h3>De essentie</h3><div className={styles.factRow}><span>Carrosserie</span><strong>{vehicle.bodyStyle}</strong></div><div className={styles.factRow}><span>Kleur</span><strong>{vehicle.color}</strong></div><div className={styles.factRow}><span>Onderhoud</span><strong>{vehicle.maintenanceHistory === "complete" ? "Volledig inzichtelijk" : vehicle.maintenanceHistory}</strong></div><div className={styles.factRow}><span>Garantie</span><strong>{vehicle.warrantyMonths} maanden</strong></div><div className={styles.factRow}><span>Locatie</span><strong>Volt & Vroom Groningen</strong></div></aside>
+        <div><span className={styles.sectionLabel}>Deze auto</span><h2>{vehicle.title || `${vehicle.brand} ${vehicle.model}`}<br />zonder ruis.</h2><p className={styles.storyLead}>{vehicle.description || "We tonen wat we daadwerkelijk van deze auto weten. Geen ingevulde marketingvelden of aannames: alleen beschikbare voertuigdata en relevante techniek."}</p>{vehicle.accessories.length ? <div className={styles.highlightGrid}>{vehicle.accessories.slice(0, 10).map(item => <span key={item}>✓ {item}</span>)}</div> : null}</div>
+        <aside className={styles.factsCard}><h3>Specificaties</h3>{specs.length ? specs.map(([label, fact]) => <div className={styles.factRow} key={label}><span>{label}</span><strong>{fact}</strong></div>) : <p>Nadere specificaties volgen.</p>}</aside>
       </section>
 
-      <section className={styles.intelligence} id="carcheck">
-        <div className={styles.intelligenceHead}><div><span className={styles.sectionLabel}>Hybrid Intelligence</span><h2>Wij laten zien wat<br />anderen overslaan.</h2></div><p>Hybride rijden wordt pas echt transparant als je verder kijkt dan brandstof en vermogen. Daarom maken we de belangrijkste aandrijf- en accudata begrijpelijk.</p></div>
-        <div className={styles.intelligenceGrid}>
-          <article className={styles.intelCard}><span>Accugezondheid</span><strong>{vehicle.batteryHealthPercent ?? "—"}%</strong><small>indicatie batterijconditie</small></article>
-          <article className={styles.intelCard}><span>Praktijkverbruik</span><strong>{vehicle.consumptionPer100Km ? `${vehicle.consumptionPer100Km} l` : "—"}</strong><small>per 100 kilometer</small></article>
-          <article className={styles.intelCard}><span>Geschatte besparing</span><strong>{vehicle.annualSavingEur ? eur.format(vehicle.annualSavingEur) : "—"}</strong><small>per jaar volgens profiel</small></article>
-          <article className={styles.intelCard}><span>Garantie</span><strong>{vehicle.warrantyMonths} mnd</strong><small>Volt & Vroom zekerheid</small></article>
-        </div>
-        <div className={styles.score}><div className={styles.scoreRing}><strong>{score}</strong><small>/100</small></div><div className={styles.scoreText}><h3>CarCheck voertuigscore</h3><p>Een heldere samenvatting van de beschikbare voertuigdata. Het volledige rapport maakt inzichtelijk waarop de beoordeling is gebaseerd.</p></div></div>
-      </section>
+      {hybridFacts.length ? <section className={styles.intelligence} id="carcheck">
+        <div className={styles.intelligenceHead}><div><span className={styles.sectionLabel}>Hybrid Intelligence</span><h2>Relevante hybride data.<br />Direct uit de voertuigfeed.</h2></div><p>We tonen alleen hybride- en accugegevens die voor deze specifieke auto daadwerkelijk beschikbaar zijn.</p></div>
+        <div className={styles.intelligenceGrid}>{hybridFacts.slice(0,4).map(([label, fact]) => <article className={styles.intelCard} key={label}><span>{label}</span><strong>{fact}</strong><small>beschikbare voertuigdata</small></article>)}</div>
+      </section> : null}
 
-      <section className={styles.ownership}>
-        <article className={styles.ownershipCard}><span className={styles.sectionLabel}>Slimmer rijden</span><div className={styles.ownershipValue}>{vehicle.annualSavingEur ? eur.format(vehicle.annualSavingEur) : "Op maat"}</div><h3>Geschatte jaarbesparing</h3><p>Niet alleen kijken naar de aanschafprijs. Volt & Vroom maakt de potentiële gebruiksvoordelen van hybride rijden zichtbaar.</p></article>
-        <article className={styles.ownershipCard}><span className={styles.sectionLabel}>Flexibel bezit</span><div className={styles.ownershipValue}>{vehicle.monthlyPriceEur ? `${eur.format(vehicle.monthlyPriceEur)} p/m` : "Op maat"}</div><h3>Financiering als indicatie</h3><p>We rekenen transparant met je mee. Geen verkooppraat, maar een voorstel dat past bij auto, looptijd en jouw situatie.</p></article>
-      </section>
-
-      <section className={styles.trust} id="afspraak"><span className={styles.sectionLabel}>Ervaar het verschil</span><h2>Een goede auto voel je.<br />Een goede keuze begrijp je.</h2><p>Plan een persoonlijke proefrit in Groningen. We nemen de auto, techniek en relevante CarCheck-data rustig met je door.</p><div className={styles.trustActions}><a className={styles.primary} href="mailto:mik@voltvroom.nl?subject=Proefrit%20Volt%20%26%20Vroom">Plan een proefrit</a><a className={styles.secondary} href="tel:+31501234567">Bel Volt & Vroom</a></div></section>
+      <section className={styles.trust} id="afspraak"><span className={styles.sectionLabel}>Bekijk hem in Groningen</span><h2>De auto gezien.<br />Nu het verhaal erachter.</h2><p>Plan een persoonlijke proefrit. We nemen de auto en de beschikbare voertuigdata rustig met je door.</p><div className={styles.trustActions}><a className={styles.primary} href={`mailto:mik@voltvroom.nl?subject=${encodeURIComponent(`Proefrit ${vehicle.brand} ${vehicle.model}`)}`}>Plan een proefrit</a><a className={styles.secondary} href="mailto:mik@voltvroom.nl">Stel een vraag</a></div></section>
     </main>
-
-    <div className={styles.stickyBar}><div><strong>{vehicle.brand} {vehicle.model}</strong><br /><span>{vehicle.trim} · {eur.format(vehicle.priceEur)}</span></div><a href="#afspraak">Plan proefrit</a></div>
+    <div className={styles.stickyBar}><div><strong>{vehicle.brand} {vehicle.model}</strong><br /><span>{vehicle.trim}{vehicle.priceEur ? ` · ${eur.format(vehicle.priceEur)}` : ""}</span></div><a href="#afspraak">Plan proefrit</a></div>
   </div>;
 }
