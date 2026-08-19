@@ -30,6 +30,7 @@ export async function getIntegrationHealth(runRemoteChecks = false): Promise<Int
     { key: "firebase", label: "Firebase", configured: Boolean(process.env.FIREBASE_ADMIN_PROJECT_ID && process.env.FIREBASE_ADMIN_CLIENT_EMAIL && process.env.FIREBASE_ADMIN_PRIVATE_KEY) },
     { key: "rdw", label: "RDW voertuigdata", configured: Boolean(process.env.RDW_API_BASE_URL), url: process.env.RDW_HEALTH_URL },
     { key: "vwe", label: "VWE voorraad", configured: Boolean(process.env.VWE_WEBHOOK_SECRET), url: process.env.VWE_HEALTH_URL },
+    { key: "mobilox", label: "Mobilox / Hexon voorraadfeed", configured: Boolean(process.env.MOBILOX_BASIC_AUTH_USERNAME && process.env.MOBILOX_BASIC_AUTH_PASSWORD) },
     { key: "merchant", label: "Google Merchant Center", configured: Boolean(process.env.GOOGLE_MERCHANT_ID && process.env.GOOGLE_MERCHANT_DATASOURCE) },
     { key: "whatsapp", label: "WhatsApp Business", configured: Boolean(process.env.WHATSAPP_API_URL && process.env.WHATSAPP_TOKEN), url: process.env.WHATSAPP_HEALTH_URL },
     { key: "email", label: "E-mail", configured: Boolean(process.env.EMAIL_API_URL && process.env.EMAIL_API_KEY), url: process.env.EMAIL_HEALTH_URL },
