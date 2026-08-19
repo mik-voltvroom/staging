@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 export type MobiloxMutationAction = "add" | "change" | "delete";
+export type MobiloxRawPayload = Record<string, string | string[]>;
 
 export interface MobiloxVehicleMutation {
   provider: "mobilox";
@@ -65,11 +66,13 @@ export interface MobiloxVehicleMutation {
     electricPowerKw?: number;
     electricPowerHp?: number;
   };
-  raw: Record<string, string | string[]>;
+  raw: MobiloxRawPayload;
   receivedAt: string;
 }
 
 const actionSchema = z.enum(["add", "change", "delete"]);
+const leafElementPattern = /<([A-Za-z_][\w.-]*)\b[^>]*>\s*(?:<!\[CDATA\[([\s\S]*?)\]\]>|([^<]*?))\s*<\/\1>/g;
+const imageElementPattern = /<(?:afbeelding|foto|url)\b[^>]*>\s*(?:<!\[CDATA\[([\s\S]*?)\]\]>|([^<]*?))\s*<\/(?:afbeelding|foto|url)>/gi;
 
 function decodeXml(value: string): string {
   return value
@@ -80,61 +83,67 @@ function decodeXml(value: string): string {
     .replace(/&amp;/g, "&");
 }
 
+function pushValue(result: MobiloxRawPayload, key: string, value: string) {
+  if (!value) return;
+  const existing = result[key];
+  if (existing === undefined) result[key] = value;
+  else if (Array.isArray(existing)) existing.push(value);
+  else result[key] = [existing, value];
+}
+
 /**
- * The supplied Hexon example uses SimpleXML and a mostly flat POST payload.
- * This parser deliberately only accepts element text and does not resolve
- * entities/DTDs, keeping the inbound feed surface small and predictable.
+ * Parse the supplied Hexon incremental XML as a flat field map. We match leaf
+ * elements anywhere in the document, so both a flat payload and a normal XML
+ * root wrapper work. DTD/entities are rejected before parsing.
  */
-export function parseMobiloxIncrementalXml(xml: string): Record<string, string | string[]> {
-  if (!xml.trim().startsWith("<")) throw new Error("Geen geldige XML ontvangen.");
-  if (/<!DOCTYPE|<!ENTITY/i.test(xml)) throw new Error("XML met DTD/entities wordt niet geaccepteerd.");
+export function parseMobiloxIncrementalXml(xml: string): MobiloxRawPayload {
+  const trimmed = xml.trim();
+  if (!trimmed.startsWith("<") || !trimmed.endsWith(">")) throw new Error("Geen geldige XML ontvangen.");
+  if (/<!DOCTYPE|<!ENTITY/i.test(trimmed)) throw new Error("XML met DTD/entities wordt niet geaccepteerd.");
 
-  const result: Record<string, string | string[]> = {};
-  const elementPattern = /<([A-Za-z_][\w.-]*)\b[^>]*>([\s\S]*?)<\/\1>/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = elementPattern.exec(xml)) !== null) {
-    const [, key, inner] = match;
-    if (/<[A-Za-z_][\w.-]*\b[^>]*>/.test(inner)) {
-      if (key === "afbeeldingen" || key === "fotos") {
-        const urls = [...inner.matchAll(/https?:\/\/[^<\s]+/g)].map((item) => decodeXml(item[0].trim()));
-        if (urls.length) result.afbeeldingen = urls;
-      }
-      continue;
-    }
-    result[key] = decodeXml(inner.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").trim());
+  const result: MobiloxRawPayload = {};
+  for (const match of trimmed.matchAll(leafElementPattern)) {
+    const key = match[1];
+    const value = decodeXml((match[2] ?? match[3] ?? "").trim());
+    pushValue(result, key, value);
   }
 
-  // Some Hexon feeds expose images as a comma-separated field.
+  const images = [...trimmed.matchAll(imageElementPattern)]
+    .map(match => decodeXml((match[1] ?? match[2] ?? "").trim()))
+    .filter(value => /^https?:\/\//i.test(value));
+  if (images.length) result.afbeeldingen = [...new Set(images)];
+
   if (typeof result.afbeeldingen === "string") {
-    result.afbeeldingen = result.afbeeldingen.split(",").map((url) => url.trim()).filter(Boolean);
+    result.afbeeldingen = result.afbeeldingen.split(",").map(url => url.trim()).filter(Boolean);
   }
-
+  if (Object.keys(result).length === 0) throw new Error("XML bevat geen ondersteunde velden.");
   return result;
 }
 
-function text(raw: Record<string, string | string[]>, key: string): string | undefined {
+function text(raw: MobiloxRawPayload, key: string): string | undefined {
   const value = raw[key];
-  return typeof value === "string" && value.length ? value : undefined;
+  if (Array.isArray(value)) return value.find(Boolean);
+  return value?.length ? value : undefined;
 }
 
-function list(raw: Record<string, string | string[]>, key: string): string[] {
+function list(raw: MobiloxRawPayload, key: string): string[] {
   const value = raw[key];
-  if (Array.isArray(value)) return value.filter(Boolean);
-  return typeof value === "string" && value.length ? value.split(",").map((item) => item.trim()).filter(Boolean) : [];
+  if (Array.isArray(value)) return value.flatMap(item => item.split(",")).map(item => item.trim()).filter(Boolean);
+  return typeof value === "string" && value.length ? value.split(",").map(item => item.trim()).filter(Boolean) : [];
 }
 
-function numberValue(raw: Record<string, string | string[]>, key: string): number | undefined {
+function numberValue(raw: MobiloxRawPayload, key: string): number | undefined {
   const value = text(raw, key);
   if (!value) return undefined;
-  const parsed = Number(value);
+  const normalized = value.replace(/\s/g, "").replace(",", ".");
+  const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function booleanValue(raw: Record<string, string | string[]>, key: string): boolean | undefined {
+function booleanValue(raw: MobiloxRawPayload, key: string): boolean | undefined {
   const value = text(raw, key)?.toLowerCase();
-  if (value === "j") return true;
-  if (value === "n") return false;
+  if (["j", "ja", "1", "true"].includes(value ?? "")) return true;
+  if (["n", "nee", "0", "false"].includes(value ?? "")) return false;
   return undefined;
 }
 
@@ -211,29 +220,19 @@ export function normalizeMobiloxMutation(xml: string): MobiloxVehicleMutation {
     electricPowerHp: numberValue(raw, "vermogen_elektrisch_pk"),
   };
 
-  if (Object.values(hybrid).some((value) => value !== undefined)) mutation.hybrid = hybrid;
+  if (Object.values(hybrid).some(value => value !== undefined)) mutation.hybrid = hybrid;
   return mutation;
 }
 
 export function verifyMobiloxBasicAuth(authorizationHeader: string | null): boolean {
   const expectedUser = process.env.MOBILOX_BASIC_AUTH_USERNAME;
   const expectedPassword = process.env.MOBILOX_BASIC_AUTH_PASSWORD;
-  if (!expectedUser || !expectedPassword) return false;
-  if (!authorizationHeader?.startsWith("Basic ")) return false;
-
+  if (!expectedUser || !expectedPassword || !authorizationHeader?.startsWith("Basic ")) return false;
   let decoded = "";
-  try {
-    decoded = Buffer.from(authorizationHeader.slice(6), "base64").toString("utf8");
-  } catch {
-    return false;
-  }
-
+  try { decoded = Buffer.from(authorizationHeader.slice(6), "base64").toString("utf8"); } catch { return false; }
   const expected = Buffer.from(`${expectedUser}:${expectedPassword}`);
   const actual = Buffer.from(decoded);
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-export function mobiloxSuccessResponse(): string {
-  // The supplied incremental example requires exactly "1" after successful processing.
-  return "1";
-}
+export function mobiloxSuccessResponse(): string { return "1"; }
