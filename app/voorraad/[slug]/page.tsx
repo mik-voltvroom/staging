@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { VehicleSocialVideos } from "@/components/VehicleSocialVideos";
@@ -14,22 +15,67 @@ export function generateStaticParams() {
 
 export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const vehicle = await getPublicVehicleBySlug(slug);
+  const vehicle = await getPublicVehicle(decodeURIComponent(slug));
   if (!vehicle) notFound();
-  return <>
+
+  const specs = [
+    ["Vermogen", vehicle.powerHp ? `${number.format(vehicle.powerHp)} pk` : vehicle.powerKw ? `${number.format(vehicle.powerKw)} kW` : null],
+    ["Motorinhoud", vehicle.engineCapacityCc ? `${number.format(vehicle.engineCapacityCc)} cc` : null],
+    ["Carrosserie", vehicle.bodyStyle], ["Kleur", vehicle.color],
+    ["Zitplaatsen", value(vehicle.seats)], ["Deuren", value(vehicle.doors)],
+    ["Gewicht", vehicle.weightKg ? `${number.format(vehicle.weightKg)} kg` : null],
+    ["Trekgewicht", vehicle.towWeightBrakedKg ? `${number.format(vehicle.towWeightBrakedKg)} kg` : null],
+    ["APK", vehicle.apkUntil], ["Energielabel", vehicle.energyLabel],
+    ["CO₂", vehicle.co2GKm ? `${number.format(vehicle.co2GKm)} g/km` : null],
+    ["Verbruik", vehicle.consumptionPer100Km ? `${vehicle.consumptionPer100Km} l/100 km` : null],
+  ].filter((item): item is [string, string] => Boolean(item[1]));
+
+  const hybridFacts = [
+    ["Accuconditie", vehicle.batteryHealthPercent !== undefined ? `${vehicle.batteryHealthPercent}%` : null],
+    ["Elektrische actieradius", vehicle.electricRangeKm ? `${number.format(vehicle.electricRangeKm)} km` : null],
+    ["Elektrisch vermogen", vehicle.electricPowerHp ? `${number.format(vehicle.electricPowerHp)} pk` : vehicle.electricPowerKw ? `${number.format(vehicle.electricPowerKw)} kW` : null],
+    ["Laadvermogen", vehicle.chargingPowerKw ? `${vehicle.chargingPowerKw} kW` : null],
+    ["Aansluiting", vehicle.connector],
+  ].filter((item): item is [string, string] => Boolean(item[1]));
+
+  return <div className={styles.page}>
     <Header />
-    <main className="container section">
-      <p className="eyebrow">{vehicle.driveType.replaceAll("-", " ")}</p>
-      <h1 style={{fontSize:"clamp(2.8rem,6vw,5.5rem)"}}>{vehicle.brand} {vehicle.model}</h1>
-      <p className="lead">{vehicle.trim} · {vehicle.year} · {km.format(vehicle.mileageKm)} km · {vehicle.transmission}</p>
-      <div className="heroCard" style={{marginTop:28}}><img src={vehicle.images[0] || "/brand/vv-symbol.svg"} alt={`${vehicle.brand} ${vehicle.model}`} /></div>
-      <div className="metrics" style={{marginTop:22}}>
-        <div className="metric"><strong>{eur.format(centsToEuros(vehicle.priceCents))}</strong><span className="muted">verkoopprijs</span></div>
-        <div className="metric"><strong>{vehicle.monthlyPriceCents ? eur.format(centsToEuros(vehicle.monthlyPriceCents)) : "Op aanvraag"}</strong><span className="muted">indicatie per maand</span></div>
-        <div className="metric"><strong>{vehicle.batteryHealthPercent ?? "—"}%</strong><span className="muted">accugezondheid</span></div>
-        <div className="metric"><strong>{vehicle.annualSavingCents ? eur.format(centsToEuros(vehicle.annualSavingCents)) : "—"}</strong><span className="muted">geschatte jaarbesparing</span></div>
-      </div>
-      <VehicleSocialVideos vehicleId={vehicle.id} />
+    <main className={styles.shell}>
+      <div className={styles.breadcrumb}><Link href="/voorraad">← Terug naar voorraad</Link><span>Volt & Vroom Selectie · Groningen</span></div>
+      <section className={styles.hero}>
+        <div className={styles.visual}>
+          {vehicle.imageUrls[0] ? <img src={vehicle.imageUrls[0]} alt={`${vehicle.brand} ${vehicle.model} ${vehicle.trim}`} /> : null}
+          <div className={styles.visualTop}><span className={styles.status}><i /> {vehicle.reserved ? "Gereserveerd" : "Beschikbaar"}</span>{hybridFacts.length ? <span className={styles.carcheckBadge}>Hybrid data</span> : null}</div>
+          <div className={styles.visualBottom}><div><span>Volt & Vroom selectie</span><strong>Zorgvuldig geselecteerd. Transparant gepresenteerd.</strong></div><div><span>Foto’s</span><strong>{String(vehicle.imageUrls.length).padStart(2,"0")}</strong></div></div>
+        </div>
+        <aside className={styles.side}>
+          <p className={styles.eyebrow}>{vehicle.hybridType || vehicle.fuelType || "Volt & Vroom selectie"}</p>
+          <h1>{vehicle.brand}<br />{vehicle.model}</h1>
+          <p className={styles.trim}>{vehicle.trim}</p>
+          <div className={styles.price}>{vehicle.priceEur ? eur.format(vehicle.priceEur) : "Prijs op aanvraag"}</div>
+          <div className={styles.monthly}>{vehicle.vatMargin ? `${vehicle.vatMargin} voertuig` : "Persoonlijk voorstel op aanvraag"}</div>
+          <div className={styles.quickFacts}>
+            {vehicle.year ? <div><span>Bouwjaar</span><strong>{vehicle.year}</strong></div> : null}
+            {vehicle.mileageKm !== undefined ? <div><span>Kilometerstand</span><strong>{number.format(vehicle.mileageKm)} km</strong></div> : null}
+            {vehicle.fuelType ? <div><span>Aandrijving</span><strong>{vehicle.fuelType}</strong></div> : null}
+            {vehicle.transmission ? <div><span>Transmissie</span><strong>{vehicle.transmission}</strong></div> : null}
+          </div>
+          <div className={styles.ctaStack}><a className={styles.primary} href="#afspraak">Plan een proefrit</a>{vehicle.licensePlate ? <span className={styles.secondary}>{vehicle.licensePlate}</span> : null}</div>
+        </aside>
+      </section>
+
+      <section className={styles.story}>
+        <div><span className={styles.sectionLabel}>Deze auto</span><h2>{vehicle.title || `${vehicle.brand} ${vehicle.model}`}<br />zonder ruis.</h2><p className={styles.storyLead}>{vehicle.description || "We tonen wat we daadwerkelijk van deze auto weten. Geen ingevulde marketingvelden of aannames: alleen beschikbare voertuigdata en relevante techniek."}</p>{vehicle.accessories.length ? <div className={styles.highlightGrid}>{vehicle.accessories.slice(0, 10).map(item => <span key={item}>✓ {item}</span>)}</div> : null}</div>
+        <aside className={styles.factsCard}><h3>Specificaties</h3>{specs.length ? specs.map(([label, fact]) => <div className={styles.factRow} key={label}><span>{label}</span><strong>{fact}</strong></div>) : <p>Nadere specificaties volgen.</p>}</aside>
+      </section>
+
+      {hybridFacts.length ? <section className={styles.intelligence} id="carcheck">
+        <div className={styles.intelligenceHead}><div><span className={styles.sectionLabel}>Hybrid Intelligence</span><h2>Relevante hybride data.<br />Direct uit de voertuigfeed.</h2></div><p>We tonen alleen hybride- en accugegevens die voor deze specifieke auto daadwerkelijk beschikbaar zijn.</p></div>
+        <div className={styles.intelligenceGrid}>{hybridFacts.slice(0,4).map(([label, fact]) => <article className={styles.intelCard} key={label}><span>{label}</span><strong>{fact}</strong><small>beschikbare voertuigdata</small></article>)}</div>
+      </section> : null}
+
+      <section className={styles.trust} id="afspraak"><span className={styles.sectionLabel}>Bekijk hem in Groningen</span><h2>De auto gezien.<br />Nu het verhaal erachter.</h2><p>Plan een persoonlijke proefrit. We nemen de auto en de beschikbare voertuigdata rustig met je door.</p><div className={styles.trustActions}><a className={styles.primary} href={`mailto:mik@voltvroom.nl?subject=${encodeURIComponent(`Proefrit ${vehicle.brand} ${vehicle.model}`)}`}>Plan een proefrit</a><a className={styles.secondary} href="mailto:mik@voltvroom.nl">Stel een vraag</a></div></section>
     </main>
-  </>;
+    <div className={styles.stickyBar}><div><strong>{vehicle.brand} {vehicle.model}</strong><br /><span>{vehicle.trim}{vehicle.priceEur ? ` · ${eur.format(vehicle.priceEur)}` : ""}</span></div><a href="#afspraak">Plan proefrit</a></div>
+  </div>;
 }

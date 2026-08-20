@@ -1,8 +1,9 @@
 "use client";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Vehicle, VehicleStatus } from "@/types";
-import { getVehicles } from "@/lib/demo-store";
+import { listVehicles } from "@/lib/repositories/vehicle-repository";
 import { eur } from "@/lib/format";
 import { grossMargin } from "@/lib/business";
 import { centsToEuros } from "@/lib/money";

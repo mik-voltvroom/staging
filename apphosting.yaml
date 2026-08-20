@@ -63,3 +63,14 @@ env:
   - variable: AUDIT_HASH_SALT
     secret: AUDIT_HASH_SALT
     availability: [RUNTIME]
+
+  # Mobilox / Hexon pushes incremental XML stock mutations to:
+  # POST https://staging.voltvroom.nl/api/integrations/mobilox
+  # Credentials are server-only secrets and must match the HTTP Basic Auth
+  # configuration on the Hexon/Mobilox sender.
+  - variable: MOBILOX_BASIC_AUTH_USERNAME
+    secret: MOBILOX_BASIC_AUTH_USERNAME
+    availability: [RUNTIME]
+  - variable: MOBILOX_BASIC_AUTH_PASSWORD
+    secret: MOBILOX_BASIC_AUTH_PASSWORD
+    availability: [RUNTIME]
