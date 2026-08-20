@@ -1,44 +1,72 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { listPublicVehicles } from "@/lib/public-vehicles";
+import styles from "./showroom.module.css";
 
 const money = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 const number = new Intl.NumberFormat("nl-NL");
 
 export const dynamic = "force-dynamic";
 
+function display(value: string | number | undefined, fallback = "—") {
+  return value === undefined || value === "" ? fallback : String(value);
+}
+
 export default async function InventoryPage() {
   const vehicles = await listPublicVehicles();
 
-  return <div style={{ minHeight: "100vh", background: "#f7f9fa", color: "#111820" }}>
+  return <div className={styles.page}>
     <Header />
-    <main style={{ maxWidth: 1320, margin: "0 auto", padding: "72px 28px 96px" }}>
-      <header style={{ maxWidth: 760, marginBottom: 52 }}>
-        <p style={{ margin: "0 0 14px", fontSize: 12, letterSpacing: ".14em", textTransform: "uppercase", color: "#64717c" }}>Volt & Vroom selectie</p>
-        <h1 style={{ margin: 0, fontSize: "clamp(40px, 6vw, 72px)", lineHeight: .98, letterSpacing: "-.055em", fontWeight: 650 }}>Auto’s die we zelf<br />zouden rijden.</h1>
-        <p style={{ margin: "24px 0 0", maxWidth: 620, fontSize: 18, lineHeight: 1.65, color: "#64717c" }}>Een compacte selectie hybride en geëlektrificeerde auto’s. Duidelijke data, transparante techniek en geen onnodige verkooppraat.</p>
-      </header>
+    <main className={styles.shell}>
+      <section className={styles.hero}>
+        <div>
+          <span className={styles.eyebrow}>Volt & Vroom · Groningen</span>
+          <h1>Onze<br />showroom.</h1>
+        </div>
+        <p className={styles.heroText}>Geen eindeloze occasionlijst, maar een zorgvuldig geselecteerde collectie. Met relevante voertuigdata, heldere techniek en een presentatie die recht doet aan de auto.</p>
+      </section>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #dfe5e8", paddingTop: 18, marginBottom: 28 }}>
-        <span style={{ color: "#64717c" }}>{vehicles.length} {vehicles.length === 1 ? "auto" : "auto’s"} beschikbaar</span>
-        <span style={{ fontSize: 13, color: "#64717c" }}>Live uit Volt & Vroom voorraad</span>
+      <div className={styles.toolbar}>
+        <span className={styles.count}><strong>{vehicles.length}</strong> {vehicles.length === 1 ? "auto beschikbaar" : "auto’s beschikbaar"}</span>
+        <span className={styles.live}><i /> Live gekoppeld met voorraadbeheer</span>
       </div>
 
-      {vehicles.length === 0 ? <div style={{ background: "white", borderRadius: 18, padding: 48, border: "1px solid #e4e9ec" }}><h2 style={{ marginTop: 0 }}>Nieuwe selectie onderweg.</h2><p style={{ color: "#64717c", marginBottom: 0 }}>Er staan momenteel geen beschikbare voertuigen gepubliceerd.</p></div> :
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24 }}>
-        {vehicles.map(vehicle => <Link key={vehicle.id} href={`/voorraad/${encodeURIComponent(vehicle.slug)}`} style={{ textDecoration: "none", color: "inherit", background: "white", borderRadius: 18, overflow: "hidden", border: "1px solid #e4e9ec", display: "block" }}>
-          <div style={{ aspectRatio: "4 / 3", background: "#edf1f3", overflow: "hidden", position: "relative" }}>
-            {vehicle.imageUrls[0] ? <img src={vehicle.imageUrls[0]} alt={`${vehicle.brand} ${vehicle.model}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ height: "100%", display: "grid", placeItems: "center", color: "#8a969e" }}>Foto volgt</div>}
-            {vehicle.reserved ? <span style={{ position: "absolute", left: 16, top: 16, padding: "7px 10px", borderRadius: 999, background: "rgba(255,255,255,.92)", fontSize: 12 }}>Gereserveerd</span> : null}
-          </div>
-          <div style={{ padding: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 20, alignItems: "flex-start" }}><div><h2 style={{ margin: 0, fontSize: 24, letterSpacing: "-.03em" }}>{vehicle.brand} {vehicle.model}</h2><p style={{ margin: "6px 0 0", color: "#64717c", minHeight: 22 }}>{vehicle.trim || vehicle.hybridType || ""}</p></div><strong style={{ fontSize: 20, whiteSpace: "nowrap" }}>{vehicle.priceEur ? money.format(vehicle.priceEur) : "Prijs op aanvraag"}</strong></div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", marginTop: 22, paddingTop: 18, borderTop: "1px solid #edf0f2", color: "#52606b", fontSize: 14 }}>
-              {vehicle.year ? <span>{vehicle.year}</span> : null}{vehicle.mileageKm !== undefined ? <span>{number.format(vehicle.mileageKm)} km</span> : null}{vehicle.transmission ? <span>{vehicle.transmission}</span> : null}{vehicle.fuelType ? <span>{vehicle.fuelType}</span> : null}
+      {vehicles.length === 0 ? <section className={styles.empty}>
+        <h2>Nieuwe selectie onderweg.</h2>
+        <p>Er staan momenteel geen voertuigen gepubliceerd. Zodra een auto via de voorraadkoppeling beschikbaar komt, verschijnt hij hier automatisch.</p>
+      </section> : <section className={styles.grid}>
+        {vehicles.map(vehicle => {
+          const hybrid = vehicle.pluginHybrid || Boolean(vehicle.hybridType) || Boolean(vehicle.electricRangeKm);
+          return <Link key={vehicle.id} href={`/voorraad/${encodeURIComponent(vehicle.slug)}`} className={styles.card}>
+            <div className={styles.visual}>
+              {vehicle.imageUrls[0] ? <img src={vehicle.imageUrls[0]} alt={`${vehicle.brand} ${vehicle.model}`} /> : <div className={styles.emptyPhoto}>Foto volgt</div>}
+              <span className={styles.status}>{vehicle.reserved ? "Gereserveerd" : "Beschikbaar"}</span>
+              {hybrid ? <span className={styles.hybrid}>{vehicle.hybridType || "Hybrid"}</span> : null}
+              {vehicle.imageUrls.length > 1 ? <span className={styles.photoCount}>{vehicle.imageUrls.length} foto’s</span> : null}
             </div>
-          </div>
-        </Link>)}
-      </div>}
+            <div className={styles.body}>
+              <div className={styles.topline}>
+                <div>
+                  <span className={styles.label}>{vehicle.bodyStyle || vehicle.fuelType || "Volt & Vroom selectie"}</span>
+                  <h2 className={styles.name}>{vehicle.brand} {vehicle.model}</h2>
+                  <p className={styles.trim}>{vehicle.trim || vehicle.title || ""}</p>
+                </div>
+                <strong className={styles.price}>{vehicle.priceEur ? money.format(vehicle.priceEur) : "Op aanvraag"}</strong>
+              </div>
+              <div className={styles.facts}>
+                <div className={styles.fact}><span>Bouwjaar</span><strong>{display(vehicle.year)}</strong></div>
+                <div className={styles.fact}><span>Kilometerstand</span><strong>{vehicle.mileageKm !== undefined ? `${number.format(vehicle.mileageKm)} km` : "—"}</strong></div>
+                <div className={styles.fact}><span>Aandrijving</span><strong>{display(vehicle.fuelType)}</strong></div>
+                <div className={styles.fact}><span>Transmissie</span><strong>{display(vehicle.transmission)}</strong></div>
+              </div>
+              <div className={styles.footer}>
+                <span className={styles.source}>{vehicle.source}</span>
+                <span className={styles.view}>Bekijk auto →</span>
+              </div>
+            </div>
+          </Link>;
+        })}
+      </section>}
     </main>
   </div>;
 }
