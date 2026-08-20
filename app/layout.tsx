@@ -1,13 +1,29 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/manrope";
 import "./globals.css";
+import "./public.css";
+import "./enhancements.css";
+import "./social-video.css";
+import "./social-video-editor.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { GoogleMerchantBadge } from "@/components/GoogleMerchantBadge";
+import { MobileActionBar } from "@/components/MobileActionBar";
+import { PublicAnalytics } from "@/components/PublicAnalytics";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl";
 
 export const metadata: Metadata = {
-  title: "Volt & Vroom | Slimmer hybride rijden",
-  description: "Geteste hybride auto's, transparante informatie en lage gebruikskosten.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl")
+  metadataBase: new URL(siteUrl),
+  title: "Volt & Vroom | Slim rijden. Meer genieten.",
+  description: "Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie, inzicht in de hoogvoltaccu en persoonlijk advies vanuit Groningen.",
+  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Hybride of elektrisch? Volt & Vroom legt uit wat bij uw gebruik past." }] },
+  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", images: ["/editorial/hero-v2.png"] },
+  robots: { index: true, follow: true },
 };
 
+export const viewport: Viewport = { themeColor: "#ffffff", colorScheme: "light", width: "device-width", initialScale: 1 };
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="nl"><body><AuthProvider>{children}</AuthProvider></body></html>;
+  return <html lang="nl"><body><AuthProvider>{children}</AuthProvider><PublicAnalytics /><MobileActionBar /><GoogleMerchantBadge /></body></html>;
 }

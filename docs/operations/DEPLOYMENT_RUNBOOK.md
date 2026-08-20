@@ -11,7 +11,7 @@ Deze repository is de staging-codebase. `main` is uitsluitend de bronbranch van 
 5. Vereis groene CI en minimaal één eigenaar-review.
 6. Merge naar `main`; Firebase App Hosting staging mag daarna automatisch uitrollen.
 7. Controleer `/api/health`, homepage, login en een interne API zonder sessie (verwacht 401).
-8. Controleer VWE- en cron-hooks zonder/ongeldig secret (verwacht 401 of 503).
+8. Controleer VWE-, Hexon- en cron-hooks zonder/ongeldig secret (verwacht 401 of 503).
 9. Noteer commit-SHA, smokecheckresultaat en eventuele rollback-SHA.
 
 ## Eerste App Hosting-rollout
@@ -19,7 +19,7 @@ Deze repository is de staging-codebase. `main` is uitsluitend de bronbranch van 
 1. Merge de goedgekeurde staging-PR naar `main`; verbind niet eerst de oude `main`-inhoud.
 2. Configureer de Firebase GitHub App voor toegang tot de private repository `mik-voltvroom/staging`.
 3. Maak in project `voltvroom-staging` een backend in `europe-west4` met app root `/` en live branch `main`.
-4. Controleer dat `apphosting.yaml` alleen `voltvroom-staging` en de vier staging-secret-namen bevat.
+4. Controleer dat `apphosting.yaml` alleen `voltvroom-staging` en de zes staging-secret-namen bevat.
 5. Geef de nieuwe runtime service identity per secret de rol `Secret Manager Secret Accessor`; geef geen projectbrede eigenaarrol.
 6. Maak via Firebase Authentication een eigenaaraccount en stel met een gecontroleerde Admin SDK-handeling de custom claim `{ role: "owner" }` in.
 7. Start de rollout en controleer dat Firestore- en Storage-toegang zonder geldige auth gesloten blijven.
@@ -41,6 +41,7 @@ De repository bevat hiervoor een staging-only `apphosting`-target in `firebase.j
 - De eerste lokale bronrollout is op 14 augustus 2026 geslaagd vanaf commit `e6960b16bf6e15d7a38797015df8efac454c360b`. Backend: `vvos-staging`; URL: `https://vvos-staging--voltvroom-staging.europe-west4.hosted.app`.
 - De eerste smokecheck is geslaagd: homepage en health `200`; interne API, VWE en cron zonder autorisatie `401`.
 - De Firebase GitHub App moet op het persoonlijke account worden geïnstalleerd met toegang tot alleen `mik-voltvroom/staging`.
+- Op 17 augustus 2026 is Firebase App Hosting-backend `vvos-staging` gekoppeld aan GitHub-account `mik-voltvroom`, repository `staging`, app root `/` en testbranch `agent/design-system-v1-2`. Een handmatige GitHub-rollout gaf vóór de build een generieke consolefout; deze statuscommit verifieert de automatische push-trigger zonder `main` of productie te wijzigen.
 - PR #2 moet nog worden gereviewd en gemerged voordat `main` de geteste App Hosting-configuratie bevat.
 - Er is nog geen Firebase Authentication-eigenaaraccount met gecontroleerde `{ role: "owner" }` custom claim.
 

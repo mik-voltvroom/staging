@@ -11,7 +11,7 @@ if (env === 'staging' && /www\.voltvroom\.nl/i.test(url)) errors.push('Staging m
 if (env === 'production' && url.includes('staging.')) errors.push('Production mag geen staging URL gebruiken');
 if (env === 'production' && !url.includes('voltvroom.nl')) errors.push('Production URL moet voltvroom.nl zijn');
 
-for (const key of ['CRON_SECRET', 'VWE_WEBHOOK_SECRET', 'PORTAL_TOKEN_SECRET', 'AUDIT_HASH_SALT']) {
+for (const key of ['CRON_SECRET', 'VWE_WEBHOOK_SECRET', 'HEXON_SYNC_USERNAME', 'HEXON_SYNC_PASSWORD', 'PORTAL_TOKEN_SECRET', 'AUDIT_HASH_SALT']) {
   const value = process.env[key] || '';
   if (value.length < 24) errors.push(`${key} ontbreekt of is te kort`);
 }

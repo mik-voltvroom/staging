@@ -3,14 +3,14 @@ export type VehicleStatus = "draft" | "photography" | "review" | "available" | "
 export type PublishChannel = "website" | "merchant" | "google_ads" | "meta";
 
 export interface VehicleCosts {
-  purchasePriceEur: number;
-  transportEur: number;
-  preparationEur: number;
-  maintenanceEur: number;
-  warrantyReserveEur: number;
-  advertisingEur: number;
-  financingEur: number;
-  otherEur: number;
+  purchasePriceCents: number;
+  transportCents: number;
+  preparationCents: number;
+  maintenanceCents: number;
+  warrantyReserveCents: number;
+  advertisingCents: number;
+  financingCents: number;
+  otherCents: number;
 }
 
 export interface VehiclePublication {
@@ -28,8 +28,8 @@ export interface Vehicle {
   trim: string;
   year: number;
   mileageKm: number;
-  priceEur: number;
-  monthlyPriceEur?: number;
+  priceCents: number;
+  monthlyPriceCents?: number;
   driveType: DriveType;
   fuelType: string;
   transmission: string;
@@ -38,7 +38,7 @@ export interface Vehicle {
   batteryHealthPercent?: number;
   electricRangeKm?: number;
   consumptionPer100Km?: number;
-  annualSavingEur?: number;
+  annualSavingCents?: number;
   warrantyMonths?: number;
   maintenanceHistory: "complete" | "partial" | "unknown";
   vin?: string;
@@ -47,6 +47,10 @@ export interface Vehicle {
   highlights: string[];
   description?: string;
   status: VehicleStatus;
+  reservedDealId?: string;
+  reservedAt?: string;
+  soldDealId?: string;
+  soldAt?: string;
   locationCode: string;
   costs?: VehicleCosts;
   publication?: VehiclePublication;
@@ -77,7 +81,7 @@ export interface Lead {
 }
 
 export interface IntegrationStatus {
-  key: "firebase" | "rdw" | "vwe" | "merchant" | "whatsapp" | "email";
+  key: "firebase" | "rdw" | "vwe" | "hexon" | "merchant" | "whatsapp" | "email";
   label: string;
   configured: boolean;
   mode: "live" | "demo" | "disabled";
@@ -194,20 +198,20 @@ export interface WarrantyPackage {
   id: string;
   name: string;
   months: number;
-  priceEur: number;
+  priceCents: number;
   description: string;
   batteryCoverage: boolean;
-  deductibleEur: number;
+  deductibleCents: number;
 }
 
 export interface FinanceApplication {
   id: string;
   dealId: string;
   provider?: string;
-  requestedAmountEur: number;
-  downPaymentEur: number;
+  requestedAmountCents: number;
+  downPaymentCents: number;
   termMonths: number;
-  monthlyPaymentEur?: number;
+  monthlyPaymentCents?: number;
   status: FinanceStatus;
   consentAt?: string;
   submittedAt?: string;
@@ -218,7 +222,7 @@ export interface PaymentRecord {
   id: string;
   dealId: string;
   type: "deposit" | "balance" | "refund";
-  amountEur: number;
+  amountCents: number;
   status: PaymentStatus;
   provider: "manual" | "mollie" | "stripe" | "bank";
   paymentUrl?: string;
@@ -257,19 +261,32 @@ export interface Deal {
   vehicleId: string;
   customer: CustomerSnapshot;
   status: DealStatus;
-  salePriceEur: number;
-  tradeInCreditEur: number;
-  accessoriesEur: number;
-  deliveryPackageEur: number;
+  salePriceCents: number;
+  tradeInCreditCents: number;
+  accessoriesCents: number;
+  deliveryPackageCents: number;
   warranty?: WarrantyPackage;
-  depositRequiredEur: number;
-  totalEur: number;
+  depositRequiredCents: number;
+  totalCents: number;
   financeStatus: FinanceStatus;
   registrationStatus: RegistrationStatus;
   plannedDeliveryAt?: string;
-  portalToken: string;
+  acceptedSnapshotId?: string;
+  acceptedAt?: string;
+  portalToken?: string;
+  portalGrantHash?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AcceptedDealSnapshot {
+  id: string;
+  dealId: string;
+  kind: "accepted";
+  acceptedAt: string;
+  customer: Omit<CustomerSnapshot, "dateOfBirth">;
+  vehicle: Pick<Vehicle, "id" | "slug" | "brand" | "model" | "trim" | "year" | "mileageKm" | "vin" | "licensePlate">;
+  commercial: Pick<Deal, "salePriceCents" | "tradeInCreditCents" | "accessoriesCents" | "deliveryPackageCents" | "depositRequiredCents" | "totalCents" | "warranty">;
 }
 
 export type WorkOrderStatus = "planned" | "checked_in" | "diagnosis" | "waiting_approval" | "in_progress" | "quality_control" | "ready" | "delivered" | "cancelled";
@@ -385,15 +402,15 @@ export type InvoiceKind = "sales" | "purchase" | "credit";
 export type CashFlowCategory = "vehicle_sales" | "workshop" | "finance" | "warranty" | "inventory" | "payroll" | "rent" | "tax" | "marketing" | "software" | "other";
 export type FundingStatus = "active" | "released" | "overdue" | "defaulted";
 
-export interface VatBreakdown { rate: number; netEur: number; vatEur: number; grossEur: number; }
-export interface InvoiceLine { id: string; description: string; quantity: number; unitPriceEur: number; vatPercent: number; accountCode?: string; vehicleId?: string; workOrderId?: string; }
+export interface VatBreakdown { rate: number; netCents: number; vatCents: number; grossCents: number; }
+export interface InvoiceLine { id: string; description: string; quantity: number; unitPriceCents: number; vatPercent: number; accountCode?: string; vehicleId?: string; workOrderId?: string; }
 export interface Invoice {
   id: string; number: string; kind: InvoiceKind; status: InvoiceStatus; customerOrSupplier: string; email?: string;
-  invoiceDate: string; dueDate: string; lines: InvoiceLine[]; subtotalEur: number; vatEur: number; totalEur: number; paidEur: number;
+  invoiceDate: string; dueDate: string; lines: InvoiceLine[]; subtotalCents: number; vatCents: number; totalCents: number; paidCents: number;
   dealId?: string; vehicleId?: string; workOrderId?: string; paymentReference?: string; notes?: string; createdAt: string; updatedAt: string;
 }
 export interface BankTransaction {
-  id: string; bookedAt: string; amountEur: number; description: string; counterparty?: string; iban?: string; reference?: string;
+  id: string; bookedAt: string; amountCents: number; description: string; counterparty?: string; iban?: string; reference?: string;
   matchedInvoiceId?: string; category: CashFlowCategory; status: "unmatched" | "suggested" | "matched" | "ignored";
 }
 export interface Expense {
@@ -416,6 +433,6 @@ export interface ManagementKpiSnapshot {
   carsSold: number; averageGrossContributionEur: number; workshopRevenueEur: number; workshopGrossProfitEur: number;
 }
 export interface LedgerEntry {
-  id: string; bookedAt: string; type: LedgerEntryType; description: string; debitAccount: string; creditAccount: string; amountEur: number;
+  id: string; bookedAt: string; type: LedgerEntryType; description: string; debitAccount: string; creditAccount: string; amountCents: number;
   vatCode?: string; invoiceId?: string; vehicleId?: string; workOrderId?: string; immutable: boolean;
 }

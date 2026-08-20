@@ -6,10 +6,10 @@ export function dealProgress(deal: Deal, tasks: DeliveryTask[]) {
   return Math.round((dealTasks.filter((task) => task.status === "done").length / dealTasks.length) * 100);
 }
 
-export function openBalance(deal: Deal, paidAmount: number) {
-  return Math.max(0, deal.totalEur - paidAmount);
+export function openBalanceCents(deal: Deal, paidAmountCents: number) {
+  return Math.max(0, deal.totalCents - paidAmountCents);
 }
 
-export function canDeliver(deal: Deal, tasks: DeliveryTask[], openAmount: number) {
-  return deal.registrationStatus === "completed" && openAmount === 0 && tasks.filter((task) => task.dealId === deal.id).every((task) => task.status === "done");
+export function canDeliver(deal: Deal, tasks: DeliveryTask[], openAmountCents: number) {
+  return deal.registrationStatus === "completed" && openAmountCents === 0 && tasks.filter((task) => task.dealId === deal.id).every((task) => task.status === "done");
 }

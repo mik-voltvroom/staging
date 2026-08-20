@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
-import { getPublicVehicle } from "@/lib/public-vehicles";
-import styles from "./vehicle.module.css";
+import { VehicleSocialVideos } from "@/components/VehicleSocialVideos";
+import { eur, km } from "@/lib/format";
+import { centsToEuros } from "@/lib/money";
+import { getPublicVehicleBySlug } from "@/lib/repositories/public-vehicle-repository";
 
-const eur = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
-const number = new Intl.NumberFormat("nl-NL");
+export const revalidate = 60;
+export const dynamicParams = true;
 
-export const dynamic = "force-dynamic";
-
-function value(value: string | number | undefined | null, suffix = "") {
-  return value === undefined || value === null || value === "" ? null : `${value}${suffix}`;
+export function generateStaticParams() {
+  return [];
 }
 
 export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {

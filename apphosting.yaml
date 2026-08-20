@@ -51,6 +51,12 @@ env:
   - variable: VWE_WEBHOOK_SECRET
     secret: VWE_WEBHOOK_SECRET
     availability: [RUNTIME]
+  - variable: HEXON_SYNC_USERNAME
+    secret: HEXON_SYNC_USERNAME
+    availability: [RUNTIME]
+  - variable: HEXON_SYNC_PASSWORD
+    secret: HEXON_SYNC_PASSWORD
+    availability: [RUNTIME]
   - variable: PORTAL_TOKEN_SECRET
     secret: PORTAL_TOKEN_SECRET
     availability: [RUNTIME]

@@ -1,0 +1,8 @@
+import type { Metadata } from "next";
+import { SegmentPage } from "@/components/SegmentPage";
+
+export const metadata: Metadata = { title: "Volt & Vroom Icons | Bijzondere auto’s met historie", description: "Youngtimers, klassiekers in spe en bijzondere sportieve auto’s, geselecteerd op historie, techniek en karakter.", alternates: { canonical: "/icons" } };
+
+export default function IconsPage() {
+  return <SegmentPage eyebrow="Volt & Vroom Icons" title="Meer karakter. Dezelfde standaard." lead="Icons is onze wereld voor youngtimers, klassiekers in spe en bijzondere sportieve auto’s. Niet gekozen om alleen op te vallen, maar om historie, techniek en rijbeleving." icon="/brand/icons/proefrit.svg" accent="copper" idealFor={["U zoekt een bijzondere auto met een aantoonbaar en begrijpelijk verleden.", "Technische staat en originaliteit zijn voor u belangrijker dan de laagste prijs.", "U waardeert karakter, maar wilt dezelfde rustige begeleiding en transparantie."]} proof={[{ title: "Historie centraal", text: "Eigenaarschap, onderhoud, documentatie en relevante restauratie- of schadehistorie worden onderzocht." }, { title: "Techniek uitgelegd", text: "Modelgebonden aandachtspunten en de technische staat worden concreet besproken." }, { title: "Geen tweede huisstijl", text: "Icons gebruikt dezelfde Volt & Vroom-norm, met Copper uitsluitend als warme qualifier." }]} adviceTitle="Bijzonder vraagt om meer context." adviceText="Een karakterauto laat zich niet beoordelen op bouwjaar en kilometerstand alleen. Daarom bekijken wij de samenhang tussen historie, uitvoering, techniek en toekomstig gebruik." />;
+}

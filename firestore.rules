@@ -4,11 +4,60 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function hasRole(role) { return signedIn() && request.auth.token.role == role; }
     function staff() { return signedIn() && request.auth.token.role in ['owner','admin','sales','marketing','workshop']; }
+    function commercialVehicleStatus(data) { return data.status in ['reserved', 'sold']; }
+    function hasCommercialVehicleFields(data) {
+      return data.keys().hasAny(['reservedDealId', 'reservedAt', 'soldDealId', 'soldAt']);
+    }
+    function commercialVehicleFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['reservedDealId', 'reservedAt', 'soldDealId', 'soldAt']);
+    }
+    function safeVehicleCreate() {
+      return !commercialVehicleStatus(request.resource.data)
+        && !hasCommercialVehicleFields(request.resource.data);
+    }
+    function safeVehicleUpdate() {
+      return !commercialVehicleStatus(resource.data)
+        && !commercialVehicleStatus(request.resource.data)
+        && !commercialVehicleFieldsChanged();
+    }
+    function validCents(value) { return value is int && value >= 0; }
+    function validVehicleCosts(costs) {
+      return costs.keys().hasAll([
+          'purchasePriceCents', 'transportCents', 'preparationCents', 'maintenanceCents',
+          'warrantyReserveCents', 'advertisingCents', 'financingCents', 'otherCents'
+        ])
+        && !costs.keys().hasAny([
+          'purchasePriceEur', 'transportEur', 'preparationEur', 'maintenanceEur',
+          'warrantyReserveEur', 'advertisingEur', 'financingEur', 'otherEur'
+        ])
+        && validCents(costs.purchasePriceCents)
+        && validCents(costs.transportCents)
+        && validCents(costs.preparationCents)
+        && validCents(costs.maintenanceCents)
+        && validCents(costs.warrantyReserveCents)
+        && validCents(costs.advertisingCents)
+        && validCents(costs.financingCents)
+        && validCents(costs.otherCents);
+    }
+    function validVehicleMoney(data) {
+      return validCents(data.priceCents)
+        && !data.keys().hasAny(['priceEur', 'monthlyPriceEur', 'annualSavingEur'])
+        && (!data.keys().hasAny(['monthlyPriceCents']) || validCents(data.monthlyPriceCents))
+        && (!data.keys().hasAny(['annualSavingCents']) || validCents(data.annualSavingCents))
+        && (!data.keys().hasAny(['costs']) || validVehicleCosts(data.costs));
+    }
 
     match /vehicles/{vehicleId} {
       allow read: if resource.data.status == 'available' || staff();
-      allow create, update: if hasRole('owner') || hasRole('admin') || hasRole('sales');
-      allow delete: if hasRole('owner') || hasRole('admin');
+      allow create: if (hasRole('owner') || hasRole('admin') || hasRole('sales'))
+        && safeVehicleCreate()
+        && validVehicleMoney(request.resource.data);
+      allow update: if (hasRole('owner') || hasRole('admin') || hasRole('sales'))
+        && safeVehicleUpdate()
+        && validVehicleMoney(request.resource.data);
+      allow delete: if (hasRole('owner') || hasRole('admin'))
+        && !commercialVehicleStatus(resource.data);
     }
     match /leads/{leadId} {
       allow create, read, update: if staff();
@@ -16,6 +65,17 @@ service cloud.firestore {
     }
     match /customers/{customerId} { allow read, write: if staff(); }
     match /tasks/{taskId} { allow read, write: if staff(); }
+    // Commercial Core writes go through server-authorized repositories only.
+    match /deals/{dealId} { allow read, write: if false; }
+    match /dealSnapshots/{snapshotId} { allow read, write: if false; }
+    match /deliveryTasks/{taskId} { allow read, write: if false; }
+    match /payments/{paymentId} { allow read, write: if false; }
+    match /dealDocuments/{documentId} { allow read, write: if false; }
+    match /financeApplications/{applicationId} { allow read, write: if false; }
     match /audit_logs/{logId} { allow read: if hasRole('owner') || hasRole('admin'); allow write: if false; }
+
+    // Social Video is deliberately server-only. Public access goes through the
+    // allow-listed Next.js API; VVOS mutations use Firebase Admin after API auth.
+    match /socialVideos/{videoId} { allow read, write: if false; }
   }
 }

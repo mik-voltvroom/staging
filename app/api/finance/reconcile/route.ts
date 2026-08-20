@@ -15,8 +15,8 @@ export async function POST(request: Request) {
   const transaction = bankTransactions.find((item) => item.id === parsed.data.transactionId);
   const invoice = financeInvoices.find((item) => item.id === parsed.data.invoiceId);
   if (!transaction || !invoice) return NextResponse.json({ error: "Transactie of factuur niet gevonden" }, { status: 404 });
-  const difference = Math.abs(Math.abs(transaction.amountEur) - invoiceOpenAmount(invoice));
-  const matched = difference < 0.02;
-  await writeAuditEvent({ action: "bank_transaction.reconciled", entityType: "bank_transaction", entityId: transaction.id, actor: auth.actor, outcome: matched ? "success" : "warning", metadata: { invoiceId: invoice.id, differenceEur: difference }, request });
-  return NextResponse.json({ matched, differenceEur: difference, transactionId: transaction.id, invoiceId: invoice.id, mode: "preview" });
+  const differenceCents = Math.abs(Math.abs(transaction.amountCents) - invoiceOpenAmount(invoice));
+  const matched = differenceCents <= 1;
+  await writeAuditEvent({ action: "bank_transaction.reconciled", entityType: "bank_transaction", entityId: transaction.id, actor: auth.actor, outcome: matched ? "success" : "warning", metadata: { invoiceId: invoice.id, differenceCents }, request });
+  return NextResponse.json({ matched, differenceCents, transactionId: transaction.id, invoiceId: invoice.id, mode: "preview" });
 }

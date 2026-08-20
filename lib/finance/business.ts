@@ -2,16 +2,16 @@ import type { Invoice, InvoiceLine, VehicleCosts, VehicleProfitability, VatBreak
 
 export const roundMoney = (value:number) => Math.round((value + Number.EPSILON) * 100) / 100;
 export function invoiceTotals(lines:InvoiceLine[]) {
-  const subtotalEur = roundMoney(lines.reduce((s,l)=>s+l.quantity*l.unitPriceEur,0));
-  const vatEur = roundMoney(lines.reduce((s,l)=>s+(l.quantity*l.unitPriceEur)*(l.vatPercent/100),0));
-  return { subtotalEur, vatEur, totalEur: roundMoney(subtotalEur+vatEur) };
+  const subtotalCents = lines.reduce((sum, line) => sum + Math.round(line.quantity * line.unitPriceCents), 0);
+  const vatCents = lines.reduce((sum, line) => sum + Math.round(Math.round(line.quantity * line.unitPriceCents) * line.vatPercent / 100), 0);
+  return { subtotalCents, vatCents, totalCents: subtotalCents + vatCents };
 }
 export function vatBreakdown(lines:InvoiceLine[]):VatBreakdown[]{
-  const grouped = new Map<number,{net:number;vat:number}>();
-  for(const l of lines){const net=l.quantity*l.unitPriceEur; const vat=net*l.vatPercent/100; const row=grouped.get(l.vatPercent)??{net:0,vat:0}; row.net+=net;row.vat+=vat;grouped.set(l.vatPercent,row)}
-  return [...grouped.entries()].map(([rate,v])=>({rate,netEur:roundMoney(v.net),vatEur:roundMoney(v.vat),grossEur:roundMoney(v.net+v.vat)}));
+  const grouped = new Map<number,{netCents:number;vatCents:number}>();
+  for(const line of lines){const netCents=Math.round(line.quantity*line.unitPriceCents); const vatCents=Math.round(netCents*line.vatPercent/100); const row=grouped.get(line.vatPercent)??{netCents:0,vatCents:0}; row.netCents+=netCents;row.vatCents+=vatCents;grouped.set(line.vatPercent,row)}
+  return [...grouped.entries()].map(([rate,value])=>({rate,netCents:value.netCents,vatCents:value.vatCents,grossCents:value.netCents+value.vatCents}));
 }
-export function invoiceOpenAmount(invoice:Invoice){return roundMoney(Math.max(0,invoice.totalEur-invoice.paidEur))}
+export function invoiceOpenAmount(invoice:Invoice){return Math.max(0,invoice.totalCents-invoice.paidCents)}
 export function isOverdue(invoice:Invoice, now=new Date()){return !["paid","cancelled"].includes(invoice.status)&&new Date(invoice.dueDate)<now}
 export function directVehicleCosts(costs?:VehicleCosts){if(!costs)return 0;return Object.values(costs).reduce((s,v)=>s+v,0)}
 export function vehicleProfit(input:Omit<VehicleProfitability,"grossContributionEur"|"contributionPercent">):VehicleProfitability{
