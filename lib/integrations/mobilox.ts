@@ -132,12 +132,6 @@ function addV225StructuralFields(xml: string, result: MobiloxRawPayload) {
   }
 }
 
-/**
- * Parse the supplied Hexon incremental XML as a flat field map. Besides leaf
- * elements, Hexon v2.25 stores mutation metadata and some units as XML
- * attributes and prices in nested structures. Those values are promoted to
- * explicit synthetic keys before normalization.
- */
 export function parseMobiloxIncrementalXml(xml: string): MobiloxRawPayload {
   const trimmed = xml.trim();
   if (!trimmed.startsWith("<") || !trimmed.endsWith(">")) throw new Error("Geen geldige XML ontvangen.");
@@ -279,4 +273,4 @@ export function verifyMobiloxBasicAuth(authorizationHeader: string | null): bool
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-export function mobiloxSuccessResponse(): string { return "1"; }
+export function mobiloxSuccessResponse(): "1" { return "1"; }
