@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, staging]
   push:
-    branches: [main, staging, 'agent/**', 'hardening/**', 'rc/**']
+    branches: [main, staging, 'agent/**', 'hardening/**', 'rc/**', 'release/**']
 
 permissions:
   contents: read
@@ -24,14 +24,14 @@ jobs:
       VVOS_REQUIRE_AUTH: "true"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - name: Java for Firebase emulators
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
