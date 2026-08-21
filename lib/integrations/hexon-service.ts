@@ -39,6 +39,16 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
   let duplicate = false;
   let imageFailures: Array<{ sourceUrl: string; message: string }> = [];
 
+  const alreadyProcessed = await eventRef.get();
+  if (alreadyProcessed.exists) {
+    return {
+      duplicate: true,
+      externalId: mutation.externalId,
+      action: mutation.action,
+      providerAction: mutation.providerAction,
+    };
+  }
+
   if (mutation.action === "upsert" && mutation.vehicle?.images.length) {
     const persisted = await persistHexonImages(mutation.externalId, mutation.vehicle.images);
     imageFailures = persisted.failures;
