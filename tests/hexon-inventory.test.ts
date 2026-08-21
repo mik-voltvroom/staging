@@ -39,7 +39,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
     const mutation = parseHexonMutation(xml);
     expect(mutation.action).toBe("upsert");
     expect(mutation.providerAction).toBe("add");
-    expect(mutation.externalId).toBe("5016729");
+    expect(mutation.externalId).toBe("56015851");
   });
 
   it("preserves change as provider action while using an upsert internally", () => {
@@ -54,7 +54,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
   it("maps nested Hexon v2.25 pricing", () => {
     const nestedXml = vehicleXml.replace("<voertuignr_hexon>5016729</voertuignr_hexon>", "<voertuignr_hexon>56015851</voertuignr_hexon><voertuignr>5016729</voertuignr>").replace("<brandstof>Elektrisch</brandstof>", "<brandstof>E</brandstof>").replace("<verkoopprijs_particulier><bedrag>39.950,00</bedrag><munteenheid>EUR</munteenheid></verkoopprijs_particulier>", '<verkoopprijs_particulier><prijzen land="nl"><prijs nr="1"><bedrag>25911</bedrag><munteenheid>EUR</munteenheid></prijs></prijzen></verkoopprijs_particulier>');
     const mutation = parseHexonMutation(nestedXml);
-    expect(mutation.vehicle).toMatchObject({ id: "hexon-5016729", priceCents: 2591100, driveType: "electric" });
+    expect(mutation.vehicle).toMatchObject({ id: "hexon-56015851", priceCents: 2591100, driveType: "electric" });
   });
 
   it("honours tellerstand unit K and converts M to kilometres", () => {
@@ -66,7 +66,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
   });
 
   it("archives attribute-style delete mutations", () => {
-    expect(parseHexonMutation('<voertuig actie="delete" voertuignr="5016729" voertuignr_hexon="56015851"/>')).toEqual({ action: "archive", providerAction: "delete", externalId: "5016729" });
+    expect(parseHexonMutation('<voertuig actie="delete" voertuignr="5016729" voertuignr_hexon="56015851"/>')).toEqual({ action: "archive", providerAction: "delete", externalId: "56015851" });
   });
 
   it("keeps incomplete vehicles out of the public website", () => {

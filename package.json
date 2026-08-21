@@ -20,7 +20,8 @@
     "test:rules": "firebase emulators:exec --only firestore --project vvos-rules-test \"vitest run --configLoader runner --config vitest.rules.config.ts\"",
     "test:watch": "vitest --configLoader runner",
     "readiness": "node scripts/production-readiness.mjs",
-    "validate:env": "node scripts/validate-vv-environment.mjs"
+    "validate:env": "node scripts/validate-vv-environment.mjs",
+    "deploy:firestore:production": "node scripts/deploy-firestore-production.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

@@ -17,7 +17,7 @@ export function generateStaticParams() {
 
 export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const vehicle = await getPublicVehicleBySlug(decodeURIComponent(slug));
+  const vehicle = await getPublicVehicleBySlug(slug);
   if (!vehicle) notFound();
 
   const specs = [
