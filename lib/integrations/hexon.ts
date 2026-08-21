@@ -4,9 +4,11 @@ import { eurosToCents } from "@/lib/money";
 import type { DriveType, Vehicle } from "@/types";
 
 type XmlRecord = Record<string, unknown>;
+type ProviderAction = "add" | "change" | "delete";
 
 export interface HexonMutation {
   action: "upsert" | "archive";
+  providerAction: ProviderAction;
   externalId: string;
   vehicle?: Vehicle;
 }
@@ -69,6 +71,17 @@ function textFrom(value: unknown): string | undefined {
   return result;
 }
 
+function attributeText(value: unknown, name: string): string | undefined {
+  if (!isRecord(value)) return undefined;
+  const expected = normalizedKey(name);
+  for (const [key, nested] of Object.entries(value)) {
+    if (!key.startsWith("@_")) continue;
+    if (normalizedKey(key) !== expected) continue;
+    return textFrom(nested);
+  }
+  return undefined;
+}
+
 function firstField(root: unknown, names: string[]): unknown {
   for (const name of names) {
     const expected = normalizedKey(name);
@@ -105,6 +118,15 @@ function parseNumber(value: unknown): number | undefined {
 function parseInteger(value: unknown): number | undefined {
   const number = parseNumber(value);
   return number === undefined ? undefined : Math.round(number);
+}
+
+function parseOdometerKm(value: unknown): number | undefined {
+  const reading = parseNumber(value);
+  if (reading === undefined) return undefined;
+  const unit = attributeText(value, "eenheid")?.toUpperCase();
+  if (!unit || unit === "K") return Math.round(reading);
+  if (unit === "M") return Math.round(reading * 1.609344);
+  throw new Error(`Niet-ondersteunde tellerstand-eenheid uit Hexon: ${unit}.`);
 }
 
 function parseBoolean(value: unknown): boolean {
@@ -155,9 +177,11 @@ function safeExternalId(value: string): string {
   return normalized;
 }
 
-function mutationAction(root: unknown): "upsert" | "archive" {
+function providerMutationAction(root: unknown): ProviderAction {
   const value = firstText(root, ["actie", "action"])?.toLowerCase() ?? "";
-  return /delete|remove|verwijder|offline/.test(value) ? "archive" : "upsert";
+  if (/delete|remove|verwijder|offline/.test(value)) return "delete";
+  if (/change|update|wijzig/.test(value)) return "change";
+  return "add";
 }
 
 export function parseHexonMutation(xml: string, now = new Date()): HexonMutation {
@@ -168,8 +192,9 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
 
   const parsed = parser.parse(xml) as unknown;
   const externalId = safeExternalId(firstText(parsed, ["voertuignr", "voertuignr_klant", "voertuignummer", "stocknummer", "voertuignr_hexon"]) ?? "");
-  const action = mutationAction(parsed);
-  if (action === "archive") return { action, externalId };
+  const providerAction = providerMutationAction(parsed);
+  const action = providerAction === "delete" ? "archive" : "upsert";
+  if (action === "archive") return { action, providerAction, externalId };
 
   const brand = firstText(parsed, ["merk"]) ?? "";
   const model = firstText(parsed, ["model"]) ?? "";
@@ -177,7 +202,8 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   const fuelType = firstText(parsed, ["brandstof", "brandstof_omschrijving"]) ?? "Elektrisch";
   const year = parseInteger(firstField(parsed, ["bouwjaar"])) ?? 0;
   const mileageValue = firstField(parsed, ["tellerstand", "kilometerstand"]);
-  const mileageKm = parseInteger(mileageValue) ?? 0;
+  const parsedMileageKm = parseOdometerKm(mileageValue);
+  const mileageKm = parsedMileageKm ?? 0;
   const images = collectHttpsUrls(firstField(parsed, ["afbeeldingen", "fotos", "foto_s"]));
   const sold = parseBoolean(firstField(parsed, ["verkocht"]));
   const id = `hexon-${externalId}`;
@@ -212,7 +238,7 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   };
 
   const validationErrors = validateVehicle(vehicle);
-  if (parseInteger(mileageValue) === undefined && !validationErrors.includes("Kilometerstand ontbreekt")) {
+  if (parsedMileageKm === undefined && !validationErrors.includes("Kilometerstand ontbreekt")) {
     validationErrors.push("Kilometerstand ontbreekt");
   }
   if (!sold && validationErrors.length === 0) vehicle.status = "available";
@@ -228,5 +254,5 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
     validationErrors,
   };
 
-  return { action, externalId, vehicle };
+  return { action, providerAction, externalId, vehicle };
 }
