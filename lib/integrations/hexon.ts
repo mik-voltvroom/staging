@@ -134,25 +134,43 @@ function parseBoolean(value: unknown): boolean {
 }
 
 function findPriceCents(root: unknown): number {
-  const priceNode = firstField(root, ["verkoopprijs_particulier", "actieprijs", "meeneemprijs"]);
-  const amount = parseNumber(firstField(priceNode, ["bedrag"]) ?? priceNode);
-  if (amount === undefined) throw new Error("Hexon verkoopprijs ontbreekt of is ongeldig.");
-  return eurosToCents(amount, "verkoopprijs_particulier");
+  for (const key of ["actieprijs", "verkoopprijs_particulier", "meeneemprijs"]) {
+    const priceNode = firstField(root, [key]);
+    const amount = parseNumber(firstField(priceNode, ["bedrag"]) ?? priceNode);
+    if (amount !== undefined && amount > 0) return eurosToCents(amount, key);
+  }
+  throw new Error("Hexon verkoopprijs ontbreekt of is ongeldig.");
 }
 
-function inferDriveType(fuel: string): DriveType {
-  const value = fuel.toLowerCase();
-  if (value === "e") return "electric";
-  if (value.includes("plug") || (value.includes("elektr") && /benzine|diesel/.test(value))) return "plug-in-hybrid";
-  if (value.includes("hybrid") || value.includes("hybride")) return "full-hybrid";
-  if (value.includes("elektr")) return "electric";
+function inferDriveType(fuel: string, pluginHybrid: boolean): DriveType {
+  const value = fuel.trim().toLowerCase();
+  if (value === "e" || value === "electric" || value === "elektrisch") return "electric";
+  if (pluginHybrid || value === "b,e" || value === "d,e") return "plug-in-hybrid";
+  if (value === "h" || value.includes("hybrid") || value.includes("hybride")) return "full-hybrid";
   throw new Error(`Niet-ondersteunde aandrijving uit Hexon: ${fuel}.`);
+}
+
+function displayFuelType(fuel: string, driveType: DriveType): string {
+  const value = fuel.trim().toUpperCase();
+  if (driveType === "electric") return "Elektrisch";
+  if (value === "B,E") return "Benzine / Elektrisch";
+  if (value === "D,E") return "Diesel / Elektrisch";
+  if (value === "H") return "Hybride";
+  return fuel;
+}
+
+function displayTransmission(value: string | undefined): string {
+  if (value === "A") return "Automaat";
+  if (value === "H") return "Handgeschakeld";
+  if (value === "S") return "Semi-automaat";
+  if (value === "C") return "CVT";
+  return value || "Onbekend";
 }
 
 function collectHttpsUrls(root: unknown): string[] {
   const urls = new Set<string>();
-  visit(root, (_key, value) => {
-    if (typeof value !== "string") return;
+  visit(root, (key, value) => {
+    if (key !== "url" || typeof value !== "string") return;
     const candidate = value.trim();
     if (/^https:\/\//i.test(candidate)) urls.add(candidate);
   });
@@ -160,7 +178,7 @@ function collectHttpsUrls(root: unknown): string[] {
 }
 
 function collectHighlights(root: unknown): string[] {
-  const source = firstField(root, ["accessoires", "opties"]);
+  const source = firstField(root, ["accessoires", "zoekaccessoires", "opties"]);
   if (!source) return [];
   const values = new Set<string>();
   visit(source, (key, value) => {
@@ -168,7 +186,7 @@ function collectHighlights(root: unknown): string[] {
     const text = textFrom(value);
     if (text && text.length <= 120) values.add(text);
   });
-  return [...values].slice(0, 20);
+  return [...values].slice(0, 40);
 }
 
 function safeExternalId(value: string): string {
@@ -178,7 +196,10 @@ function safeExternalId(value: string): string {
 }
 
 function providerMutationAction(root: unknown): ProviderAction {
-  const value = firstText(root, ["actie", "action"])?.toLowerCase() ?? "";
+  const vehicleNode = firstField(root, ["voertuig"]);
+  const attribute = attributeText(vehicleNode, "actie")?.toLowerCase();
+  const fallback = firstText(root, ["actie", "action"])?.toLowerCase();
+  const value = attribute || fallback || "add";
   if (/delete|remove|verwijder|offline/.test(value)) return "delete";
   if (/change|update|wijzig/.test(value)) return "change";
   return "add";
@@ -191,26 +212,34 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   if (validation !== true) throw new Error("Hexon XML is niet geldig.");
 
   const parsed = parser.parse(xml) as unknown;
-  const externalId = safeExternalId(firstText(parsed, ["voertuignr", "voertuignr_klant", "voertuignummer", "stocknummer", "voertuignr_hexon"]) ?? "");
+  const externalId = safeExternalId(firstText(parsed, ["voertuignr_hexon", "voertuignr", "voertuignr_klant", "voertuignummer", "stocknummer"]) ?? "");
   const providerAction = providerMutationAction(parsed);
   const action = providerAction === "delete" ? "archive" : "upsert";
   if (action === "archive") return { action, providerAction, externalId };
 
   const brand = firstText(parsed, ["merk"]) ?? "";
   const model = firstText(parsed, ["model"]) ?? "";
-  const trim = firstText(parsed, ["uitvoering", "type", "titel"]) ?? "";
-  const fuelType = firstText(parsed, ["brandstof", "brandstof_omschrijving"]) ?? "Elektrisch";
-  const year = parseInteger(firstField(parsed, ["bouwjaar"])) ?? 0;
+  const trim = firstText(parsed, ["uitrustingsniveau", "type", "titel"]) ?? "";
+  const rawFuel = firstText(parsed, ["brandstof", "brandstof_omschrijving"]) ?? "";
+  const pluginHybrid = parseBoolean(firstField(parsed, ["plugin_hybride"]));
+  const driveType = inferDriveType(rawFuel, pluginHybrid);
+  const fuelType = displayFuelType(rawFuel, driveType);
+  const year = parseInteger(firstField(parsed, ["bouwjaar", "modeljaar"])) ?? 0;
   const mileageValue = firstField(parsed, ["tellerstand", "kilometerstand"]);
   const parsedMileageKm = parseOdometerKm(mileageValue);
   const mileageKm = parsedMileageKm ?? 0;
   const images = collectHttpsUrls(firstField(parsed, ["afbeeldingen", "fotos", "foto_s"]));
   const sold = parseBoolean(firstField(parsed, ["verkocht"]));
+  const reserved = parseBoolean(firstField(parsed, ["gereserveerd"]));
   const id = `hexon-${externalId}`;
   const updatedAt = now.toISOString();
-  const vin = firstText(parsed, ["chassisnummer", "vin"]);
+  const vin = firstText(parsed, ["vin", "chassisnummer"]);
   const licensePlate = firstText(parsed, ["kenteken"]);
   const description = firstText(parsed, ["opmerkingen", "omschrijving"]);
+  const batteryHealthPercent = parseInteger(firstField(parsed, ["accu_conditie"]));
+  const electricRangeKm = parseInteger(firstField(parsed, ["wltp_actieradius_elektrisch_combined", "actieradius_elektrisch"]));
+  const consumptionPer100Km = parseNumber(firstField(parsed, ["wltp_brandstofverbruik_combined_weighted", "wltp_brandstofverbruik_combined", "gemiddeld_verbruik"]));
+  const warrantyMonths = parseInteger(firstField(parsed, ["garantie_maanden", "fabrieksgarantie_aantal_maanden"]));
 
   const vehicle: Vehicle = {
     id,
@@ -221,18 +250,22 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
     year,
     mileageKm,
     priceCents: findPriceCents(parsed),
-    driveType: inferDriveType(fuelType),
+    driveType,
     fuelType,
-    transmission: firstText(parsed, ["transmissie", "versnellingsbak"]) ?? "Onbekend",
+    transmission: displayTransmission(firstText(parsed, ["transmissie", "versnellingsbak"])),
     bodyStyle: firstText(parsed, ["carrosserie", "carrosserievorm"]) ?? "Onbekend",
-    color: firstText(parsed, ["kleur", "basiskleur"]) ?? "Onbekend",
-    maintenanceHistory: "unknown",
+    color: firstText(parsed, ["kleur_nederlands", "basiskleur"]) ?? "Onbekend",
+    ...(batteryHealthPercent !== undefined ? { batteryHealthPercent } : {}),
+    ...(electricRangeKm !== undefined ? { electricRangeKm } : {}),
+    ...(consumptionPer100Km !== undefined ? { consumptionPer100Km } : {}),
+    ...(warrantyMonths !== undefined ? { warrantyMonths } : {}),
+    maintenanceHistory: firstText(parsed, ["onderhoudsboekjes"]) === "dealer" ? "complete" : "unknown",
     ...(vin ? { vin } : {}),
     ...(licensePlate ? { licensePlate } : {}),
     images,
     highlights: collectHighlights(parsed),
     ...(description ? { description } : {}),
-    status: sold ? "sold" : "review",
+    status: sold ? "sold" : reserved ? "reserved" : "review",
     locationCode: process.env.HEXON_DEFAULT_LOCATION_CODE || "GRONINGEN",
     updatedAt,
   };
@@ -241,7 +274,7 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   if (parsedMileageKm === undefined && !validationErrors.includes("Kilometerstand ontbreekt")) {
     validationErrors.push("Kilometerstand ontbreekt");
   }
-  if (!sold && validationErrors.length === 0) vehicle.status = "available";
+  if (!sold && !reserved && validationErrors.length === 0) vehicle.status = "available";
   vehicle.publication = {
     channels: {
       website: vehicle.status === "available",
