@@ -1,76 +1,28 @@
-import { adminDb } from "@/lib/firebase-admin";
-import { mobiloxSuccessResponse, normalizeMobiloxMutation, verifyMobiloxBasicAuth } from "@/lib/integrations/mobilox";
+import { HEXON_MAX_BODY_BYTES, hexonCredentialsConfigured, processHexonInventoryXml, verifyHexonAuthorization } from "@/lib/integrations/hexon-service";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-function textResponse(body: string, status = 200) {
-  return new Response(body, { status, headers: { "content-type": "text/plain; charset=utf-8" } });
+function plain(value: "0" | "1", status: number): Response {
+  return new Response(value, { status, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 }
 
-function mobiloxAuthConfigured() {
-  return Boolean(process.env.MOBILOX_BASIC_AUTH_USERNAME && process.env.MOBILOX_BASIC_AUTH_PASSWORD);
-}
-
-export async function POST(request: Request) {
-  const authConfigured = mobiloxAuthConfigured();
-  const isStaging = process.env.VVOS_ENV === "staging";
-
-  // Hexon documents Basic Auth as optional. During staging integration we may
-  // accept the feed without auth when no feed-specific credentials exist yet.
-  // Outside staging authentication is mandatory and fail-closed.
-  if (authConfigured && !verifyMobiloxBasicAuth(request.headers.get("authorization"))) {
-    return new Response("Unauthorized", {
-      status: 401,
-      headers: { "WWW-Authenticate": 'Basic realm="VVOS Mobilox feed"' },
-    });
-  }
-  if (!authConfigured && !isStaging) {
-    return textResponse("Mobilox authenticatie is niet geconfigureerd.", 503);
-  }
+/** Compatibility endpoint. New integrations must use /api/hexon/inventory. */
+export async function POST(request: Request): Promise<Response> {
+  if (!hexonCredentialsConfigured()) return plain("0", 503);
+  if (!verifyHexonAuthorization(request.headers.get("authorization"))) return plain("0", 401);
+  const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!contentType.includes("xml")) return plain("0", 415);
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > HEXON_MAX_BODY_BYTES) return plain("0", 413);
 
   try {
     const xml = await request.text();
-    const mutation = normalizeMobiloxMutation(xml);
-
-    if (process.env.VVOS_DATA_MODE === "firebase" && !adminDb) {
-      return textResponse("VVOS database niet beschikbaar", 503);
-    }
-
-    if (adminDb) {
-      const vehicleRef = adminDb.collection("vehicles").doc(`mobilox-${mutation.providerVehicleId}`);
-      if (mutation.action === "delete") {
-        await vehicleRef.set({
-          id: `mobilox-${mutation.providerVehicleId}`,
-          source: "mobilox",
-          sourceVehicleId: mutation.providerVehicleId,
-          syncStatus: "deleted",
-          deletedAt: mutation.receivedAt,
-          updatedAt: mutation.receivedAt,
-        }, { merge: true });
-      } else {
-        await vehicleRef.set({
-          id: `mobilox-${mutation.providerVehicleId}`,
-          source: "mobilox",
-          sourceVehicleId: mutation.providerVehicleId,
-          syncStatus: mutation.action === "add" ? "active" : "changed",
-          ...mutation,
-          updatedAt: mutation.receivedAt,
-        }, { merge: true });
-      }
-
-      await adminDb.collection("integrationEvents").add({
-        provider: "mobilox",
-        type: `vehicle.${mutation.action}`,
-        sourceVehicleId: mutation.providerVehicleId,
-        receivedAt: mutation.receivedAt,
-        processedAt: new Date().toISOString(),
-        authentication: authConfigured ? "basic" : "staging-unsecured",
-      });
-    }
-
-    return textResponse(mobiloxSuccessResponse());
+    if (Buffer.byteLength(xml, "utf8") > HEXON_MAX_BODY_BYTES) return plain("0", 413);
+    await processHexonInventoryXml(xml);
+    return plain("1", 200);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Mobilox feed kon niet worden verwerkt.";
-    return textResponse(message, 400);
+    console.error("Mobilox compatibility mutation rejected", error instanceof Error ? error.message : "unknown error");
+    return plain("0", 400);
   }
 }
