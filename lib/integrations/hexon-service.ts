@@ -28,7 +28,7 @@ export function hexonCredentialsConfigured(): boolean {
   return Boolean(process.env.HEXON_SYNC_USERNAME && process.env.HEXON_SYNC_PASSWORD);
 }
 
-export async function processHexonInventoryXml(xml: string): Promise<{ duplicate: boolean; externalId: string; action: string }> {
+export async function processHexonInventoryXml(xml: string): Promise<{ duplicate: boolean; externalId: string; action: string; providerAction: string }> {
   if (!adminDb) throw new Error("VVOS database niet beschikbaar.");
   const mutation = parseHexonMutation(xml);
   const hash = createHash("sha256").update(xml).digest("hex");
@@ -70,7 +70,9 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
 
     transaction.create(eventRef, {
       provider: "mobilox-hexon",
-      type: `vehicle.${mutation.action}`,
+      type: `vehicle.${mutation.providerAction}`,
+      operation: mutation.action,
+      providerAction: mutation.providerAction,
       externalId: mutation.externalId,
       payloadSha256: hash,
       receivedAt: now,
@@ -79,5 +81,5 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
     });
   });
 
-  return { duplicate, externalId: mutation.externalId, action: mutation.action };
+  return { duplicate, externalId: mutation.externalId, action: mutation.action, providerAction: mutation.providerAction };
 }
