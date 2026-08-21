@@ -6,10 +6,11 @@ export async function GET(request: Request) {
   const auth = await authorizeApi(request, "audit.read");
   if (auth.response) return auth.response;
   if (!adminDb) return NextResponse.json({ items: [], error: "Database niet beschikbaar." }, { status: 503 });
+  const db = adminDb;
 
   const requested = Number(new URL(request.url).searchParams.get("limit") ?? 25);
   const limit = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), 100) : 25;
-  const snapshot = await adminDb
+  const snapshot = await db
     .collection("integrationEvents")
     .where("provider", "==", "mobilox")
     .orderBy("receivedAt", "desc")
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
     const vehicleId = sourceVehicleId ? `mobilox-${sourceVehicleId}` : undefined;
     let vehicle: Record<string, unknown> | null = null;
     if (vehicleId) {
-      const vehicleSnapshot = await adminDb.collection("vehicles").doc(vehicleId).get();
+      const vehicleSnapshot = await db.collection("vehicles").doc(vehicleId).get();
       vehicle = vehicleSnapshot.exists ? vehicleSnapshot.data() ?? null : null;
     }
     return {
