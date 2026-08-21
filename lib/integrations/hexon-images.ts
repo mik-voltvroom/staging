@@ -70,8 +70,8 @@ async function persistOneImage(externalId: string, sourceUrl: string, index: num
   await file.save(bytes, {
     resumable: false,
     validation: "crc32c",
-    contentType,
     metadata: {
+      contentType,
       cacheControl: "public,max-age=31536000,immutable",
       metadata: {
         firebaseStorageDownloadTokens: token,
