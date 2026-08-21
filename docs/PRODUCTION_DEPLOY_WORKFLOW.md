@@ -40,13 +40,13 @@ Normal feature work should not be merged into the release branch during this win
 
 5. Deploy Firestore rules and indexes — DEPLOY READY
 
-6. Validate Firebase Storage IAM — ACTIVE
+6. Validate Firebase Storage IAM — COMPLETE
    - Confirm App Hosting runtime can create/read/delete a canary object in the configured bucket.
    - Runtime health check: authenticated `POST /api/admin/storage-health` (owner/admin only).
    - Confirm Mobilox image path `vehicles/{externalId}/mobilox/{fileName}` is covered by Storage rules.
    - Do not grant broad Owner/Editor permissions.
 
-7. Deploy production build to temporary App Hosting URL
+7. Deploy production build to temporary App Hosting URL — NEXT
 
 8. Production smoke test
    - Homepage
@@ -98,4 +98,4 @@ Production go-live is allowed only when all four are true:
 
 ## Current step
 
-Step 6 is active. The repository now contains an owner/admin-only runtime Storage IAM health check that performs create/read/delete against the configured Firebase Storage bucket. The nested Mobilox vehicle image path is also covered by `storage.rules`. Step 6 is complete only after the deployed App Hosting runtime returns `ok: true` for this health check.
+Step 6 is complete. The deployed App Hosting runtime Storage IAM health check succeeded, confirming create/read/delete access to the configured Firebase Storage bucket. The nested Mobilox vehicle image path is covered by `storage.rules`. The next step is Step 7: deploy the production build to a temporary App Hosting URL. Step 7 remains blocked until the production App Hosting backend can be activated with the required billing/access.
