@@ -23,26 +23,26 @@ env:
     value: firebase
     availability: [BUILD, RUNTIME]
 
-  # Production Firebase project identity.
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyDvx0u8kkLB3sZOENaWuIMslHIjMDsd2YI
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: voltvroom-productie.firebaseapp.com
+    availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: voltvroom-productie
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: voltvroom-productie.firebasestorage.app
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
     value: "307144619135"
     availability: [BUILD, RUNTIME]
-
-  # Fill these from the dedicated production Firebase Web App / Storage bucket.
-  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: REPLACE_WITH_PRODUCTION_FIREBASE_API_KEY
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: REPLACE_WITH_PRODUCTION_FIREBASE_AUTH_DOMAIN
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: REPLACE_WITH_PRODUCTION_FIREBASE_STORAGE_BUCKET
-    availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: REPLACE_WITH_PRODUCTION_FIREBASE_APP_ID
+    value: 1:307144619135:web:643a1685197419a969fb4a
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: G-D7XGSRR9K3
     availability: [BUILD, RUNTIME]
 
   - variable: CRON_SECRET
