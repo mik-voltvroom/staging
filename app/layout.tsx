@@ -4,6 +4,7 @@ import "@fontsource-variable/manrope";
 import "./globals.css";
 import "./public.css";
 import "./enhancements.css";
+import "./frontend-refresh.css";
 import "./social-video.css";
 import "./social-video-editor.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
@@ -12,6 +13,7 @@ import { MobileActionBar } from "@/components/MobileActionBar";
 import { PublicAnalytics } from "@/components/PublicAnalytics";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.voltvroom.nl";
+const isProductionSite = siteUrl === "https://www.voltvroom.nl" || siteUrl === "https://voltvroom.nl";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
   description: "Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie, inzicht in de hoogvoltaccu en persoonlijk advies vanuit Groningen.",
   openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Hybride of elektrisch? Volt & Vroom legt uit wat bij uw gebruik past." }] },
   twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", images: ["/editorial/hero-v2.png"] },
-  robots: { index: true, follow: true },
+  robots: isProductionSite ? { index: true, follow: true } : { index: false, follow: false, noarchive: true },
 };
 
 export const viewport: Viewport = { themeColor: "#ffffff", colorScheme: "light", width: "device-width", initialScale: 1 };
