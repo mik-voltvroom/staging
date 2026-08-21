@@ -9,34 +9,19 @@ import { grossMargin } from "@/lib/business";
 import { centsToEuros } from "@/lib/money";
 
 export default function InventoryPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<VehicleStatus | "all">("all");
-
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]); const [query, setQuery] = useState(""); const [status, setStatus] = useState<VehicleStatus | "all">("all");
   useEffect(() => {
-    let cancelled = false;
+    let active = true;
     const load = async () => {
-      const nextVehicles = await listVehicles();
-      if (!cancelled) setVehicles(nextVehicles);
+      const items = await listVehicles();
+      if (active) setVehicles(items);
     };
-
     void load();
-    const handleVehiclesChanged = () => { void load(); };
-    window.addEventListener("vvos:vehicles", handleVehiclesChanged);
-    return () => {
-      cancelled = true;
-      window.removeEventListener("vvos:vehicles", handleVehiclesChanged);
-    };
+    const refresh = () => { void load(); };
+    window.addEventListener("vvos:vehicles", refresh);
+    return () => { active = false; window.removeEventListener("vvos:vehicles", refresh); };
   }, []);
-
-  const filtered = useMemo(
-    () => vehicles.filter(v =>
-      (status === "all" || v.status === status)
-      && `${v.brand} ${v.model} ${v.trim} ${v.licensePlate ?? ""}`.toLowerCase().includes(query.toLowerCase()),
-    ),
-    [vehicles, query, status],
-  );
-
+  const filtered = useMemo(() => vehicles.filter(v => (status === "all" || v.status === status) && `${v.brand} ${v.model} ${v.trim} ${v.licensePlate ?? ""}`.toLowerCase().includes(query.toLowerCase())), [vehicles, query, status]);
   return <main className="container dashboardPage">
     <div className="pageTitle"><div><p className="eyebrow">Voorraadbeheer</p><h1>Alle voertuigen</h1><p className="muted">Van inkoop tot publicatie en verkoop.</p></div><Link className="button" href="/dashboard/voorraad/nieuw">+ Nieuwe auto</Link></div>
     <div className="toolbar"><input placeholder="Zoek merk, model of kenteken" value={query} onChange={e=>setQuery(e.target.value)} /><select value={status} onChange={e=>setStatus(e.target.value as VehicleStatus|"all")}><option value="all">Alle statussen</option><option value="draft">Concept</option><option value="photography">Fotografie</option><option value="review">Controle</option><option value="available">Beschikbaar</option><option value="reserved">Gereserveerd</option><option value="sold">Verkocht</option></select></div>

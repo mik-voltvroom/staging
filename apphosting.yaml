@@ -15,16 +15,10 @@ env:
     availability: [BUILD, RUNTIME]
   - variable: VVOS_REQUIRE_AUTH
     value: "true"
-    availability:
-      - BUILD
-      - RUNTIME
-
+    availability: [BUILD, RUNTIME]
   - variable: VVOS_DATA_MODE
     value: firebase
-    availability:
-      - BUILD
-      - RUNTIME
-
+    availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     value: AIzaSyCSTUhvLEuJsododYPMyY7Am6br1HTMNx4
     availability: [BUILD, RUNTIME]
@@ -44,13 +38,14 @@ env:
     value: 1:241472991923:web:75467e4adfacf620e936c6
     availability: [BUILD, RUNTIME]
 
-  # Same secret names, separate values in each Firebase project.
   - variable: CRON_SECRET
     secret: CRON_SECRET
     availability: [RUNTIME]
   - variable: VWE_WEBHOOK_SECRET
     secret: VWE_WEBHOOK_SECRET
     availability: [RUNTIME]
+  # Canonical Mobilox / Hexon inbound-feed credentials.
+  # One credential pair is shared by the canonical endpoint and compatibility route.
   - variable: HEXON_SYNC_USERNAME
     secret: HEXON_SYNC_USERNAME
     availability: [RUNTIME]
@@ -64,13 +59,6 @@ env:
     secret: AUDIT_HASH_SALT
     availability: [RUNTIME]
 
-  # Mobilox / Hexon pushes incremental XML stock mutations to:
-  # POST https://staging.voltvroom.nl/api/integrations/mobilox
-  # Credentials are server-only secrets and must match the HTTP Basic Auth
-  # configuration on the Hexon/Mobilox sender.
-  - variable: MOBILOX_BASIC_AUTH_USERNAME
-    secret: MOBILOX_BASIC_AUTH_USERNAME
-    availability: [RUNTIME]
-  - variable: MOBILOX_BASIC_AUTH_PASSWORD
-    secret: MOBILOX_BASIC_AUTH_PASSWORD
-    availability: [RUNTIME]
+  # Canonical inbound endpoint:
+  # POST https://staging.voltvroom.nl/api/hexon/inventory
+  # Legacy /api/integrations/mobilox delegates to the same service.
