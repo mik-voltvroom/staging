@@ -10,7 +10,17 @@ import { centsToEuros } from "@/lib/money";
 
 export default function InventoryPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]); const [query, setQuery] = useState(""); const [status, setStatus] = useState<VehicleStatus | "all">("all");
-  useEffect(() => { const load=()=>setVehicles(getVehicles()); load(); window.addEventListener("vvos:vehicles", load); return()=>window.removeEventListener("vvos:vehicles",load); }, []);
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      const items = await listVehicles();
+      if (active) setVehicles(items);
+    };
+    void load();
+    const refresh = () => { void load(); };
+    window.addEventListener("vvos:vehicles", refresh);
+    return () => { active = false; window.removeEventListener("vvos:vehicles", refresh); };
+  }, []);
   const filtered = useMemo(() => vehicles.filter(v => (status === "all" || v.status === status) && `${v.brand} ${v.model} ${v.trim} ${v.licensePlate ?? ""}`.toLowerCase().includes(query.toLowerCase())), [vehicles, query, status]);
   return <main className="container dashboardPage">
     <div className="pageTitle"><div><p className="eyebrow">Voorraadbeheer</p><h1>Alle voertuigen</h1><p className="muted">Van inkoop tot publicatie en verkoop.</p></div><Link className="button" href="/dashboard/voorraad/nieuw">+ Nieuwe auto</Link></div>
