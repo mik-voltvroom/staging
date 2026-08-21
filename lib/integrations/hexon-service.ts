@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase-admin";
 import { parseHexonMutation } from "@/lib/integrations/hexon";
+import { persistHexonImages } from "@/lib/integrations/hexon-images";
 
 export const HEXON_MAX_BODY_BYTES = 2_000_000;
 
@@ -36,6 +37,13 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
   const vehicleRef = adminDb.doc(`vehicles/${mutation.vehicle?.id ?? `hexon-${mutation.externalId}`}`);
   const now = new Date().toISOString();
   let duplicate = false;
+  let imageFailures: Array<{ sourceUrl: string; message: string }> = [];
+
+  if (mutation.action === "upsert" && mutation.vehicle?.images.length) {
+    const persisted = await persistHexonImages(mutation.externalId, mutation.vehicle.images);
+    imageFailures = persisted.failures;
+    if (persisted.images.length) mutation.vehicle.images = persisted.images;
+  }
 
   await adminDb.runTransaction(async transaction => {
     const event = await transaction.get(eventRef);
@@ -64,7 +72,13 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
       transaction.set(vehicleRef, {
         ...mutation.vehicle,
         createdAt: current.data()?.createdAt ?? now,
-        source: { provider: "mobilox-hexon", externalId: mutation.externalId, lastMutationAt: now },
+        source: {
+          provider: "mobilox-hexon",
+          externalId: mutation.externalId,
+          lastMutationAt: now,
+          imageStorage: mutation.vehicle.images.length ? "firebase-storage" : "none",
+          imageFailures: imageFailures.length,
+        },
       }, { merge: true });
     }
 
@@ -77,7 +91,8 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
       payloadSha256: hash,
       receivedAt: now,
       processedAt: now,
-      result: "accepted",
+      imageFailures: imageFailures.slice(0, 20),
+      result: imageFailures.length ? "accepted_with_image_warnings" : "accepted",
     });
   });
 
