@@ -25,6 +25,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
   it("maps a publishable VVOS vehicle in cents", () => {
     const mutation = parseHexonMutation(vehicleXml, new Date("2026-08-18T12:00:00.000Z"));
     expect(mutation.action).toBe("upsert");
+    expect(mutation.providerAction).toBe("add");
     expect(mutation.externalId).toBe("5016729");
     expect(mutation.vehicle).toMatchObject({ id: "hexon-5016729", brand: "Polestar", model: "2", year: 2024, mileageKm: 12345, priceCents: 3995000, driveType: "electric", status: "available", images: ["https://images.example.test/polestar.jpg"] });
     expect(mutation.vehicle?.publication?.channels.website).toBe(true);
@@ -37,7 +38,17 @@ describe("Mobilox/Hexon incremental inventory", () => {
       .replace("<voertuignr_hexon>5016729</voertuignr_hexon>", "");
     const mutation = parseHexonMutation(xml);
     expect(mutation.action).toBe("upsert");
+    expect(mutation.providerAction).toBe("add");
     expect(mutation.externalId).toBe("5016729");
+  });
+
+  it("preserves change as provider action while using an upsert internally", () => {
+    const xml = vehicleXml
+      .replace("<voertuig>", '<voertuig actie="change">')
+      .replace("<actie>toevoegen</actie>", "");
+    const mutation = parseHexonMutation(xml);
+    expect(mutation.action).toBe("upsert");
+    expect(mutation.providerAction).toBe("change");
   });
 
   it("maps nested Hexon v2.25 pricing", () => {
@@ -46,8 +57,16 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.vehicle).toMatchObject({ id: "hexon-5016729", priceCents: 2591100, driveType: "electric" });
   });
 
+  it("honours tellerstand unit K and converts M to kilometres", () => {
+    const kilometres = parseHexonMutation(vehicleXml.replace("<tellerstand>12.345</tellerstand>", '<tellerstand eenheid="K">12345</tellerstand>'));
+    expect(kilometres.vehicle?.mileageKm).toBe(12345);
+
+    const miles = parseHexonMutation(vehicleXml.replace("<tellerstand>12.345</tellerstand>", '<tellerstand eenheid="M">10000</tellerstand>'));
+    expect(miles.vehicle?.mileageKm).toBe(16093);
+  });
+
   it("archives attribute-style delete mutations", () => {
-    expect(parseHexonMutation('<voertuig actie="delete" voertuignr="5016729" voertuignr_hexon="56015851"/>')).toEqual({ action: "archive", externalId: "5016729" });
+    expect(parseHexonMutation('<voertuig actie="delete" voertuignr="5016729" voertuignr_hexon="56015851"/>')).toEqual({ action: "archive", providerAction: "delete", externalId: "5016729" });
   });
 
   it("keeps incomplete vehicles out of the public website", () => {
