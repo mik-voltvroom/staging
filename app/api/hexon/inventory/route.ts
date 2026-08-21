@@ -23,13 +23,16 @@ function matchesSecret(actual: string, expected: string): boolean {
 function authorized(request: Request): boolean {
   const username = process.env.HEXON_SYNC_USERNAME;
   const password = process.env.HEXON_SYNC_PASSWORD;
-  if (!username || !password || password.length < 24) return false;
+  if (!username || !password) return false;
+
   const header = request.headers.get("authorization");
   if (!header?.startsWith("Basic ")) return false;
+
   try {
     const decoded = Buffer.from(header.slice(6), "base64").toString("utf8");
     const separator = decoded.indexOf(":");
     if (separator < 1) return false;
+
     const usernameMatches = matchesSecret(decoded.slice(0, separator), username);
     const passwordMatches = matchesSecret(decoded.slice(separator + 1), password);
     return usernameMatches && passwordMatches;
@@ -39,7 +42,7 @@ function authorized(request: Request): boolean {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!process.env.HEXON_SYNC_USERNAME || (process.env.HEXON_SYNC_PASSWORD?.length ?? 0) < 24) return plain("0", 503);
+  if (!process.env.HEXON_SYNC_USERNAME || !process.env.HEXON_SYNC_PASSWORD) return plain("0", 503);
   if (!authorized(request)) return plain("0", 401);
 
   const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
