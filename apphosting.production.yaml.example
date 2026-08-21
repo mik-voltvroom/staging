@@ -1,0 +1,70 @@
+# Volt & Vroom production App Hosting template.
+# Do not point this file at voltvroom-staging.
+# Copy the validated values into the production App Hosting backend configuration
+# only after the production Firebase project has been created.
+
+runConfig:
+  minInstances: 0
+  maxInstances: 3
+  concurrency: 40
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  - variable: VVOS_ENV
+    value: production
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://www.voltvroom.nl
+    availability: [BUILD, RUNTIME]
+  - variable: VVOS_REQUIRE_AUTH
+    value: "true"
+    availability: [BUILD, RUNTIME]
+  - variable: VVOS_DATA_MODE
+    value: firebase
+    availability: [BUILD, RUNTIME]
+
+  # Replace only with values from the dedicated production Firebase Web App.
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: REPLACE_WITH_PRODUCTION_FIREBASE_API_KEY
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: REPLACE_WITH_PRODUCTION_FIREBASE_AUTH_DOMAIN
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: REPLACE_WITH_PRODUCTION_FIREBASE_PROJECT_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: REPLACE_WITH_PRODUCTION_FIREBASE_STORAGE_BUCKET
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: REPLACE_WITH_PRODUCTION_FIREBASE_MESSAGING_SENDER_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: REPLACE_WITH_PRODUCTION_FIREBASE_APP_ID
+    availability: [BUILD, RUNTIME]
+
+  - variable: CRON_SECRET
+    secret: CRON_SECRET
+    availability: [RUNTIME]
+  - variable: VWE_WEBHOOK_SECRET
+    secret: VWE_WEBHOOK_SECRET
+    availability: [RUNTIME]
+  - variable: HEXON_SYNC_USERNAME
+    secret: HEXON_SYNC_USERNAME
+    availability: [RUNTIME]
+  - variable: HEXON_SYNC_PASSWORD
+    secret: HEXON_SYNC_PASSWORD
+    availability: [RUNTIME]
+  - variable: PORTAL_TOKEN_SECRET
+    secret: PORTAL_TOKEN_SECRET
+    availability: [RUNTIME]
+  - variable: AUDIT_HASH_SALT
+    secret: AUDIT_HASH_SALT
+    availability: [RUNTIME]
+
+  # Optional. Once the actual Mobilox image host is known, set an explicit
+  # allowlist to make remote-image ingestion fail closed for unknown hosts.
+  # - variable: HEXON_IMAGE_HOST_ALLOWLIST
+  #   value: images.example-mobilox-host.nl
+  #   availability: [RUNTIME]
