@@ -2,9 +2,16 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     function staff() { return request.auth != null && request.auth.token.role in ['owner','admin','sales','marketing','workshop']; }
-    match /vehicles/{vehicleId}/{fileName} {
+
+    // Vehicle media may live in nested provider folders such as
+    // /vehicles/{vehicleId}/mobilox/{fileName}. Public reads are allowed for
+    // published vehicle images; authenticated staff writes stay image-only and
+    // below the 15 MiB ceiling.
+    match /vehicles/{vehicleId}/{allPaths=**} {
       allow read: if true;
-      allow write: if staff() && request.resource.size < 15 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+      allow write: if staff()
+        && request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
     }
   }
 }
