@@ -7,6 +7,11 @@ function plain(value: "0" | "1", status: number): Response {
   return new Response(value, { status, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 }
 
+function failureStatus(error: unknown): number {
+  if (error instanceof Error && error.message === "VVOS database niet beschikbaar.") return 503;
+  return 400;
+}
+
 export async function POST(request: Request): Promise<Response> {
   if (!hexonCredentialsConfigured()) return plain("0", 503);
   if (!verifyHexonAuthorization(request.headers.get("authorization"))) return plain("0", 401);
@@ -24,6 +29,6 @@ export async function POST(request: Request): Promise<Response> {
     return plain("1", 200);
   } catch (error) {
     console.error("Hexon inventory mutation rejected", error instanceof Error ? error.message : "unknown error");
-    return plain("0", 400);
+    return plain("0", failureStatus(error));
   }
 }
