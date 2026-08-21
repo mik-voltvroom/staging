@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { adminStorage } from "@/lib/firebase-admin";
 
 const MAX_IMAGE_BYTES = 15_000_000;
@@ -42,6 +42,12 @@ function downloadUrl(bucketName: string, objectName: string, token: string): str
   return `${DOWNLOAD_BASE}/${encodeURIComponent(bucketName)}/o/${encodeURIComponent(objectName)}?alt=media&token=${encodeURIComponent(token)}`;
 }
 
+function stableDownloadToken(externalId: string, sourceUrl: string): string {
+  return createHash("sha256")
+    .update(`${process.env.AUDIT_HASH_SALT ?? "vvos"}:${externalId}:${sourceUrl}`)
+    .digest("hex");
+}
+
 async function persistOneImage(externalId: string, sourceUrl: string, index: number): Promise<string> {
   if (!adminStorage) throw new Error("Firebase Storage is niet beschikbaar.");
   const url = assertSafeRemoteImageUrl(sourceUrl);
@@ -64,7 +70,7 @@ async function persistOneImage(externalId: string, sourceUrl: string, index: num
   const sourceHash = createHash("sha256").update(sourceUrl).digest("hex").slice(0, 12);
   const ext = extensionFor(contentType);
   const objectName = `vehicles/${externalId}/mobilox/${String(index + 1).padStart(3, "0")}-${sourceHash}.${ext}`;
-  const token = randomUUID();
+  const token = stableDownloadToken(externalId, sourceUrl);
   const file = bucket.file(objectName);
 
   await file.save(bytes, {
