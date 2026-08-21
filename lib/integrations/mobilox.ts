@@ -91,17 +91,55 @@ function pushValue(result: MobiloxRawPayload, key: string, value: string) {
   else result[key] = [existing, value];
 }
 
-/**
- * Parse the supplied Hexon incremental XML as a flat field map. We match leaf
- * elements anywhere in the document, so both a flat payload and a normal XML
- * root wrapper work. DTD/entities are rejected before parsing.
- */
+function extractAttribute(tagSource: string, attribute: string): string | undefined {
+  const match = tagSource.match(new RegExp(`\\b${attribute}\\s*=\\s*(["'])(.*?)\\1`, "i"));
+  const value = match?.[2]?.trim();
+  return value ? decodeXml(value) : undefined;
+}
+
+function extractElementBlock(xml: string, element: string): string | undefined {
+  const match = xml.match(new RegExp(`<${element}\\b[^>]*>([\\s\\S]*?)<\\/${element}>`, "i"));
+  return match?.[1];
+}
+
+function extractLeafText(xml: string, element: string): string | undefined {
+  const match = xml.match(new RegExp(`<${element}\\b[^>]*>\\s*(?:<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>|([^<]*?))\\s*<\\/${element}>`, "i"));
+  const value = (match?.[1] ?? match?.[2] ?? "").trim();
+  return value ? decodeXml(value) : undefined;
+}
+
+function addV225StructuralFields(xml: string, result: MobiloxRawPayload) {
+  const rootTag = xml.match(/<voertuig\b[^>]*>/i)?.[0];
+  if (rootTag) {
+    const action = extractAttribute(rootTag, "actie");
+    const version = extractAttribute(rootTag, "versie");
+    if (action) result.actie = action;
+    if (version) result.versie = version;
+  }
+
+  const mileageTag = xml.match(/<tellerstand\b[^>]*>/i)?.[0];
+  if (mileageTag) {
+    const mileageUnit = extractAttribute(mileageTag, "eenheid");
+    if (mileageUnit) result.tellerstand_eenheid = mileageUnit;
+  }
+
+  const retailBlock = extractElementBlock(xml, "verkoopprijs_particulier");
+  if (retailBlock) {
+    const amount = extractLeafText(retailBlock, "bedrag");
+    const currency = extractLeafText(retailBlock, "munteenheid");
+    if (amount) result.verkoopprijs_particulier_bedrag = amount;
+    if (currency) result.verkoopprijs_particulier_munteenheid = currency;
+  }
+}
+
 export function parseMobiloxIncrementalXml(xml: string): MobiloxRawPayload {
   const trimmed = xml.trim();
   if (!trimmed.startsWith("<") || !trimmed.endsWith(">")) throw new Error("Geen geldige XML ontvangen.");
   if (/<!DOCTYPE|<!ENTITY/i.test(trimmed)) throw new Error("XML met DTD/entities wordt niet geaccepteerd.");
 
   const result: MobiloxRawPayload = {};
+  addV225StructuralFields(trimmed, result);
+
   for (const match of trimmed.matchAll(leafElementPattern)) {
     const key = match[1];
     const value = decodeXml((match[2] ?? match[3] ?? "").trim());
@@ -173,10 +211,10 @@ export function normalizeMobiloxMutation(xml: string): MobiloxVehicleMutation {
     transmission: text(raw, "transmissie"),
     year: numberValue(raw, "bouwjaar"),
     firstRegistrationDate: text(raw, "datum_deel_1"),
-    color: text(raw, "kleur"),
+    color: text(raw, "kleur_nederlands"),
     baseColor: text(raw, "basiskleur"),
     vatMargin: text(raw, "btw_marge"),
-    newVehicle: booleanValue(raw, "nieuw"),
+    newVehicle: booleanValue(raw, "nieuw_voertuig"),
     expected: booleanValue(raw, "verwacht"),
     reserved: booleanValue(raw, "gereserveerd"),
     sold: booleanValue(raw, "verkocht"),
@@ -186,7 +224,7 @@ export function normalizeMobiloxMutation(xml: string): MobiloxVehicleMutation {
     tradePrice: numberValue(raw, "verkoopprijs_handel"),
     exportPrice: numberValue(raw, "exportprijs"),
     takeAwayPrice: numberValue(raw, "meeneemprijs"),
-    currency: text(raw, "munteenheid") ?? text(raw, "verkoopprijs_particulier_munteenheid"),
+    currency: text(raw, "verkoopprijs_particulier_munteenheid") ?? text(raw, "munteenheid"),
     title: text(raw, "titel"),
     highlights: text(raw, "highlights"),
     description: text(raw, "opmerkingen"),
@@ -235,4 +273,4 @@ export function verifyMobiloxBasicAuth(authorizationHeader: string | null): bool
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-export function mobiloxSuccessResponse(): string { return "1"; }
+export function mobiloxSuccessResponse(): "1" { return "1"; }
