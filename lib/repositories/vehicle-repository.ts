@@ -3,13 +3,28 @@ import type { Vehicle } from "@/types";
 import { db } from "@/lib/firebase-client";
 import { integrationMode } from "@/lib/config";
 import { getVehicles, upsertVehicle as demoUpsert, deleteVehicle as demoDelete } from "@/lib/demo-store";
-import { collection, deleteDoc, deleteField, doc, getDocs, orderBy, query, setDoc } from "firebase/firestore";
-import { normalizeVehicleDocument } from "@/lib/vehicle/money";
+import { deleteDoc, deleteField, doc, setDoc } from "firebase/firestore";
+
+interface VehicleListResponse {
+  ok: boolean;
+  vehicles?: Vehicle[];
+  error?: string;
+}
 
 export async function listVehicles(): Promise<Vehicle[]> {
-  if (integrationMode !== "firebase" || !db) return getVehicles();
-  const snapshot = await getDocs(query(collection(db, "vehicles"), orderBy("updatedAt", "desc")));
-  return snapshot.docs.map(item => normalizeVehicleDocument(item.id, item.data()));
+  if (integrationMode !== "firebase") return getVehicles();
+
+  const response = await fetch("/api/vvos/vehicles", {
+    method: "GET",
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { accept: "application/json" },
+  });
+  const payload = await response.json() as VehicleListResponse;
+  if (!response.ok || !payload.ok || !Array.isArray(payload.vehicles)) {
+    throw new Error(payload.error || `Voorraad laden mislukt (${response.status}).`);
+  }
+  return payload.vehicles;
 }
 
 export async function saveVehicle(vehicle: Vehicle): Promise<void> {
