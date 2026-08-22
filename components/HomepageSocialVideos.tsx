@@ -1,7 +1,7 @@
 import { SocialVideo } from "@/components/SocialVideo";
 import { listPublishedSocialVideos } from "@/lib/social-video/repository";
 
-const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/caroutletgroningen/";
+const INSTAGRAM_PROFILE_URL = process.env.NEXT_PUBLIC_INSTAGRAM_PROFILE_URL?.trim();
 
 export async function HomepageSocialVideos() {
   const videos = await listPublishedSocialVideos({ placement: "homepage", limit: 12 }).catch(() => []);
@@ -13,7 +13,7 @@ export async function HomepageSocialVideos() {
   const [latestVideo, ...recentVideos] = prioritizedVideos;
 
   return <section className="section homeVideoSection" aria-labelledby="social-video-title"><div className="container">
-    <div className="sectionHeading splitHeading"><div><p className="eyebrow">Volg Volt &amp; Vroom op Instagram</p><h2 id="social-video-title">De nieuwste video. Recht uit de praktijk.</h2></div><div><p className="sectionIntro">Instagram is onze primaire videobron. Nieuwe binnenkomers, controles, uitleg en eerlijke praktijkervaring staan hier vooraan.</p><div className="socialVideoLinks"><a className="textButton" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">Volg op Instagram <span aria-hidden="true">→</span></a><a className="textButton" href="/uit-de-praktijk">Bekijk alle video's <span aria-hidden="true">→</span></a></div></div></div>
+    <div className="sectionHeading splitHeading"><div><p className="eyebrow">Volg Volt &amp; Vroom op Instagram</p><h2 id="social-video-title">De nieuwste video. Recht uit de praktijk.</h2></div><div><p className="sectionIntro">Instagram is onze primaire videobron. Nieuwe binnenkomers, controles, uitleg en eerlijke praktijkervaring staan hier vooraan.</p><div className="socialVideoLinks">{INSTAGRAM_PROFILE_URL ? <a className="textButton" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">Volg op Instagram <span aria-hidden="true">→</span></a> : null}<a className="textButton" href="/uit-de-praktijk">Bekijk alle video's <span aria-hidden="true">→</span></a></div></div></div>
 
     <div className="latestSocialVideo">
       <div className="latestSocialVideoLabel"><span>Nieuw</span><strong>{latestVideo.platform === "instagram" ? "Laatste Instagram-video" : "Laatste geplaatste video"}</strong></div>
