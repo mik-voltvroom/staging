@@ -21,11 +21,19 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
   if (!vehicle) notFound();
 
   const specs = [
+    ["Merk", vehicle.brand || null],
+    ["Model", vehicle.model || null],
+    ["Uitvoering", vehicle.trim || null],
+    ["Bouwjaar", vehicle.year ? String(vehicle.year) : null],
+    ["Kilometerstand", vehicle.mileageKm !== undefined ? `${numberFormat.format(vehicle.mileageKm)} km` : null],
     ["Carrosserie", vehicle.bodyStyle || null],
     ["Kleur", vehicle.color || null],
     ["Aandrijving", vehicle.fuelType || null],
     ["Transmissie", vehicle.transmission || null],
+    ["Elektrische actieradius", vehicle.electricRangeKm ? `${numberFormat.format(vehicle.electricRangeKm)} km` : null],
+    ["SOH / accugezondheid", vehicle.batteryHealthPercent !== undefined ? `${vehicle.batteryHealthPercent}%` : null],
     ["Verbruik", vehicle.consumptionPer100Km ? `${vehicle.consumptionPer100Km} l/100 km` : null],
+    ["Onderhoudshistorie", vehicle.maintenanceHistory === "complete" ? "Compleet" : vehicle.maintenanceHistory === "partial" ? "Gedeeltelijk" : vehicle.maintenanceHistory === "unknown" ? "Onbekend" : null],
     ["Garantie", vehicle.warrantyMonths ? `${vehicle.warrantyMonths} maanden` : null],
   ].filter((item): item is [string, string] => Boolean(item[1]));
 
@@ -60,7 +68,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
             {vehicle.fuelType ? <div><span>Aandrijving</span><strong>{vehicle.fuelType}</strong></div> : null}
             {vehicle.transmission ? <div><span>Transmissie</span><strong>{vehicle.transmission}</strong></div> : null}
           </div>
-          <div className={styles.ctaStack}><a className={styles.primary} href="#afspraak">Plan een proefrit</a>{vehicle.licensePlate ? <span className={styles.secondary}>{vehicle.licensePlate}</span> : null}</div>
+          <div className={styles.ctaStack}>
+            <a className={styles.primary} href="#afspraak">Plan een proefrit</a>
+            {vehicle.licensePlate ? <div className={styles.vehicleIdentity}><span className={styles.licensePlate}>{vehicle.licensePlate}</span>{vehicle.vin ? <div className={styles.vin}><span>Chassisnummer</span><strong>{vehicle.vin}</strong></div> : null}</div> : vehicle.vin ? <div className={styles.vehicleIdentity}><div className={styles.vin}><span>Chassisnummer</span><strong>{vehicle.vin}</strong></div></div> : null}
+          </div>
         </aside>
       </section>
       <section className={styles.story}>
