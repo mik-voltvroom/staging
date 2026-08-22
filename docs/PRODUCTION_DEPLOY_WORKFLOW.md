@@ -98,6 +98,4 @@ Production go-live is allowed only when all four are true:
 
 ## Current step
 
-Step 6 is complete. The deployed App Hosting runtime Storage IAM health check succeeded, confirming create/read/delete access to the configured Firebase Storage bucket. The nested Mobilox vehicle image path is covered by `storage.rules`.
-
-The next step is Step 7: deploy the production build to a temporary App Hosting URL. Step 7 remains blocked until the production App Hosting backend can be activated with the required billing/access.
+Step 6 is complete. The deployed App Hosting runtime Storage IAM health check succeeded, confirming create/read/delete access to the configured Firebase Storage bucket. The nested Mobilox vehicle image path is covered by `storage.rules`. The next step is Step 7: deploy the production build to a temporary App Hosting URL. Step 7 remains blocked until the production App Hosting backend can be activated with the required billing/access.
