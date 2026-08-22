@@ -15,9 +15,41 @@ function newestFirst(left: Vehicle, right: Vehicle): number {
   return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
 }
 
+function normalizeIdentity(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return normalized || undefined;
+}
+
+function deduplicateVehicles(vehicles: Vehicle[]): Vehicle[] {
+  const seenVin = new Set<string>();
+  const seenLicensePlate = new Set<string>();
+  const unique: Vehicle[] = [];
+
+  for (const vehicle of [...vehicles].sort(newestFirst)) {
+    const vin = normalizeIdentity(vehicle.vin);
+    const licensePlate = normalizeIdentity(vehicle.licensePlate);
+
+    if ((vin && seenVin.has(vin)) || (licensePlate && seenLicensePlate.has(licensePlate))) {
+      console.warn("Duplicate public vehicle suppressed", {
+        id: vehicle.id,
+        vin: vin ?? null,
+        licensePlate: licensePlate ?? null,
+      });
+      continue;
+    }
+
+    if (vin) seenVin.add(vin);
+    if (licensePlate) seenLicensePlate.add(licensePlate);
+    unique.push(vehicle);
+  }
+
+  return unique;
+}
+
 export async function listPublicVehicles(limit = 12): Promise<Vehicle[]> {
   if (process.env.VVOS_DATA_MODE !== "firebase") {
-    return demoVehicles.filter(vehicle => vehicle.status === "available").sort(newestFirst).slice(0, limit);
+    return deduplicateVehicles(demoVehicles.filter(vehicle => vehicle.status === "available")).slice(0, limit);
   }
   if (!adminDb) return [];
 
@@ -37,7 +69,7 @@ export async function listPublicVehicles(limit = 12): Promise<Vehicle[]> {
       console.error("Public vehicle skipped", document.id, error instanceof Error ? error.message : "unknown error");
     }
   }
-  return vehicles.sort(newestFirst).slice(0, limit);
+  return deduplicateVehicles(vehicles).slice(0, limit);
 }
 
 export async function getPublicVehicleBySlug(slug: string): Promise<Vehicle | undefined> {
