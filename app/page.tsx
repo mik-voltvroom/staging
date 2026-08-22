@@ -7,6 +7,8 @@ import { Header } from "@/components/Header";
 import { HomepageSocialVideos } from "@/components/HomepageSocialVideos";
 import { SiteFooter } from "@/components/SiteFooter";
 import { VehicleCard } from "@/components/VehicleCard";
+import { eur } from "@/lib/format";
+import { centsToEuros } from "@/lib/money";
 import { listPublicVehicles } from "@/lib/repositories/public-vehicle-repository";
 
 export const revalidate = 60;
@@ -28,6 +30,7 @@ const steps = [
 export default async function HomePage() {
   const vehicles = await listPublicVehicles(8);
   const featuredVehicles = vehicles.slice(0, 6);
+  const latestVehicle = vehicles[0];
   const contactVehicles = vehicles.map(vehicle => ({ id: vehicle.id, label: `${vehicle.brand} ${vehicle.model} ${vehicle.trim}` }));
 
   return <>
@@ -38,18 +41,28 @@ export default async function HomePage() {
       <section className="heroShell heroShellRefresh" aria-labelledby="hero-title">
         <div className="container hero heroRefresh">
           <div className="heroCopy">
-            <p className="eyebrow">Slim rijden. Meer genieten.</p>
-            <h1 id="hero-title">Hybride &amp; elektrisch kopen <em>zonder te gokken.</em></h1>
-            <p className="heroDescriptor">Zorgvuldig geselecteerde occasions met aantoonbare historie, technische controle en inzicht in de hoogvoltaccu waar dat relevant is.</p>
+            <p className="eyebrow">Volt &amp; Vroom · Groningen</p>
+            <h1 id="hero-title">Slim rijden.<br /><em>Meer genieten.</em></h1>
+            <p className="heroDescriptor">Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie, technische controle en inzicht in de hoogvoltaccu waar dat relevant is.</p>
             <div className="heroTrustRow" aria-label="Onze kernbeloften"><span>Aantoonbare historie</span><span>Technisch geselecteerd</span><span>Persoonlijk advies</span></div>
-            <div className="actions">
-              <a className="button" href="#uitgelicht">Bekijk aanbod <span aria-hidden="true">→</span></a>
+            <div className="actions heroActions">
+              <a className="button heroPrimaryButton" href="#uitgelicht">Bekijk aanbod <span aria-hidden="true">→</span></a>
               <a className="button secondary" href="/keuzehulp">Welke auto past bij mij?</a>
             </div>
           </div>
           <div className="heroVisual heroVisualRefresh">
-            <div className="heroArtwork"><Image src="/editorial/hero-v2.png" alt="Een witte elektrische auto en een grafietgrijze hybride auto in een rustige studio" fill priority sizes="(max-width: 980px) 100vw, 52vw" /></div>
-            <div className="heroProof heroProofRefresh"><span>Volt &amp; Vroom CarCheck</span><strong>Controleerbaar verhaal vóór de proefrit.</strong><small>Geen los keurmerk, wel een vast controleprotocol.</small></div>
+            {latestVehicle ? <a className="latestHeroVehicle" href={`/voorraad/${latestVehicle.slug}`} aria-label={`Bekijk ${latestVehicle.brand} ${latestVehicle.model}`}>
+              <div className="latestHeroMedia">
+                {latestVehicle.images[0]
+                  ? <img src={latestVehicle.images[0]} alt={`${latestVehicle.brand} ${latestVehicle.model} ${latestVehicle.trim}`} />
+                  : <div className="latestHeroFallback"><span>V&amp;V</span></div>}
+                <span className="latestHeroLabel">Nieuw in voorraad</span>
+              </div>
+              <div className="latestHeroInfo">
+                <div><span>{latestVehicle.driveType === "electric" ? "Elektrisch" : latestVehicle.driveType === "plug-in-hybrid" ? "Plug-in hybride" : "Hybride"}</span><h2>{latestVehicle.brand} {latestVehicle.model}</h2><p>{latestVehicle.trim}</p></div>
+                <strong>{latestVehicle.priceCents > 0 ? eur.format(centsToEuros(latestVehicle.priceCents)) : "Prijs op aanvraag"}</strong>
+              </div>
+            </a> : <div className="heroArtwork"><Image src="/editorial/hero-v2.png" alt="Een witte elektrische auto en een grafietgrijze hybride auto in een rustige studio" fill priority sizes="(max-width: 980px) 100vw, 52vw" /></div>}
           </div>
         </div>
       </section>
