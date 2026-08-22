@@ -10,6 +10,8 @@ export const revalidate = 60;
 export const dynamicParams = true;
 
 const numberFormat = new Intl.NumberFormat("nl-NL");
+const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "31655000911";
+const showroomRoute = "https://www.google.com/maps/dir/?api=1&destination=Euvelgunnerweg%2050%2C%209723%20CW%20Groningen&travelmode=driving";
 
 export function generateStaticParams() {
   return [];
@@ -45,6 +47,19 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
 
   const priceEur = centsToEuros(vehicle.priceCents);
   const isReserved = vehicle.status === "reserved";
+  const testDriveMessage = [
+    "Hallo Volt & Vroom,",
+    "",
+    `Ik wil graag een proefrit plannen met de ${vehicle.brand} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}.`,
+    vehicle.licensePlate ? `Kenteken: ${vehicle.licensePlate}` : null,
+    vehicle.priceCents > 0 ? `Vraagprijs: ${eur.format(priceEur)}` : null,
+    "",
+    "Wanneer zou het uitkomen om langs te komen?",
+    "",
+    "Naam:",
+    "Voorkeursdag/tijd:",
+  ].filter(Boolean).join("\n");
+  const whatsappTestDriveUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(testDriveMessage)}`;
 
   return <div className={styles.page}>
     <Header />
@@ -69,7 +84,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
             {vehicle.transmission ? <div><span>Transmissie</span><strong>{vehicle.transmission}</strong></div> : null}
           </div>
           <div className={styles.ctaStack}>
-            <a className={styles.primary} href="#afspraak">Plan een proefrit</a>
+            <a className={styles.primary} href={whatsappTestDriveUrl} target="_blank" rel="noopener noreferrer">Plan een proefrit via WhatsApp</a>
             {vehicle.licensePlate ? <div className={styles.vehicleIdentity}><span className={styles.licensePlate}>{vehicle.licensePlate}</span>{vehicle.vin ? <div className={styles.vin}><span>Chassisnummer</span><strong>{vehicle.vin}</strong></div> : null}</div> : vehicle.vin ? <div className={styles.vehicleIdentity}><div className={styles.vin}><span>Chassisnummer</span><strong>{vehicle.vin}</strong></div></div> : null}
           </div>
         </aside>
@@ -79,8 +94,8 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
         <aside className={styles.factsCard}><h3>Specificaties</h3>{specs.length ? specs.map(([label, fact]) => <div className={styles.factRow} key={label}><span>{label}</span><strong>{fact}</strong></div>) : <p>Nadere specificaties volgen.</p>}</aside>
       </section>
       {hybridFacts.length ? <section className={styles.intelligence} id="carcheck"><div className={styles.intelligenceHead}><div><span className={styles.sectionLabel}>Hybrid Intelligence</span><h2>Relevante hybride data.<br />Direct uit de voertuigfeed.</h2></div><p>We tonen alleen hybride- en accugegevens die voor deze specifieke auto daadwerkelijk beschikbaar zijn.</p></div><div className={styles.intelligenceGrid}>{hybridFacts.slice(0,4).map(([label, fact]) => <article className={styles.intelCard} key={label}><span>{label}</span><strong>{fact}</strong><small>beschikbare voertuigdata</small></article>)}</div></section> : null}
-      <section className={styles.trust} id="afspraak"><span className={styles.sectionLabel}>Bekijk hem in Groningen</span><h2>De auto gezien.<br />Nu het verhaal erachter.</h2><p>Plan een persoonlijke proefrit. We nemen de auto en de beschikbare voertuigdata rustig met je door.</p><div className={styles.trustActions}><a className={styles.primary} href={`mailto:mik@voltvroom.nl?subject=${encodeURIComponent(`Proefrit ${vehicle.brand} ${vehicle.model}`)}`}>Plan een proefrit</a><a className={styles.secondary} href="mailto:mik@voltvroom.nl">Stel een vraag</a></div></section>
+      <section className={styles.trust} id="afspraak"><span className={styles.sectionLabel}>Bekijk hem in Groningen</span><h2>De auto gezien.<br />Nu het verhaal erachter.</h2><p>Plan direct via WhatsApp een persoonlijke proefrit, bel ons of open de route naar de showroom.</p><div className={styles.trustActions}><a className={`${styles.primary} ${styles.whatsappAction}`} href={whatsappTestDriveUrl} target="_blank" rel="noopener noreferrer">WhatsApp proefrit</a><a className={styles.secondary} href="tel:+31502113883">Bel direct</a><a className={styles.secondary} href={showroomRoute} target="_blank" rel="noopener noreferrer">Route via Maps</a><a className={styles.secondary} href="mailto:mik@voltvroom.nl">Stel een vraag</a></div></section>
     </main>
-    <div className={styles.stickyBar}><div><strong>{vehicle.brand} {vehicle.model}</strong><br /><span>{vehicle.trim}{vehicle.priceCents > 0 ? ` · ${eur.format(priceEur)}` : ""}</span></div><a href="#afspraak">Plan proefrit</a></div>
+    <div className={styles.stickyBar}><div><strong>{vehicle.brand} {vehicle.model}</strong><br /><span>{vehicle.trim}{vehicle.priceCents > 0 ? ` · ${eur.format(priceEur)}` : ""}</span></div><div className={styles.stickyActions}><a href={whatsappTestDriveUrl} target="_blank" rel="noopener noreferrer">WhatsApp</a><a href="tel:+31502113883">Bel</a><a href={showroomRoute} target="_blank" rel="noopener noreferrer">Route</a></div></div>
   </div>;
 }
