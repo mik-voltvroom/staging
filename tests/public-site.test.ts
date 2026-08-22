@@ -9,7 +9,7 @@ describe("publieke Volt & Vroom website", () => {
     const header = read("components/Header.tsx");
     expect(header).not.toContain("/dashboard");
     expect(header).toContain("Mobiele navigatie");
-    expect(header).toContain("/vv-verified");
+    expect(header).toContain("/#waarom");
     expect(header).toContain("/contact");
   });
 
@@ -30,14 +30,15 @@ describe("publieke Volt & Vroom website", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Slim rijden.");
     expect(homepage).toContain("Meer genieten.");
-    expect(homepage).toContain("Zorgvuldig geselecteerde hybride en elektrische occasions.");
-    expect(homepage.indexOf('href="#voorraad"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
+    expect(homepage).toContain("Zorgvuldig geselecteerde occasions met aantoonbare historie");
+    expect(homepage.indexOf('href="#uitgelicht"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
   });
 
   it("toont uitsluitend repository-backed publiceerbare voorraad", () => {
     const homepage = read("app/page.tsx");
     const repository = read("lib/repositories/public-vehicle-repository.ts");
-    expect(homepage).toContain("listPublicVehicles(6)");
+    expect(homepage).toContain("listPublicVehicles(8)");
+    expect(homepage).toContain("<FeaturedInventoryRail vehicles={featuredVehicles}");
     expect(homepage).toContain("<VehicleCard vehicle={vehicle}");
     expect(repository).toContain('vehicle.status === "available"');
     expect(repository).toContain('vehicle.publication?.channels.website === true');
@@ -46,11 +47,11 @@ describe("publieke Volt & Vroom website", () => {
 
   it("formuleert de selectienorm controleerbaar en zonder onnodige absolute claims", () => {
     const homepage = read("app/page.tsx");
-    expect(homepage).toContain("Gecontroleerde kilometerstand");
+    expect(homepage).toContain("Kilometerstand beoordeeld");
     expect(homepage).toContain("Aantoonbare historie");
     expect(homepage).toContain("Technisch geselecteerd");
-    expect(homepage).toContain("Onderhoud inzichtelijk");
-    expect(homepage).toContain("SOH waar relevant");
+    expect(homepage).toContain("Onderhoud en herkomst inzichtelijk");
+    expect(homepage).toContain("Accu-inzicht waar relevant");
     expect(homepage).not.toContain("Eén eigenaar");
     expect(homepage).not.toContain("Dealeronderhouden");
   });
@@ -58,11 +59,13 @@ describe("publieke Volt & Vroom website", () => {
   it("houdt de selectienorm en hero-acties compact op mobiel", () => {
     const css = read("app/public.css");
     const enhancements = read("app/enhancements.css");
+    const refresh = read("app/frontend-refresh.css");
     expect(css).toContain(".proofGrid{display:grid;grid-template-columns:repeat(5,1fr)");
     expect(css).toContain(".proofGrid{grid-template-columns:repeat(2,minmax(0,1fr))}");
     expect(css).toContain(".hero .actions{display:grid;grid-template-columns:1fr}");
     expect(css).toContain("min-height:44px");
     expect(enhancements).toContain(".mobileActionBar");
+    expect(refresh).toContain(".featuredRail");
   });
 
   it("biedt afzonderlijke landingspagina's, FAQ's en een gevalideerde keuzehulp", () => {
