@@ -71,6 +71,107 @@ function textFrom(value: unknown): string | undefined {
   return result;
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: "\"",
+  apos: "'",
+  nbsp: " ",
+  euro: "€",
+  copy: "©",
+  reg: "®",
+  ndash: "–",
+  mdash: "—",
+  hellip: "…",
+  laquo: "«",
+  raquo: "»",
+  lsquo: "‘",
+  rsquo: "’",
+  ldquo: "“",
+  rdquo: "”",
+  auml: "ä",
+  euml: "ë",
+  iuml: "ï",
+  ouml: "ö",
+  uuml: "ü",
+  Auml: "Ä",
+  Euml: "Ë",
+  Iuml: "Ï",
+  Ouml: "Ö",
+  Uuml: "Ü",
+  eacute: "é",
+  Eacute: "É",
+  egrave: "è",
+  Egrave: "È",
+  agrave: "à",
+  Agrave: "À",
+  ccedil: "ç",
+  Ccedil: "Ç",
+};
+
+function decodeHtmlEntitiesOnce(value: string): string {
+  return value.replace(/&(#(?:x[0-9a-f]+|\d+)|[a-z][a-z0-9]+);/gi, (match, entity: string) => {
+    if (entity.startsWith("#x") || entity.startsWith("#X")) {
+      const codePoint = Number.parseInt(entity.slice(2), 16);
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match;
+    }
+    if (entity.startsWith("#")) {
+      const codePoint = Number.parseInt(entity.slice(1), 10);
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match;
+    }
+    return HTML_ENTITIES[entity] ?? HTML_ENTITIES[entity.toLowerCase()] ?? match;
+  });
+}
+
+function decodeHtmlEntities(value: string): string {
+  let decoded = value;
+  for (let pass = 0; pass < 3; pass += 1) {
+    const next = decodeHtmlEntitiesOnce(decoded);
+    if (next === decoded) break;
+    decoded = next;
+  }
+  return decoded;
+}
+
+function sanitizeProviderDescription(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+
+  let text = decodeHtmlEntities(value)
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    .replace(/<\s*\/\s*(?:p|div|ul|ol|li|h[1-6])\s*>/gi, "\n")
+    .replace(/<\s*li\b[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\\@/g, "@");
+
+  text = decodeHtmlEntities(text)
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  // Mobilox can append a complete HTML advert (specs, equipment, contact data and
+  // disclaimer) to the free-text introduction. VVOS already renders those fields
+  // structurally, so keep only the genuine introduction before the duplicated spec block.
+  const structuredMarkers = [
+    /\n-?\s*Kenteken\s*:/i,
+    /\n-?\s*Merk\s*:/i,
+    /\n-?\s*APK tot\s*:/i,
+  ];
+  const markerPositions = structuredMarkers
+    .map(pattern => text.search(pattern))
+    .filter(position => position >= 0);
+  if (markerPositions.length) text = text.slice(0, Math.min(...markerPositions)).trim();
+
+  text = text
+    .replace(/\n(?:Volt\s*&\s*Vroom|Euvelgunnerweg\s+50)[\s\S]*$/i, "")
+    .replace(/\nWe hebben ons uiterste best gedaan[\s\S]*$/i, "")
+    .trim();
+
+  return text || undefined;
+}
+
 function attributeText(value: unknown, name: string): string | undefined {
   if (!isRecord(value)) return undefined;
   const expected = normalizedKey(name);
@@ -235,7 +336,7 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   const updatedAt = now.toISOString();
   const vin = firstText(parsed, ["vin", "chassisnummer"]);
   const licensePlate = firstText(parsed, ["kenteken"]);
-  const description = firstText(parsed, ["opmerkingen", "omschrijving"]);
+  const description = sanitizeProviderDescription(firstText(parsed, ["opmerkingen", "omschrijving"]));
   const batteryHealthPercent = parseInteger(firstField(parsed, ["accu_conditie"]));
   const electricRangeKm = parseInteger(firstField(parsed, ["wltp_actieradius_elektrisch_combined", "actieradius_elektrisch"]));
   const consumptionPer100Km = parseNumber(firstField(parsed, ["wltp_brandstofverbruik_combined_weighted", "wltp_brandstofverbruik_combined", "gemiddeld_verbruik"]));

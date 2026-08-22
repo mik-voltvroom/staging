@@ -75,6 +75,21 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.vehicle?.publication?.channels.website).toBe(false);
   });
 
+  it("sanitizes escaped Mobilox advert HTML and removes duplicated spec blocks", () => {
+    const escapedAdvert = "Eigen tekst over de auto.&lt;br /&gt;&lt;br /&gt;&lt;b&gt;Polestar 2&lt;/b&gt;&lt;br /&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Kenteken&lt;/b&gt;: HXP-41-S&lt;/li&gt;&lt;li&gt;&lt;b&gt;Merk&lt;/b&gt;: Polestar&lt;/li&gt;&lt;/ul&gt;&lt;br /&gt;&lt;b&gt;Volt &amp;amp; Vroom&lt;/b&gt;&lt;br /&gt;Groningen &amp;euro; 270 &amp;quot;test&amp;quot; be&amp;iuml;nvloeden.";
+    const xml = vehicleXml.replace("Volledig elektrische Polestar.", escapedAdvert);
+    const mutation = parseHexonMutation(xml);
+    expect(mutation.vehicle?.description).toBe("Eigen tekst over de auto.\n\nPolestar 2");
+    expect(mutation.vehicle?.description).not.toContain("&lt;");
+    expect(mutation.vehicle?.description).not.toContain("Kenteken");
+  });
+
+  it("decodes nested HTML entities in free advert text", () => {
+    const xml = vehicleXml.replace("Volledig elektrische Polestar.", "Prijs &amp;euro; 39.950 en dit kan be&amp;iuml;nvloeden.");
+    const mutation = parseHexonMutation(xml);
+    expect(mutation.vehicle?.description).toBe("Prijs € 39.950 en dit kan beïnvloeden.");
+  });
+
   it("rejects entity declarations and combustion-only stock", () => {
     expect(() => parseHexonMutation('<!DOCTYPE x [<!ENTITY x "boom">]><voertuig><voertuignr_hexon>&x;</voertuignr_hexon></voertuig>')).toThrow("DTD en entities");
     expect(() => parseHexonMutation(vehicleXml.replace("<brandstof>Elektrisch</brandstof>", "<brandstof>Benzine</brandstof>"))).toThrow("Niet-ondersteunde aandrijving");
