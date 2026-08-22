@@ -21,6 +21,14 @@ const assurances = [
   { icon: "/brand/icons/praktijkverbruik.svg", title: "Advies uit de praktijk", text: "We kijken naar uw ritten, laadmogelijkheden en gebruik. Niet naar welke aandrijflijn toevallig het hardst wordt gepusht." },
 ];
 
+const promises = [
+  { icon: "/brand/icons/onderhoud.svg", title: "Dealeronderhouden", text: "Onderhoudshistorie moet aantoonbaar en controleerbaar zijn." },
+  { icon: "/brand/icons/hybride.svg", title: "Hybride, elektrisch of Icon", text: "Alleen auto’s die passen binnen onze drie duidelijke werelden." },
+  { icon: "/brand/icons/historie.svg", title: "VV Verified rapport", text: "Per auto leggen we relevante controlepunten en bevindingen vast." },
+  { icon: "/brand/icons/accugezondheid.svg", title: "SOH bij hybride & EV", text: "Beschikbare accugezondheid tonen we met context, waar meetdata aanwezig is." },
+  { icon: "/brand/icons/proefrit.svg", title: "Volt & Vroom Verified", text: "Onze vaste kwaliteitsstandaard voor selectie, controle en presentatie." },
+];
+
 const steps = [
   ["01", "Vertel hoe u rijdt", "Dagelijkse afstand, laadmogelijkheden, budget en wat u belangrijk vindt."],
   ["02", "Vergelijk met bewijs", "U ziet de auto, historie, techniek en beschikbare accu-informatie naast elkaar."],
@@ -71,12 +79,8 @@ export default async function HomePage() {
 
       <HomepageSocialVideos />
 
-      <section className="proofBar proofBarRefresh" aria-label="Volt & Vroom in het kort"><div className="container proofGrid">
-        <div><strong>Historie gecontroleerd</strong><span>Onderhoud en herkomst inzichtelijk</span></div>
-        <div><strong>Kilometerstand beoordeeld</strong><span>Verloop en documentatie gecontroleerd</span></div>
-        <div><strong>Technisch geselecteerd</strong><span>Geen willekeurige voorraad</span></div>
-        <div><strong>Accu-inzicht waar relevant</strong><span>SOH en hoogvoltdata met context</span></div>
-        <div><strong>Advies op gebruik</strong><span>Hybride of EV wanneer het past</span></div>
+      <section className="proofBar proofBarRefresh" aria-label="Vijf beloften van Volt & Vroom"><div className="container proofGrid proofGridPromises">
+        {promises.map(item => <div className="proofPromise" key={item.title}><Image src={item.icon} alt="" width={34} height={34} /><div><strong>{item.title}</strong><span>{item.text}</span></div></div>)}
       </div></section>
 
       <section id="waarom" className="section container introSection">
