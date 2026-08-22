@@ -13,12 +13,12 @@ Normal feature work should not be merged into the release branch during this win
 
 ## Workflow
 
-1. Main/release freeze
+1. Main/release freeze — COMPLETE
    - Freeze current deploy candidate.
    - Create a dedicated production release branch from the known baseline.
    - Only blocker/security/configuration fixes are allowed on the release branch.
 
-2. CI fully green
+2. CI fully green — COMPLETE
    - Repository guard
    - Agent audit
    - Brand audit
@@ -27,24 +27,26 @@ Normal feature work should not be merged into the release branch during this win
    - Firestore rules emulator tests
    - Production Next.js build
 
-3. Create separate production Firebase/App Hosting backend
+3. Create separate production Firebase/App Hosting backend — PREPARED
    - Do not point the staging backend at production.
    - Production must have its own environment values and runtime identity.
 
-4. Configure production secrets
+4. Configure production secrets — BLOCKED BY BILLING/ACCESS
    - Hexon/Mobilox credentials
    - CRON secret
    - Portal token secret
    - Audit hash salt
    - Required Firebase production configuration
 
-5. Deploy Firestore rules and indexes
+5. Deploy Firestore rules and indexes — DEPLOY READY
 
-6. Validate Firebase Storage IAM
-   - Confirm App Hosting runtime can create/read required vehicle image objects.
+6. Validate Firebase Storage IAM — COMPLETE
+   - Confirm App Hosting runtime can create/read/delete a canary object in the configured bucket.
+   - Runtime health check: authenticated `POST /api/admin/storage-health` (owner/admin only).
+   - Confirm Mobilox image path `vehicles/{externalId}/mobilox/{fileName}` is covered by Storage rules.
    - Do not grant broad Owner/Editor permissions.
 
-7. Deploy production build to temporary App Hosting URL
+7. Deploy production build to temporary App Hosting URL — NEXT
 
 8. Production smoke test
    - Homepage
@@ -96,4 +98,6 @@ Production go-live is allowed only when all four are true:
 
 ## Current step
 
-Step 1 is active. A production release branch has been created from the frozen baseline. The next action is Step 2: establish a fully green CI result on the release candidate.
+Step 6 is complete. The deployed App Hosting runtime Storage IAM health check succeeded, confirming create/read/delete access to the configured Firebase Storage bucket. The nested Mobilox vehicle image path is covered by `storage.rules`.
+
+The next step is Step 7: deploy the production build to a temporary App Hosting URL. Step 7 remains blocked until the production App Hosting backend can be activated with the required billing/access.
