@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase-admin";
 import { parseHexonMutation } from "@/lib/integrations/hexon";
 import { persistHexonImages } from "@/lib/integrations/hexon-images";
+import { shadowVehicleToSupabase } from "@/lib/integrations/supabase-shadow";
 
 export const HEXON_MAX_BODY_BYTES = 2_000_000;
 
@@ -20,9 +21,7 @@ export function verifyHexonAuthorization(header: string | null): boolean {
     const separator = decoded.indexOf(":");
     if (separator < 1) return false;
     return safeEqual(decoded.slice(0, separator), username) && safeEqual(decoded.slice(separator + 1), password);
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 }
 
 export function hexonCredentialsConfigured(): boolean {
@@ -40,14 +39,7 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
   let imageFailures: Array<{ sourceUrl: string; message: string }> = [];
 
   const alreadyProcessed = await eventRef.get();
-  if (alreadyProcessed.exists) {
-    return {
-      duplicate: true,
-      externalId: mutation.externalId,
-      action: mutation.action,
-      providerAction: mutation.providerAction,
-    };
-  }
+  if (alreadyProcessed.exists) return { duplicate: true, externalId: mutation.externalId, action: mutation.action, providerAction: mutation.providerAction };
 
   if (mutation.action === "upsert" && mutation.vehicle?.images.length) {
     const persisted = await persistHexonImages(mutation.externalId, mutation.vehicle.images);
@@ -57,54 +49,20 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
 
   await adminDb.runTransaction(async transaction => {
     const event = await transaction.get(eventRef);
-    if (event.exists) {
-      duplicate = true;
-      return;
-    }
-
+    if (event.exists) { duplicate = true; return; }
     const current = await transaction.get(vehicleRef);
     if (mutation.action === "archive") {
-      if (current.exists) {
-        transaction.set(vehicleRef, {
-          status: "archived",
-          publication: {
-            channels: { website: false, merchant: false, google_ads: false, meta: false },
-            completenessPercent: current.data()?.publication?.completenessPercent ?? 0,
-            lastValidatedAt: now,
-            validationErrors: ["Niet langer geselecteerd in Mobilox/Hexon"],
-          },
-          updatedAt: now,
-          source: { provider: "mobilox-hexon", externalId: mutation.externalId, lastMutationAt: now },
-        }, { merge: true });
-      }
+      if (current.exists) transaction.set(vehicleRef, { status: "archived", publication: { channels: { website: false, merchant: false, google_ads: false, meta: false }, completenessPercent: current.data()?.publication?.completenessPercent ?? 0, lastValidatedAt: now, validationErrors: ["Niet langer geselecteerd in Mobilox/Hexon"] }, updatedAt: now, source: { provider: "mobilox-hexon", externalId: mutation.externalId, lastMutationAt: now } }, { merge: true });
     } else {
       if (!mutation.vehicle) throw new Error("Hexon voertuigdata ontbreekt.");
-      transaction.set(vehicleRef, {
-        ...mutation.vehicle,
-        createdAt: current.data()?.createdAt ?? now,
-        source: {
-          provider: "mobilox-hexon",
-          externalId: mutation.externalId,
-          lastMutationAt: now,
-          imageStorage: mutation.vehicle.images.length ? "firebase-storage" : "none",
-          imageFailures: imageFailures.length,
-        },
-      }, { merge: true });
+      transaction.set(vehicleRef, { ...mutation.vehicle, createdAt: current.data()?.createdAt ?? now, source: { provider: "mobilox-hexon", externalId: mutation.externalId, lastMutationAt: now, imageStorage: mutation.vehicle.images.length ? "firebase-storage" : "none", imageFailures: imageFailures.length } }, { merge: true });
     }
-
-    transaction.create(eventRef, {
-      provider: "mobilox-hexon",
-      type: `vehicle.${mutation.providerAction}`,
-      operation: mutation.action,
-      providerAction: mutation.providerAction,
-      externalId: mutation.externalId,
-      payloadSha256: hash,
-      receivedAt: now,
-      processedAt: now,
-      imageFailures: imageFailures.slice(0, 20),
-      result: imageFailures.length ? "accepted_with_image_warnings" : "accepted",
-    });
+    transaction.create(eventRef, { provider: "mobilox-hexon", type: `vehicle.${mutation.providerAction}`, operation: mutation.action, providerAction: mutation.providerAction, externalId: mutation.externalId, payloadSha256: hash, receivedAt: now, processedAt: now, imageFailures: imageFailures.slice(0, 20), result: imageFailures.length ? "accepted_with_image_warnings" : "accepted" });
   });
 
+  if (!duplicate) {
+    const shadow = await shadowVehicleToSupabase({ externalId: mutation.externalId, action: mutation.action, vehicle: mutation.vehicle ?? null });
+    if (shadow.attempted && !shadow.ok) console.error("Supabase vehicle shadow-write failed", shadow.error);
+  }
   return { duplicate, externalId: mutation.externalId, action: mutation.action, providerAction: mutation.providerAction };
 }
