@@ -1,0 +1,2 @@
+import { AcquisitionWorkbench } from "@/components/acquisition/AcquisitionWorkbench";
+export default function AcquisitionPage(){return <main className="container dashboardPage"><div className="pageTitle"><div><p className="eyebrow">VVOS Acquisition Intelligence</p><h1>Koop marge. Geen statijd.</h1><p className="muted">Bereken vooraf het optimale bod, de verwachte marge en het statijdrisico van iedere potentiële inkoop.</p></div></div><AcquisitionWorkbench/></main>}
