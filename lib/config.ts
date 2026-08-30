@@ -16,4 +16,7 @@ export const usesGoogleRuntimeIdentity = Boolean(
 
 export const isFirebaseAdminConfigured = hasFirebaseAdminServiceAccount || usesGoogleRuntimeIdentity;
 
-export const integrationMode = process.env.VVOS_DATA_MODE === "firebase" ? "firebase" : "demo";
+export const integrationMode = process.env.NEXT_PUBLIC_VVOS_DATA_MODE === "firebase"
+  || process.env.VVOS_DATA_MODE === "firebase"
+  ? "firebase"
+  : "demo";

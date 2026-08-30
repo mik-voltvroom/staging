@@ -19,6 +19,9 @@ env:
   - variable: VVOS_DATA_MODE
     value: firebase
     availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_VVOS_DATA_MODE
+    value: firebase
+    availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     value: AIzaSyCSTUhvLEuJsododYPMyY7Am6br1HTMNx4
     availability: [BUILD, RUNTIME]
