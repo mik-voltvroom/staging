@@ -221,6 +221,19 @@ function parseInteger(value: unknown): number | undefined {
   return number === undefined ? undefined : Math.round(number);
 }
 
+function firstNumber(root: unknown, names: string[]): number | undefined {
+  for (const name of names) {
+    const number = parseNumber(firstField(root, [name]));
+    if (number !== undefined) return number;
+  }
+  return undefined;
+}
+
+function firstInteger(root: unknown, names: string[]): number | undefined {
+  const number = firstNumber(root, names);
+  return number === undefined ? undefined : Math.round(number);
+}
+
 function parseOdometerKm(value: unknown): number | undefined {
   const reading = parseNumber(value);
   if (reading === undefined) return undefined;
@@ -343,10 +356,10 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   const vin = firstText(parsed, ["vin", "chassisnummer"]);
   const licensePlate = firstText(parsed, ["kenteken"]);
   const description = sanitizeProviderDescription(firstText(parsed, ["opmerkingen", "omschrijving"]));
-  const batteryHealthPercent = parseInteger(firstField(parsed, ["accu_conditie"]));
-  const electricRangeKm = parseInteger(firstField(parsed, ["wltp_actieradius_elektrisch_combined", "actieradius_elektrisch"]));
-  const consumptionPer100Km = parseNumber(firstField(parsed, ["wltp_brandstofverbruik_combined_weighted", "wltp_brandstofverbruik_combined", "gemiddeld_verbruik"]));
-  const warrantyMonths = parseInteger(firstField(parsed, ["garantie_maanden", "fabrieksgarantie_aantal_maanden"]));
+  const batteryHealthPercent = firstInteger(parsed, ["accu_conditie"]);
+  const electricRangeKm = firstInteger(parsed, ["wltp_actieradius_elektrisch_combined", "actieradius_elektrisch"]);
+  const consumptionPer100Km = firstNumber(parsed, ["wltp_brandstofverbruik_combined_weighted", "wltp_brandstofverbruik_combined", "gemiddeld_verbruik"]);
+  const warrantyMonths = firstInteger(parsed, ["garantie_maanden", "fabrieksgarantie_aantal_maanden"]);
 
   const vehicle: Vehicle = {
     id,

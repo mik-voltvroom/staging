@@ -66,6 +66,8 @@ describe("Mobilox/Hexon incremental inventory", () => {
   <bouwjaar>2017</bouwjaar><tellerstand eenheid="K">172334</tellerstand>
   <brandstof>D</brandstof><transmissie>A</transmissie><carrosserie>SUV</carrosserie><basiskleur>grijs</basiskleur>
   <gemiddeld_verbruik>7.2</gemiddeld_verbruik>
+  <wltp_brandstofverbruik_combined></wltp_brandstofverbruik_combined>
+  <wltp_brandstofverbruik_combined_weighted></wltp_brandstofverbruik_combined_weighted>
   <verkoopprijs_particulier><prijzen land="nl"><prijs nr="1"><bedrag>31990</bedrag><munteenheid>EUR</munteenheid></prijs></prijzen></verkoopprijs_particulier>
   <afbeeldingen><afbeelding><url>https://images.example.test/audi-sq7.jpg</url></afbeelding></afbeeldingen>
 </voertuig>`;
@@ -74,7 +76,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.vehicle).toMatchObject({
       id: "hexon-56318840", licensePlate: "RK044K", brand: "Audi", model: "SQ7",
       year: 2017, mileageKm: 172334, priceCents: 3199000, driveType: "combustion",
-      fuelType: "Diesel", status: "available",
+      fuelType: "Diesel", consumptionPer100Km: 7.2, status: "available",
     });
     expect(mutation.vehicle?.publication?.validationErrors).toEqual([]);
   });
