@@ -28,6 +28,10 @@ describe("vehicle eurocent migration", () => {
     expect(vehicle.priceCents).toBe(2_495_050);
     expect(vehicle.monthlyPriceCents).toBe(42_995);
     expect(vehicle.costs?.transportCents).toBe(20_025);
+    expect(vehicle.commercial).toMatchObject({ targetMarginCents: 300_000, maxStockDays: 45 });
+    expect(vehicle.commercial?.priceHistory).toEqual([
+      { priceCents: 2_495_050, effectiveAt: "1970-01-01T00:00:00.000Z", source: "migration" },
+    ]);
     expect(vehicle).not.toHaveProperty("priceEur");
     expect(vehicle.costs).not.toHaveProperty("purchasePriceEur");
   });

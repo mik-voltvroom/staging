@@ -20,6 +20,34 @@ export interface VehiclePublication {
   validationErrors: string[];
 }
 
+export type VehiclePriceChangeSource = "mobilox-hexon" | "manual" | "deal" | "migration";
+
+export interface VehiclePriceHistoryEntry {
+  priceCents: number;
+  effectiveAt: string;
+  source: VehiclePriceChangeSource;
+}
+
+export interface VehicleCommercial {
+  acquisitionSource?: string;
+  acquiredAt?: string;
+  stockEnteredAt?: string;
+  targetMarginCents: number;
+  maxStockDays: number;
+  viewCount: number;
+  leadCount: number;
+  priceHistory: VehiclePriceHistoryEntry[];
+  soldPriceCents?: number;
+}
+
+export interface VehicleSource {
+  provider: string;
+  externalId?: string;
+  lastMutationAt?: string;
+  imageStorage?: string;
+  imageFailures?: number;
+}
+
 export interface Vehicle {
   id: string;
   slug: string;
@@ -53,7 +81,9 @@ export interface Vehicle {
   soldAt?: string;
   locationCode: string;
   costs?: VehicleCosts;
+  commercial?: VehicleCommercial;
   publication?: VehiclePublication;
+  source?: VehicleSource;
   createdAt?: string;
   updatedAt: string;
 }

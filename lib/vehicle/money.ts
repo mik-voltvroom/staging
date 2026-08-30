@@ -1,5 +1,6 @@
 import type { Vehicle, VehicleCosts } from "@/types";
 import { assertEurocents, eurosToCents } from "@/lib/money";
+import { defaultVehicleCommercial, normalizeVehicleCommercial, recordVehiclePrice } from "@/lib/vehicle/business";
 
 const topLevelMoneyFields = [
   ["priceCents", "priceEur", true],
@@ -59,6 +60,24 @@ export function normalizeVehicleDocument(id: string, value: Record<string, unkno
   }
   normalized.costs = normalizeCosts(normalized.costs);
   if (normalized.costs === undefined) delete normalized.costs;
+  normalized.commercial = normalizeVehicleCommercial(normalized.commercial);
+  if (normalized.commercial === undefined) {
+    const source = normalized.source && typeof normalized.source === "object"
+      ? normalized.source as Record<string, unknown>
+      : undefined;
+    const provider = typeof source?.provider === "string" ? source.provider : undefined;
+    const effectiveAt = typeof normalized.updatedAt === "string"
+      ? normalized.updatedAt
+      : typeof normalized.createdAt === "string"
+        ? normalized.createdAt
+        : "1970-01-01T00:00:00.000Z";
+    normalized.commercial = recordVehiclePrice({
+      ...defaultVehicleCommercial,
+      priceHistory: [],
+      ...(provider ? { acquisitionSource: provider === "mobilox-hexon" ? "Mobilox / Hexon" : provider } : {}),
+      stockEnteredAt: typeof normalized.createdAt === "string" ? normalized.createdAt : effectiveAt,
+    }, normalized.priceCents as number, effectiveAt, "migration");
+  }
   return normalized as unknown as Vehicle;
 }
 

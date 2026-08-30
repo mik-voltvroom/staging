@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase-admin";
 import { parseHexonMutation } from "@/lib/integrations/hexon";
 import { persistHexonImages } from "@/lib/integrations/hexon-images";
+import { recordVehiclePrice } from "@/lib/vehicle/business";
 
 export const HEXON_MAX_BODY_BYTES = 2_000_000;
 const HEXON_PROCESSOR_VERSION = "2";
@@ -81,9 +82,21 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
       }
     } else {
       if (!mutation.vehicle) throw new Error("Hexon voertuigdata ontbreekt.");
+      const currentData = current.data();
+      const commercial = recordVehiclePrice(
+        currentData?.commercial,
+        mutation.vehicle.priceCents,
+        now,
+        "mobilox-hexon",
+      );
       transaction.set(vehicleRef, {
         ...mutation.vehicle,
-        createdAt: current.data()?.createdAt ?? now,
+        createdAt: currentData?.createdAt ?? now,
+        commercial: {
+          ...commercial,
+          acquisitionSource: commercial.acquisitionSource ?? "Mobilox / Hexon",
+          stockEnteredAt: commercial.stockEnteredAt ?? currentData?.createdAt ?? now,
+        },
         source: {
           provider: "mobilox-hexon",
           externalId: mutation.externalId,

@@ -27,6 +27,11 @@ export async function listVehicles(): Promise<Vehicle[]> {
   return payload.vehicles;
 }
 
+export async function getVehicle(id: string): Promise<Vehicle | undefined> {
+  if (integrationMode !== "firebase") return getVehicles().find(vehicle => vehicle.id === id);
+  return (await listVehicles()).find(vehicle => vehicle.id === id);
+}
+
 export async function saveVehicle(vehicle: Vehicle): Promise<void> {
   if (integrationMode !== "firebase" || !db) return demoUpsert(vehicle);
   const legacyTopLevelDeletes = {

@@ -61,6 +61,18 @@ describe("Firestore Rules commercial boundaries", () => {
     await assertSucceeds(setDoc(doc(salesDb, "vehicles/draft"), { status: "draft", make: "Kia", priceCents: 2_500_000 }));
     await assertFails(setDoc(doc(salesDb, "vehicles/legacy-money"), { status: "draft", make: "Kia", priceEur: 25_000 }));
     await assertFails(setDoc(doc(salesDb, "vehicles/fractional-cents"), { status: "draft", make: "Kia", priceCents: 2_500_000.5 }));
+    await assertSucceeds(setDoc(doc(salesDb, "vehicles/commercial-model"), {
+      status: "draft",
+      make: "Audi",
+      priceCents: 3_199_000,
+      commercial: { targetMarginCents: 300_000, maxStockDays: 45, viewCount: 0, leadCount: 0, priceHistory: [] },
+    }));
+    await assertFails(setDoc(doc(salesDb, "vehicles/fractional-commercial-money"), {
+      status: "draft",
+      make: "Audi",
+      priceCents: 3_199_000,
+      commercial: { targetMarginCents: 299_999.5, maxStockDays: 45, viewCount: 0, leadCount: 0, priceHistory: [] },
+    }));
     await assertFails(setDoc(doc(salesDb, "vehicles/reserved-create"), {
       status: "reserved",
       reservedDealId: "deal-1",

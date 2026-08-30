@@ -113,6 +113,8 @@ describe("deal and delivery commercial core", () => {
     expect(repository).toContain('transaction.create(db.collection("dealSnapshots")');
     expect(repository).toContain('vehicle.reservedDealId !== deal.id');
     expect(repository).toContain('status: "sold"');
+    expect(repository).toContain("soldPriceCents: deal.salePriceCents");
+    expect(repository).toContain('recordVehiclePrice(vehicle.commercial, deal.salePriceCents, updatedAt, "deal")');
     expect(rules).toContain("match /dealSnapshots/{snapshotId} { allow read, write: if false; }");
   });
 });

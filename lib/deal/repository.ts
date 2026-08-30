@@ -5,6 +5,7 @@ import { sampleDeals, sampleDocuments, sampleFinance, samplePayments, sampleTask
 import { buildAcceptedDealSnapshot, buildDeal, buildDefaultDeliveryTasks, canTransitionDeal, type DealCreateInput } from "@/lib/deal/model";
 import { assertEurocents, eurosToCents } from "@/lib/money";
 import { normalizeVehicleDocument } from "@/lib/vehicle/money";
+import { recordVehiclePrice } from "@/lib/vehicle/business";
 
 export class DealRepositoryUnavailableError extends Error {}
 export class DealNotFoundError extends Error {}
@@ -201,11 +202,13 @@ export async function updateDealStatus(id: string, nextStatus: Deal["status"]): 
       });
     }
 
-    if (nextStatus === "delivered" && vehicleReference) {
+    if (nextStatus === "delivered" && vehicleReference && vehicle) {
+      const commercial = recordVehiclePrice(vehicle.commercial, deal.salePriceCents, updatedAt, "deal");
       transaction.update(vehicleReference, {
         status: "sold",
         soldDealId: deal.id,
         soldAt: updatedAt,
+        commercial: { ...commercial, soldPriceCents: deal.salePriceCents },
         reservedDealId: FieldValue.delete(),
         reservedAt: FieldValue.delete(),
         updatedAt,

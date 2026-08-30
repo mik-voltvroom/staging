@@ -40,12 +40,24 @@ service cloud.firestore {
         && validCents(costs.financingCents)
         && validCents(costs.otherCents);
     }
+    function validVehicleCommercial(commercial) {
+      return commercial.keys().hasAll([
+          'targetMarginCents', 'maxStockDays', 'viewCount', 'leadCount', 'priceHistory'
+        ])
+        && validCents(commercial.targetMarginCents)
+        && validCents(commercial.maxStockDays)
+        && validCents(commercial.viewCount)
+        && validCents(commercial.leadCount)
+        && commercial.priceHistory is list
+        && (!commercial.keys().hasAny(['soldPriceCents']) || validCents(commercial.soldPriceCents));
+    }
     function validVehicleMoney(data) {
       return validCents(data.priceCents)
         && !data.keys().hasAny(['priceEur', 'monthlyPriceEur', 'annualSavingEur'])
         && (!data.keys().hasAny(['monthlyPriceCents']) || validCents(data.monthlyPriceCents))
         && (!data.keys().hasAny(['annualSavingCents']) || validCents(data.annualSavingCents))
-        && (!data.keys().hasAny(['costs']) || validVehicleCosts(data.costs));
+        && (!data.keys().hasAny(['costs']) || validVehicleCosts(data.costs))
+        && (!data.keys().hasAny(['commercial']) || validVehicleCommercial(data.commercial));
     }
 
     match /vehicles/{vehicleId} {

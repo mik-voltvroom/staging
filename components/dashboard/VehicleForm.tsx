@@ -7,6 +7,8 @@ import { saveVehicle } from "@/lib/repositories/vehicle-repository";
 import { uploadVehicleImage } from "@/lib/integrations/storage";
 import { MarginPanel } from "./MarginPanel";
 import { centsToEuros, eurosToCents } from "@/lib/money";
+import { CommercialPanel } from "./CommercialPanel";
+import { defaultVehicleCommercial, recordVehiclePrice } from "@/lib/vehicle/business";
 
 const now = () => new Date().toISOString();
 const id = () => `VV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -18,7 +20,7 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
     id: id(), slug: "", brand: "", model: "", trim: "", year: new Date().getFullYear(), mileageKm: 0, priceCents: 0,
     driveType: "full-hybrid", fuelType: "Benzine / elektrisch", transmission: "Automaat", bodyStyle: "", color: "",
     maintenanceHistory: "unknown", images: [], highlights: [], status: "draft", locationCode: "VOLT_VROOM_GRONINGEN",
-    costs: emptyCosts, publication: { channels: { website: false, merchant: false, google_ads: false, meta: false }, completenessPercent: 0, validationErrors: [] }, updatedAt: now(), createdAt: now()
+    costs: emptyCosts, commercial: { ...defaultVehicleCommercial, priceHistory: [], stockEnteredAt: now() }, publication: { channels: { website: false, merchant: false, google_ads: false, meta: false }, completenessPercent: 0, validationErrors: [] }, updatedAt: now(), createdAt: now()
   });
   const [imageUrl, setImageUrl] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -29,12 +31,22 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
 
   async function save(nextStatus?: VehicleStatus) {
     const finalStatus = nextStatus ?? vehicle.status;
+    const savedAt = now();
+    const baseCommercial = vehicle.commercial ?? {
+      ...defaultVehicleCommercial,
+      priceHistory: [],
+      stockEnteredAt: vehicle.createdAt ?? savedAt,
+    };
+    const commercial = vehicle.priceCents > 0
+      ? recordVehiclePrice(baseCommercial, vehicle.priceCents, savedAt, "manual")
+      : baseCommercial;
     const next: Vehicle = {
       ...vehicle,
       slug: vehicle.slug || slugify(`${vehicle.brand}-${vehicle.model}-${vehicle.trim}-${vehicle.year}`),
       status: finalStatus,
+      commercial,
       publication: { ...(vehicle.publication ?? { channels: { website:false, merchant:false, google_ads:false, meta:false }, completenessPercent:0, validationErrors:[] }), completenessPercent: completeness, validationErrors: errors, channels: { ...(vehicle.publication?.channels ?? { website:false, merchant:false, google_ads:false, meta:false }), website: finalStatus === "available" && errors.length === 0 } },
-      updatedAt: now()
+      updatedAt: savedAt
     };
     await saveVehicle(next); setVehicle(next); setSaved(true); setTimeout(() => setSaved(false), 1800);
     if (!initial) router.replace(`/dashboard/voorraad/${next.id}`);
@@ -74,7 +86,12 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
         <p className="helper">URL-invoer werkt altijd. Bestandsupload gebruikt Firebase Storage zodra de koppeling actief is.</p>
       </section>
 
-      <MarginPanel priceCents={vehicle.priceCents} costs={vehicle.costs ?? emptyCosts} onChange={costs => set("costs", costs)} />
+      <MarginPanel priceCents={vehicle.priceCents} costs={vehicle.costs ?? emptyCosts} targetMarginCents={vehicle.commercial?.targetMarginCents} onChange={costs => set("costs", costs)} />
+      <CommercialPanel
+        vehicle={vehicle}
+        commercial={vehicle.commercial ?? { ...defaultVehicleCommercial, priceHistory: [], stockEnteredAt: vehicle.createdAt }}
+        onChange={commercial => set("commercial", commercial)}
+      />
     </div>
 
     <aside className="editorSide">
