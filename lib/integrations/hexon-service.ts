@@ -4,6 +4,7 @@ import { parseHexonMutation } from "@/lib/integrations/hexon";
 import { persistHexonImages } from "@/lib/integrations/hexon-images";
 
 export const HEXON_MAX_BODY_BYTES = 2_000_000;
+const HEXON_PROCESSOR_VERSION = "2";
 
 function safeEqual(actual: string, expected: string): boolean {
   const a = Buffer.from(actual);
@@ -32,8 +33,9 @@ export function hexonCredentialsConfigured(): boolean {
 export async function processHexonInventoryXml(xml: string): Promise<{ duplicate: boolean; externalId: string; action: string; providerAction: string }> {
   if (!adminDb) throw new Error("VVOS database niet beschikbaar.");
   const mutation = parseHexonMutation(xml);
-  const hash = createHash("sha256").update(xml).digest("hex");
-  const eventRef = adminDb.doc(`integrationEvents/hexon-${hash}`);
+  const payloadHash = createHash("sha256").update(xml).digest("hex");
+  const eventHash = createHash("sha256").update(`${HEXON_PROCESSOR_VERSION}\0${xml}`).digest("hex");
+  const eventRef = adminDb.doc(`integrationEvents/hexon-${eventHash}`);
   const vehicleRef = adminDb.doc(`vehicles/${mutation.vehicle?.id ?? `hexon-${mutation.externalId}`}`);
   const now = new Date().toISOString();
   let duplicate = false;
@@ -98,7 +100,8 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
       operation: mutation.action,
       providerAction: mutation.providerAction,
       externalId: mutation.externalId,
-      payloadSha256: hash,
+      payloadSha256: payloadHash,
+      processorVersion: HEXON_PROCESSOR_VERSION,
       receivedAt: now,
       processedAt: now,
       imageFailures: imageFailures.slice(0, 20),
