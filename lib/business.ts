@@ -39,6 +39,8 @@ export function validateVehicle(vehicle: Partial<Vehicle>): string[] {
   if (!vehicle.images?.length) errors.push("Minimaal één foto is verplicht");
   if (!vehicle.locationCode) errors.push("Vestigingscode ontbreekt");
   if (vehicle.driveType !== "electric" && !vehicle.consumptionPer100Km) errors.push("Praktijkverbruik ontbreekt");
-  if (vehicle.driveType !== "electric" && !vehicle.batteryHealthPercent) errors.push("Accugezondheid ontbreekt");
+  if (["full-hybrid", "plug-in-hybrid"].includes(vehicle.driveType ?? "") && !vehicle.batteryHealthPercent) {
+    errors.push("Accugezondheid ontbreekt");
+  }
   return errors;
 }

@@ -57,6 +57,28 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.vehicle).toMatchObject({ id: "hexon-56015851", priceCents: 2591100, driveType: "electric" });
   });
 
+  it("stores the Mobilox Audi SQ7 diesel payload as conventional inventory", () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<voertuig actie="add" versie="2.25">
+  <voertuignr_hexon>56318840</voertuignr_hexon><voertuignr>5031018</voertuignr>
+  <klantnummer>103741</klantnummer><kenteken>RK044K</kenteken>
+  <merk>Audi</merk><model>SQ7</model><type>4.0 TDI SQ7 quattro Pro Line + 7p</type>
+  <bouwjaar>2017</bouwjaar><tellerstand eenheid="K">172334</tellerstand>
+  <brandstof>D</brandstof><transmissie>A</transmissie><carrosserie>SUV</carrosserie><basiskleur>grijs</basiskleur>
+  <gemiddeld_verbruik>7.2</gemiddeld_verbruik>
+  <verkoopprijs_particulier><prijzen land="nl"><prijs nr="1"><bedrag>31990</bedrag><munteenheid>EUR</munteenheid></prijs></prijzen></verkoopprijs_particulier>
+  <afbeeldingen><afbeelding><url>https://images.example.test/audi-sq7.jpg</url></afbeelding></afbeeldingen>
+</voertuig>`;
+    const mutation = parseHexonMutation(xml, new Date("2026-08-30T12:00:00.000Z"));
+    expect(mutation).toMatchObject({ action: "upsert", providerAction: "add", externalId: "56318840" });
+    expect(mutation.vehicle).toMatchObject({
+      id: "hexon-56318840", licensePlate: "RK044K", brand: "Audi", model: "SQ7",
+      year: 2017, mileageKm: 172334, priceCents: 3199000, driveType: "combustion",
+      fuelType: "Diesel", status: "available",
+    });
+    expect(mutation.vehicle?.publication?.validationErrors).toEqual([]);
+  });
+
   it("honours tellerstand unit K and converts M to kilometres", () => {
     const kilometres = parseHexonMutation(vehicleXml.replace("<tellerstand>12.345</tellerstand>", '<tellerstand eenheid="K">12345</tellerstand>'));
     expect(kilometres.vehicle?.mileageKm).toBe(12345);
@@ -90,9 +112,9 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.vehicle?.description).toBe("Prijs € 39.950 en dit kan beïnvloeden.");
   });
 
-  it("rejects entity declarations and combustion-only stock", () => {
+  it("rejects entity declarations and unknown fuel codes", () => {
     expect(() => parseHexonMutation('<!DOCTYPE x [<!ENTITY x "boom">]><voertuig><voertuignr_hexon>&x;</voertuignr_hexon></voertuig>')).toThrow("DTD en entities");
-    expect(() => parseHexonMutation(vehicleXml.replace("<brandstof>Elektrisch</brandstof>", "<brandstof>Benzine</brandstof>"))).toThrow("Niet-ondersteunde aandrijving");
+    expect(() => parseHexonMutation(vehicleXml.replace("<brandstof>Elektrisch</brandstof>", "<brandstof>ONBEKEND</brandstof>"))).toThrow("Niet-ondersteunde aandrijving");
   });
 
   it("uses one fail-closed Basic Auth configuration", () => {

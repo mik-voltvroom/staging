@@ -30,4 +30,14 @@ describe("vehicle business rules", () => {
     expect(errors).toContain("Verkoopprijs ontbreekt");
     expect(errors).toContain("Accugezondheid ontbreekt");
   });
+
+  it("does not require high-voltage battery data for combustion vehicles", () => {
+    const errors = validateVehicle({
+      brand: "Audi", model: "SQ7", trim: "4.0 TDI", year: 2017, mileageKm: 172334,
+      priceCents: 3199000, driveType: "combustion", consumptionPer100Km: 7.2,
+      images: ["https://images.example.test/audi-sq7.jpg"], locationCode: "GRONINGEN",
+    });
+    expect(errors).not.toContain("Accugezondheid ontbreekt");
+    expect(errors).toEqual([]);
+  });
 });

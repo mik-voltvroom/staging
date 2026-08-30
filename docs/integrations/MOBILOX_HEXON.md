@@ -32,8 +32,8 @@ The hook:
 - rejects DTD/entity declarations and invalid XML;
 - maps the documented flat DV fields to the VVOS vehicle model;
 - converts retail euros to integer cents at the integration boundary;
-- publishes only complete supported electric or hybrid inventory;
-- keeps incomplete vehicles in `review` and rejects combustion-only stock instead of misclassifying it;
+- publishes complete inventory and identifies conventional petrol/diesel vehicles without misclassifying them as hybrid;
+- keeps incomplete vehicles in `review`;
 - archives a vehicle when Hexon sends a delete/offline mutation;
 - persists through Firebase Admin only and returns `503` rather than claiming success when Firestore is unavailable;
 - returns the bare `1`/`0` response expected by the incremental DV client.

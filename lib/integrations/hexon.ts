@@ -248,6 +248,8 @@ function inferDriveType(fuel: string, pluginHybrid: boolean): DriveType {
   if (value === "e" || value === "electric" || value === "elektrisch") return "electric";
   if (pluginHybrid || value === "b,e" || value === "d,e") return "plug-in-hybrid";
   if (value === "h" || value.includes("hybrid") || value.includes("hybride")) return "full-hybrid";
+  if (["b", "d", "l", "lpg", "cng"].includes(value)
+    || /benzine|diesel|petrol|gasoline|aardgas/.test(value)) return "combustion";
   throw new Error(`Niet-ondersteunde aandrijving uit Hexon: ${fuel}.`);
 }
 
@@ -257,6 +259,10 @@ function displayFuelType(fuel: string, driveType: DriveType): string {
   if (value === "B,E") return "Benzine / Elektrisch";
   if (value === "D,E") return "Diesel / Elektrisch";
   if (value === "H") return "Hybride";
+  if (value === "B") return "Benzine";
+  if (value === "D") return "Diesel";
+  if (value === "L" || value === "LPG") return "LPG";
+  if (value === "CNG") return "CNG";
   return fuel;
 }
 

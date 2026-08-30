@@ -52,7 +52,7 @@ export function VehicleForm({ initial }: { initial?: Vehicle }) {
           <label>Kilometerstand<input type="number" value={vehicle.mileageKm} onChange={e => set("mileageKm", Number(e.target.value))} /></label>
           <label>Verkoopprijs<input type="number" min="0" step="0.01" value={centsToEuros(vehicle.priceCents)} onChange={e => set("priceCents", eurosToCents(Number(e.target.value), "priceCents"))} /></label>
           <label>Per maand<input type="number" min="0" step="0.01" value={centsToEuros(vehicle.monthlyPriceCents ?? 0)} onChange={e => set("monthlyPriceCents", eurosToCents(Number(e.target.value), "monthlyPriceCents"))} /></label>
-          <label>Aandrijving<select value={vehicle.driveType} onChange={e => set("driveType", e.target.value as DriveType)}><option value="full-hybrid">Full hybrid</option><option value="plug-in-hybrid">Plug-in hybrid</option><option value="electric">Elektrisch</option></select></label>
+          <label>Aandrijving<select value={vehicle.driveType} onChange={e => set("driveType", e.target.value as DriveType)}><option value="full-hybrid">Full hybrid</option><option value="plug-in-hybrid">Plug-in hybrid</option><option value="electric">Elektrisch</option><option value="combustion">Benzine / diesel</option></select></label>
           <label>Carrosserie<input value={vehicle.bodyStyle} onChange={e => set("bodyStyle", e.target.value)} /></label>
           <label>Kleur<input value={vehicle.color} onChange={e => set("color", e.target.value)} /></label>
           <label>Kenteken<input value={vehicle.licensePlate ?? ""} onChange={e => set("licensePlate", e.target.value.toUpperCase())} /></label>

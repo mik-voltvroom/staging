@@ -6,6 +6,7 @@ import type { Vehicle } from "@/types";
 function driveLabel(value: Vehicle["driveType"]) {
   if (value === "plug-in-hybrid") return "Plug-in hybride";
   if (value === "full-hybrid") return "Hybride";
+  if (value === "combustion") return "Brandstof";
   return "Elektrisch";
 }
 

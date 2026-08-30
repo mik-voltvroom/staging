@@ -1,4 +1,4 @@
-export type DriveType = "full-hybrid" | "plug-in-hybrid" | "electric";
+export type DriveType = "full-hybrid" | "plug-in-hybrid" | "electric" | "combustion";
 export type VehicleStatus = "draft" | "photography" | "review" | "available" | "reserved" | "sold" | "archived";
 export type PublishChannel = "website" | "merchant" | "google_ads" | "meta";
 
