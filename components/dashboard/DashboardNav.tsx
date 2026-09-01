@@ -6,6 +6,7 @@ export function DashboardNav() {
     <nav aria-label="VVOS hoofdnavigatie">
       <Link href="/dashboard">Overzicht</Link>
       <Link href="/dashboard/voorraad">Voorraad</Link>
+      <Link href="/dashboard/inkoop">Inkoop AI</Link>
       <Link href="/dashboard/leads">Leads</Link>
       <Link href="/dashboard/social-video">Social &amp; Video</Link>
       <Link href="/dashboard/werkplaats">Werkplaats</Link>
