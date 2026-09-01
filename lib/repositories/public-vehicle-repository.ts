@@ -3,6 +3,7 @@ import "server-only";
 import { adminDb } from "@/lib/firebase-admin";
 import { vehicles as demoVehicles } from "@/lib/sample-data";
 import { normalizeVehicleDocument } from "@/lib/vehicle/money";
+import { deduplicateVehiclesByIdentity } from "@/lib/vehicle/identity";
 import type { Vehicle } from "@/types";
 
 function isPublishedOnWebsite(vehicle: Vehicle): boolean {
@@ -17,7 +18,7 @@ function newestFirst(left: Vehicle, right: Vehicle): number {
 
 export async function listPublicVehicles(limit = 12): Promise<Vehicle[]> {
   if (process.env.VVOS_DATA_MODE !== "firebase") {
-    return demoVehicles.filter(vehicle => vehicle.status === "available").sort(newestFirst).slice(0, limit);
+    return deduplicateVehiclesByIdentity(demoVehicles.filter(vehicle => vehicle.status === "available").sort(newestFirst)).slice(0, limit);
   }
   if (!adminDb) return [];
 
@@ -37,7 +38,7 @@ export async function listPublicVehicles(limit = 12): Promise<Vehicle[]> {
       console.error("Public vehicle skipped", document.id, error instanceof Error ? error.message : "unknown error");
     }
   }
-  return vehicles.sort(newestFirst).slice(0, limit);
+  return deduplicateVehiclesByIdentity(vehicles.sort(newestFirst)).slice(0, limit);
 }
 
 export async function getPublicVehicleBySlug(slug: string): Promise<Vehicle | undefined> {

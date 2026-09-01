@@ -3,9 +3,99 @@ import { adminDb } from "@/lib/firebase-admin";
 import { parseHexonMutation } from "@/lib/integrations/hexon";
 import { persistHexonImages } from "@/lib/integrations/hexon-images";
 import { recordVehiclePrice } from "@/lib/vehicle/business";
+import { vehicleIdentityKeys } from "@/lib/vehicle/identity";
+import type { Vehicle } from "@/types";
 
 export const HEXON_MAX_BODY_BYTES = 2_000_000;
 const HEXON_PROCESSOR_VERSION = "2";
+
+const DUPLICATE_ARCHIVE_REASON = "Vervangen door actueler Mobilox/Hexon-voertuigrecord";
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function isProviderManagedVehicle(id: string, data: Record<string, unknown>): boolean {
+  const provider = String(asRecord(data.source).provider ?? "");
+  return ["mobilox-hexon", "mobilox", "hexon"].includes(provider)
+    || id.startsWith("hexon-")
+    || id.startsWith("mobilox-");
+}
+
+function duplicateArchivePatch(data: Record<string, unknown>, winnerId: string, now: string) {
+  const publication = asRecord(data.publication);
+  const source = asRecord(data.source);
+  const existingErrors = Array.isArray(publication.validationErrors)
+    ? publication.validationErrors.filter((value): value is string => typeof value === "string")
+    : [];
+  return {
+    status: "archived",
+    publication: {
+      ...publication,
+      channels: { website: false, merchant: false, google_ads: false, meta: false },
+      completenessPercent: typeof publication.completenessPercent === "number" ? publication.completenessPercent : 0,
+      lastValidatedAt: now,
+      validationErrors: [...new Set([...existingErrors, DUPLICATE_ARCHIVE_REASON])],
+    },
+    updatedAt: now,
+    source: { ...source, supersededBy: winnerId, supersededAt: now },
+  };
+}
+
+async function findDuplicateVehicleRefs(vehicleId: string, vehicle: Pick<Vehicle, "vin" | "licensePlate">) {
+  if (!adminDb) return [];
+  const matches = new Map<string, FirebaseFirestore.DocumentReference>();
+  const identities: Array<["vin" | "licensePlate", string]> = [];
+  if (vehicle.vin) identities.push(["vin", vehicle.vin]);
+  if (vehicle.licensePlate) identities.push(["licensePlate", vehicle.licensePlate]);
+
+  for (const [field, value] of identities) {
+    const snapshot = await adminDb.collection("vehicles").where(field, "==", value).limit(10).get();
+    for (const document of snapshot.docs) {
+      if (document.id !== vehicleId) matches.set(document.id, document.ref);
+    }
+  }
+  return [...matches.values()];
+}
+
+export async function reconcileHexonInventoryDuplicates(): Promise<{ scanned: number; archived: number }> {
+  if (!adminDb) throw new Error("VVOS database niet beschikbaar.");
+  const snapshot = await adminDb.collection("vehicles").where("status", "==", "available").get();
+  const candidates = snapshot.docs
+    .filter(document => isProviderManagedVehicle(document.id, document.data()))
+    .sort((left, right) => {
+      const leftTime = Date.parse(String(left.data().updatedAt ?? "")) || 0;
+      const rightTime = Date.parse(String(right.data().updatedAt ?? "")) || 0;
+      return rightTime - leftTime;
+    });
+
+  const identityOwners = new Map<string, string>();
+  const duplicates: Array<{ id: string; winnerId: string; data: Record<string, unknown> }> = [];
+  for (const document of candidates) {
+    const data = document.data();
+    const keys = vehicleIdentityKeys({
+      vin: typeof data.vin === "string" ? data.vin : undefined,
+      licensePlate: typeof data.licensePlate === "string" ? data.licensePlate : undefined,
+    });
+    const winnerId = keys.map(key => identityOwners.get(key)).find(Boolean);
+    if (winnerId) {
+      duplicates.push({ id: document.id, winnerId, data });
+      continue;
+    }
+    for (const key of keys) identityOwners.set(key, document.id);
+  }
+
+  const now = new Date().toISOString();
+  for (let offset = 0; offset < duplicates.length; offset += 400) {
+    const batch = adminDb.batch();
+    for (const duplicate of duplicates.slice(offset, offset + 400)) {
+      batch.set(adminDb.collection("vehicles").doc(duplicate.id), duplicateArchivePatch(duplicate.data, duplicate.winnerId, now), { merge: true });
+    }
+    await batch.commit();
+  }
+  return { scanned: candidates.length, archived: duplicates.length };
+}
+
 
 function safeEqual(actual: string, expected: string): boolean {
   const a = Buffer.from(actual);
@@ -31,7 +121,7 @@ export function hexonCredentialsConfigured(): boolean {
   return Boolean(process.env.HEXON_SYNC_USERNAME && process.env.HEXON_SYNC_PASSWORD);
 }
 
-export async function processHexonInventoryXml(xml: string): Promise<{ duplicate: boolean; externalId: string; action: string; providerAction: string }> {
+export async function processHexonInventoryXml(xml: string): Promise<{ duplicate: boolean; externalId: string; action: string; providerAction: string; archivedDuplicates: number }> {
   if (!adminDb) throw new Error("VVOS database niet beschikbaar.");
   const mutation = parseHexonMutation(xml);
   const payloadHash = createHash("sha256").update(xml).digest("hex");
@@ -40,6 +130,7 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
   const vehicleRef = adminDb.doc(`vehicles/${mutation.vehicle?.id ?? `hexon-${mutation.externalId}`}`);
   const now = new Date().toISOString();
   let duplicate = false;
+  let archivedDuplicates = 0;
   let imageFailures: Array<{ sourceUrl: string; message: string }> = [];
 
   const alreadyProcessed = await eventRef.get();
@@ -49,6 +140,7 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
       externalId: mutation.externalId,
       action: mutation.action,
       providerAction: mutation.providerAction,
+      archivedDuplicates: 0,
     };
   }
 
@@ -58,6 +150,10 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
     if (persisted.images.length) mutation.vehicle.images = persisted.images;
   }
 
+  const duplicateVehicleRefs = mutation.action === "upsert" && mutation.vehicle
+    ? await findDuplicateVehicleRefs(vehicleRef.id, mutation.vehicle)
+    : [];
+
   await adminDb.runTransaction(async transaction => {
     const event = await transaction.get(eventRef);
     if (event.exists) {
@@ -66,6 +162,7 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
     }
 
     const current = await transaction.get(vehicleRef);
+    const duplicateSnapshots = await Promise.all(duplicateVehicleRefs.map(reference => transaction.get(reference)));
     if (mutation.action === "archive") {
       if (current.exists) {
         transaction.set(vehicleRef, {
@@ -82,6 +179,12 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
       }
     } else {
       if (!mutation.vehicle) throw new Error("Hexon voertuigdata ontbreekt.");
+      for (const duplicateSnapshot of duplicateSnapshots) {
+        const duplicateData = duplicateSnapshot.data();
+        if (!duplicateData || !isProviderManagedVehicle(duplicateSnapshot.id, duplicateData) || duplicateData.status === "archived") continue;
+        transaction.set(duplicateSnapshot.ref, duplicateArchivePatch(duplicateData, vehicleRef.id, now), { merge: true });
+        archivedDuplicates += 1;
+      }
       const currentData = current.data();
       const commercial = recordVehiclePrice(
         currentData?.commercial,
@@ -119,8 +222,9 @@ export async function processHexonInventoryXml(xml: string): Promise<{ duplicate
       processedAt: now,
       imageFailures: imageFailures.slice(0, 20),
       result: imageFailures.length ? "accepted_with_image_warnings" : "accepted",
+      archivedDuplicates,
     });
   });
 
-  return { duplicate, externalId: mutation.externalId, action: mutation.action, providerAction: mutation.providerAction };
+  return { duplicate, externalId: mutation.externalId, action: mutation.action, providerAction: mutation.providerAction, archivedDuplicates };
 }
