@@ -15,8 +15,8 @@ describe("vehicle inventory identity", () => {
   });
 
   it("does not collapse vehicles without VIN or license plate", () => {
-    const first = { id: "manual-1" };
-    const second = { id: "manual-2" };
+    const first = { id: "manual-1", vin: undefined, licensePlate: undefined };
+    const second = { id: "manual-2", vin: undefined, licensePlate: undefined };
     expect(deduplicateVehiclesByIdentity([first, second])).toEqual([first, second]);
   });
 });
