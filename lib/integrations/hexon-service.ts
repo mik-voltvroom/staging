@@ -1,4 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
+import type { DocumentReference } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { parseHexonMutation } from "@/lib/integrations/hexon";
 import { persistHexonImages } from "@/lib/integrations/hexon-images";
@@ -44,7 +45,7 @@ function duplicateArchivePatch(data: Record<string, unknown>, winnerId: string, 
 
 async function findDuplicateVehicleRefs(vehicleId: string, vehicle: Pick<Vehicle, "vin" | "licensePlate">) {
   if (!adminDb) return [];
-  const matches = new Map<string, FirebaseFirestore.DocumentReference>();
+  const matches = new Map<string, DocumentReference>();
   const identities: Array<["vin" | "licensePlate", string]> = [];
   if (vehicle.vin) identities.push(["vin", vehicle.vin]);
   if (vehicle.licensePlate) identities.push(["licensePlate", vehicle.licensePlate]);
