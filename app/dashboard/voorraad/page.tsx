@@ -8,6 +8,7 @@ import { eur } from "@/lib/format";
 import { grossMargin } from "@/lib/business";
 import { centsToEuros } from "@/lib/money";
 import { vehicleCommercialSummary } from "@/lib/vehicle/business";
+import { calculateOpportunityScore } from "@/lib/vehicle/opportunity";
 
 export default function InventoryPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -20,10 +21,7 @@ export default function InventoryPage() {
     const load = async () => {
       try {
         const items = await listVehicles();
-        if (active) {
-          setVehicles(items);
-          setError(null);
-        }
+        if (active) { setVehicles(items); setError(null); }
       } catch (loadError) {
         if (active) setError(loadError instanceof Error ? loadError.message : "Voorraad laden mislukt.");
       }
@@ -41,13 +39,15 @@ export default function InventoryPage() {
   );
 
   return <main className="container dashboardPage">
-    <div className="pageTitle"><div><p className="eyebrow">Voorraadbeheer</p><h1>Alle voertuigen</h1><p className="muted">Eén voorraadbron voor website en VVOS. Mobilox/Hexon-mutaties verschijnen hier automatisch.</p></div><Link className="button" href="/dashboard/voorraad/nieuw">+ Nieuwe auto</Link></div>
+    <div className="pageTitle"><div><p className="eyebrow">Voorraadbeheer</p><h1>Alle voertuigen</h1><p className="muted">Eén commerciële waarheid voor Mobilox, VVOS en website. Opportunity Score v1 toont alleen bewezen data; ontbrekende marktdata blijft expliciet onbekend.</p></div><Link className="button" href="/dashboard/voorraad/nieuw">+ Nieuwe auto</Link></div>
     {error ? <div className="notice noticeError">{error}</div> : null}
     <div className="toolbar"><input placeholder="Zoek merk, model of kenteken" value={query} onChange={e=>setQuery(e.target.value)} /><select value={status} onChange={e=>setStatus(e.target.value as VehicleStatus|"all")}><option value="all">Alle statussen</option><option value="draft">Concept</option><option value="photography">Fotografie</option><option value="review">Controle</option><option value="available">Beschikbaar</option><option value="reserved">Gereserveerd</option><option value="sold">Verkocht</option></select></div>
-    <div className="tableWrap"><table><thead><tr><th>Voertuig</th><th>Status</th><th>Verkoop</th><th>Marge</th><th>Statijd</th><th>Interesse</th><th>Compleet</th></tr></thead><tbody>{filtered.map(v => {
+    <div className="tableWrap"><table><thead><tr><th>Voertuig</th><th>Status</th><th>Verkoop</th><th>Marge</th><th>Statijd</th><th>Interesse</th><th>Opportunity</th><th>Compleet</th></tr></thead><tbody>{filtered.map(v => {
       const commercial = vehicleCommercialSummary(v);
       const margin = v.costs?.purchasePriceCents ? grossMargin(v.commercial?.soldPriceCents ?? v.priceCents, v.costs) : undefined;
-      return <tr key={v.id}><td><Link className="tableVehicle" href={`/dashboard/voorraad/${v.id}`}><img src={v.images[0] || "https://placehold.co/140x90?text=Geen+foto"} alt=""/><span><strong>{v.brand} {v.model}</strong><small>{v.trim} · {v.year} · {v.mileageKm.toLocaleString("nl-NL")} km</small></span></Link></td><td><span className={`statusPill status-${v.status}`}>{v.status}</span></td><td>{eur.format(centsToEuros(v.priceCents))}</td><td className={margin !== undefined && commercial.marginOnTarget ? "marginGood" : "marginWarn"}>{margin !== undefined ? eur.format(centsToEuros(margin)) : "–"}</td><td className={commercial.stockDays > (v.commercial?.maxStockDays ?? 45) ? "marginWarn" : ""}>{commercial.stockDays} d</td><td>{commercial.totalViewCount} views · {commercial.totalLeadCount} leads</td><td>{v.publication?.completenessPercent ?? 0}%</td></tr>;
+      const opportunity = calculateOpportunityScore(v);
+      const incomplete = opportunity.missingInputs.length > 0;
+      return <tr key={v.id}><td><Link className="tableVehicle" href={`/dashboard/voorraad/${v.id}`}><img src={v.images[0] || "https://placehold.co/140x90?text=Geen+foto"} alt=""/><span><strong>{v.brand} {v.model}</strong><small>{v.trim} · {v.year} · {v.mileageKm.toLocaleString("nl-NL")} km</small></span></Link></td><td><span className={`statusPill status-${v.status}`}>{v.status}</span></td><td>{eur.format(centsToEuros(v.priceCents))}</td><td className={margin !== undefined && commercial.marginOnTarget ? "marginGood" : "marginWarn"}>{margin !== undefined ? eur.format(centsToEuros(margin)) : "–"}</td><td className={commercial.stockDays > (v.commercial?.maxStockDays ?? 45) ? "marginWarn" : ""}>{commercial.stockDays} d</td><td>{commercial.totalViewCount} views · {commercial.totalLeadCount} leads</td><td title={incomplete ? `Ontbreekt: ${opportunity.missingInputs.join(", ")}` : opportunity.factors.map(f => f.reason).join(" · ")}><strong>{opportunity.score}/100</strong><br/><small>{opportunity.advice.replace("_", " ")}{incomplete ? " · data aanvullen" : ""}</small></td><td>{v.publication?.completenessPercent ?? 0}%</td></tr>;
     })}</tbody></table></div>
   </main>;
 }
