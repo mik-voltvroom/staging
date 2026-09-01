@@ -5,10 +5,11 @@ type RawMap = Record<string, unknown>;
 
 type FirestoreVehicle = RawMap & {
   id?: string;
-  source?: string;
+  source?: RawMap | string;
   syncStatus?: string;
   raw?: RawMap;
   hybrid?: RawMap;
+  publication?: RawMap;
 };
 
 function text(value: unknown): string | undefined {
@@ -41,44 +42,68 @@ function rawValue(vehicle: FirestoreVehicle, key: string) {
   return vehicle.raw?.[key];
 }
 
+function sourceLabel(vehicle: FirestoreVehicle): string {
+  if (typeof vehicle.source === "object" && vehicle.source) {
+    const provider = text((vehicle.source as RawMap).provider);
+    if (provider === "mobilox-hexon") return "Hexon / Mobilox";
+  }
+  if (vehicle.source === "mobilox") return "Hexon / Mobilox";
+  return "Volt & Vroom";
+}
+
+function websiteEnabled(vehicle: FirestoreVehicle): boolean {
+  const publication = vehicle.publication as RawMap | undefined;
+  const channels = publication?.channels as RawMap | undefined;
+  const canonicalDecision = bool(channels?.website);
+  if (canonicalDecision !== undefined) return canonicalDecision;
+  const status = text(vehicle.status);
+  if (status) return status === "available";
+  const sold = bool(vehicle.sold) ?? bool(rawValue(vehicle, "verkocht")) ?? false;
+  return vehicle.syncStatus !== "deleted" && !sold;
+}
+
 export type PublicVehicle = ReturnType<typeof projectPublicVehicle>;
 
 export function projectPublicVehicle(vehicle: FirestoreVehicle) {
   const hybrid = (vehicle.hybrid ?? {}) as RawMap;
   const id = text(vehicle.id) ?? "";
-  const imageUrls = list(vehicle.imageUrls).length ? list(vehicle.imageUrls) : list(rawValue(vehicle, "afbeeldingen"));
-  const sold = bool(vehicle.sold) ?? bool(rawValue(vehicle, "verkocht")) ?? false;
-  const reserved = bool(vehicle.reserved) ?? bool(rawValue(vehicle, "gereserveerd")) ?? false;
+  const canonicalImages = list(vehicle.images);
+  const legacyImages = list(vehicle.imageUrls).length ? list(vehicle.imageUrls) : list(rawValue(vehicle, "afbeeldingen"));
+  const imageUrls = canonicalImages.length ? canonicalImages : legacyImages;
+  const status = text(vehicle.status);
+  const sold = status === "sold" || bool(vehicle.sold) === true || bool(rawValue(vehicle, "verkocht")) === true;
+  const reserved = status === "reserved" || bool(vehicle.reserved) === true || bool(rawValue(vehicle, "gereserveerd")) === true;
+  const priceCents = number(vehicle.priceCents);
 
   return {
     id,
-    slug: id,
-    source: vehicle.source === "mobilox" ? "Hexon / Mobilox" : "Volt & Vroom",
-    available: vehicle.syncStatus !== "deleted" && !sold,
+    slug: text(vehicle.slug) ?? id,
+    source: sourceLabel(vehicle),
+    available: websiteEnabled(vehicle) && !sold,
     reserved,
     brand: text(vehicle.brand) ?? text(rawValue(vehicle, "merk")) ?? "",
     model: text(vehicle.model) ?? text(rawValue(vehicle, "model")) ?? "",
-    trim: text(vehicle.type) ?? text(rawValue(vehicle, "type")) ?? "",
+    trim: text(vehicle.trim) ?? text(vehicle.type) ?? text(rawValue(vehicle, "type")) ?? "",
     licensePlate: text(vehicle.licensePlate) ?? text(rawValue(vehicle, "kenteken")),
     vin: text(vehicle.vin) ?? undefined,
     year: number(vehicle.year) ?? number(rawValue(vehicle, "bouwjaar")),
-    mileageKm: number(vehicle.mileage) ?? number(rawValue(vehicle, "tellerstand")),
-    priceEur: number(vehicle.retailPrice) ?? number(rawValue(vehicle, "verkoopprijs_particulier_bedrag")),
-    fuelType: text(vehicle.fuel) ?? text(rawValue(vehicle, "brandstof")),
+    mileageKm: number(vehicle.mileageKm) ?? number(vehicle.mileage) ?? number(rawValue(vehicle, "tellerstand")),
+    priceEur: priceCents !== undefined ? priceCents / 100 : number(vehicle.retailPrice) ?? number(rawValue(vehicle, "verkoopprijs_particulier_bedrag")),
+    fuelType: text(vehicle.fuelType) ?? text(vehicle.fuel) ?? text(rawValue(vehicle, "brandstof")),
     transmission: text(vehicle.transmission) ?? text(rawValue(vehicle, "transmissie")),
-    bodyStyle: text(vehicle.body) ?? text(rawValue(vehicle, "carrosserie")),
-    color: text(vehicle.color) ?? text(rawValue(vehicle, "kleur")),
+    bodyStyle: text(vehicle.bodyStyle) ?? text(vehicle.body) ?? text(rawValue(vehicle, "carrosserie")),
+    color: text(vehicle.color) ?? text(rawValue(vehicle, "kleur")) ?? text(rawValue(vehicle, "basiskleur")),
     firstRegistrationDate: text(vehicle.firstRegistrationDate) ?? text(rawValue(vehicle, "datum_deel_1")),
     vatMargin: text(vehicle.vatMargin) ?? text(rawValue(vehicle, "btw_marge")),
     imageUrls,
     title: text(vehicle.title) ?? text(rawValue(vehicle, "titel")),
-    highlights: text(vehicle.highlights) ?? text(rawValue(vehicle, "highlights")),
+    highlights: list(vehicle.highlights).join(", ") || text(rawValue(vehicle, "highlights")),
     description: text(vehicle.description) ?? text(rawValue(vehicle, "opmerkingen")),
     accessories: list(vehicle.accessories).length ? list(vehicle.accessories) : list(rawValue(vehicle, "accessoires")),
 
     powerHp: number(vehicle.powerHp) ?? number(rawValue(vehicle, "vermogen_motor_pk")) ?? number(rawValue(vehicle, "vermogen_pk")),
     powerKw: number(vehicle.powerKw) ?? number(rawValue(vehicle, "vermogen_motor_kw")) ?? number(rawValue(vehicle, "vermogen_kw")),
-    engineCapacityCc: number(vehicle.engineCapacityCc) ?? number(rawValue(vehicle, "cilinderinhoud")),
+    engineCapacityCc: number(vehicle.engineCapacityCc) ?? number(rawValue(vehicle, "cilinder_inhoud")) ?? number(rawValue(vehicle, "cilinderinhoud")),
     doors: number(vehicle.doors) ?? number(rawValue(vehicle, "aantal_deuren")),
     seats: number(vehicle.seats) ?? number(rawValue(vehicle, "aantal_zitplaatsen")),
     weightKg: number(vehicle.weightKg) ?? number(rawValue(vehicle, "massa")),
@@ -92,8 +117,8 @@ export function projectPublicVehicle(vehicle: FirestoreVehicle) {
 
     hybridType: text(hybrid.hybridType) ?? text(rawValue(vehicle, "type_hybride")),
     pluginHybrid: bool(hybrid.pluginHybrid) ?? bool(rawValue(vehicle, "plugin_hybride")),
-    batteryHealthPercent: number(hybrid.batteryConditionPct) ?? number(rawValue(vehicle, "accu_conditie")),
-    electricRangeKm: number(hybrid.electricRangeKm) ?? number(rawValue(vehicle, "actieradius_elektrisch")),
+    batteryHealthPercent: number(vehicle.batteryHealthPercent) ?? number(hybrid.batteryConditionPct) ?? number(rawValue(vehicle, "accu_conditie")),
+    electricRangeKm: number(vehicle.electricRangeKm) ?? number(hybrid.electricRangeKm) ?? number(rawValue(vehicle, "actieradius_elektrisch")),
     electricPowerKw: number(hybrid.electricPowerKw) ?? number(rawValue(vehicle, "vermogen_elektrisch_kw")),
     electricPowerHp: number(hybrid.electricPowerHp) ?? number(rawValue(vehicle, "vermogen_elektrisch_pk")),
     chargingPowerKw: number(hybrid.chargingPowerKw) ?? number(rawValue(vehicle, "accu_laadvermogen")),
