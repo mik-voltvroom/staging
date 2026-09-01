@@ -30,7 +30,7 @@ describe("publieke Volt & Vroom website", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Slim rijden.");
     expect(homepage).toContain("Meer genieten.");
-    expect(homepage).toContain("Zorgvuldig geselecteerde occasions met aantoonbare historie");
+    expect(homepage).toContain("Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie");
     expect(homepage.indexOf('href="#uitgelicht"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
   });
 
@@ -47,13 +47,13 @@ describe("publieke Volt & Vroom website", () => {
 
   it("formuleert de selectienorm controleerbaar en zonder onnodige absolute claims", () => {
     const homepage = read("app/page.tsx");
-    expect(homepage).toContain("Kilometerstand beoordeeld");
-    expect(homepage).toContain("Aantoonbare historie");
-    expect(homepage).toContain("Technisch geselecteerd");
-    expect(homepage).toContain("Onderhoud en herkomst inzichtelijk");
-    expect(homepage).toContain("Accu-inzicht waar relevant");
+    expect(homepage).toContain("Dealeronderhouden");
+    expect(homepage).toContain("Hybride, elektrisch of Icon");
+    expect(homepage).toContain("VV Verified rapport");
+    expect(homepage).toContain("SOH bij hybride & EV");
+    expect(homepage).toContain("Volt & Vroom Verified");
+    expect(homepage).not.toContain("Altijd dealeronderhouden");
     expect(homepage).not.toContain("Eén eigenaar");
-    expect(homepage).not.toContain("Dealeronderhouden");
   });
 
   it("houdt de selectienorm en hero-acties compact op mobiel", () => {
