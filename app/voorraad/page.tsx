@@ -16,8 +16,8 @@ export default async function InventoryPage() {
     <main style={{ maxWidth: 1320, margin: "0 auto", padding: "72px 28px 96px" }}>
       <header style={{ maxWidth: 760, marginBottom: 52 }}>
         <p style={{ margin: "0 0 14px", fontSize: 12, letterSpacing: ".14em", textTransform: "uppercase", color: "#64717c" }}>Volt & Vroom selectie</p>
-        <h1 style={{ margin: 0, fontSize: "clamp(40px, 6vw, 72px)", lineHeight: .98, letterSpacing: "-.055em", fontWeight: 650 }}>Auto’s die we zelf<br />zouden rijden.</h1>
-        <p style={{ margin: "24px 0 0", maxWidth: 620, fontSize: 18, lineHeight: 1.65, color: "#64717c" }}>Een compacte selectie hybride en geëlektrificeerde auto’s. Duidelijke data, transparante techniek en geen onnodige verkooppraat.</p>
+        <h1 style={{ margin: 0, fontSize: "clamp(40px, 6vw, 72px)", lineHeight: .98, letterSpacing: "-.055em", fontWeight: 650 }}>Geselecteerde auto’s.<br />Helder gepresenteerd.</h1>
+        <p style={{ margin: "24px 0 0", maxWidth: 620, fontSize: 18, lineHeight: 1.65, color: "#64717c" }}>Actuele hybride, elektrische en bijzondere occasions. Bekijk per auto de bekende gegevens en onze belangrijkste controlepunten.</p>
       </header>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #dfe5e8", paddingTop: 18, marginBottom: 28 }}>
@@ -36,6 +36,7 @@ export default async function InventoryPage() {
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", marginTop: 22, paddingTop: 18, borderTop: "1px solid #edf0f2", color: "#52606b", fontSize: 14 }}>
               {vehicle.year ? <span>{vehicle.year}</span> : null}{vehicle.mileageKm !== undefined ? <span>{number.format(vehicle.mileageKm)} km</span> : null}{vehicle.transmission ? <span>{vehicle.transmission}</span> : null}{vehicle.fuelType ? <span>{vehicle.fuelType}</span> : null}
             </div>
+            <span style={{ display: "inline-flex", marginTop: 22, minHeight: 44, alignItems: "center", color: "#0879dc", fontWeight: 750 }}>Bekijk auto →</span>
           </div>
         </Link>)}
       </div>}

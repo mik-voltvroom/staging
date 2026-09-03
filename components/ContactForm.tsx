@@ -53,11 +53,11 @@ export function ContactForm({ vehicles }: { vehicles: { id: string; label: strin
   }
 
   return <form className="contactForm" onSubmit={submit} noValidate>
-    <div className="formHeader"><span>Persoonlijk antwoord</span><strong>Tijdens openingstijden reageren we meestal snel persoonlijk</strong></div>
+    <div className="formHeader"><span>Persoonlijk antwoord</span><strong>U krijgt persoonlijk antwoord van Mik.</strong></div>
     <div className="formGrid publicFormGrid">
-      <label>Naam<input name="name" autoComplete="name" minLength={2} required /></label>
-      <label>Telefoon<input name="phone" type="tel" autoComplete="tel" minLength={8} /></label>
-      <label className="span2">E-mailadres<input name="email" type="email" autoComplete="email" /></label>
+      <label>Naam <span className="fieldHint">verplicht</span><input name="name" autoComplete="name" minLength={2} required /></label>
+      <label>Telefoon <span className="fieldHint">optioneel</span><input name="phone" type="tel" autoComplete="tel" minLength={8} /></label>
+      <label className="span2">E-mailadres <span className="fieldHint">optioneel</span><input name="email" type="email" autoComplete="email" /></label>
       <label>Voorkeur contact<select name="contactPreference" defaultValue="phone"><option value="phone">Bel mij</option><option value="email">E-mail mij</option></select></label>
       <label>Waarmee kunnen we helpen?<select name="interest" defaultValue="Adviesgesprek"><option>Adviesgesprek</option><option>Proefrit plannen</option><option>Inruil bespreken</option><option>Vraag over voorraad</option></select></label>
       <label className="span2">Voorkeursauto<select name="vehicleId" defaultValue=""><option value="">Nog geen voorkeur</option>{vehicles.map(vehicle => <option value={vehicle.id} key={vehicle.id}>{vehicle.label}</option>)}</select></label>
