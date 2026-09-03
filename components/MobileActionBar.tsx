@@ -12,7 +12,7 @@ function WhatsAppIcon() {
 }
 
 function RouteIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.5 6-11a6 6 0 1 0-12 0c0 5.5 6 11 6 11Z" /><circle cx="12" cy="10" r="2.2" /></svg>;
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 16-16-5.2 14.2-3.2-5.8L4 20Z" /></svg>;
 }
 
 export function MobileActionBar() {
@@ -38,8 +38,8 @@ export function MobileActionBar() {
   }, [pathname]);
 
   return <div className={`mobileActionBar${formInView ? " isHidden" : ""}`} aria-label="Snelle acties" aria-hidden={formInView || undefined}>
-    <a href="tel:+31502113883" data-vv-event="phone_click" aria-label="Bel Volt & Vroom"><PhoneIcon /><span>Bel</span></a>
-    <a href={whatsappHref} target="_blank" rel="noopener noreferrer" data-vv-event="chat_click" aria-label="Stuur Volt & Vroom een WhatsApp-bericht"><WhatsAppIcon /><span>WhatsApp</span></a>
-    <a href={routeHref} target="_blank" rel="noopener noreferrer" data-vv-event="route_click" aria-label="Plan route naar Volt & Vroom"><RouteIcon /><span>Route</span></a>
+    <a className="contactAction contactActionPhone" href="tel:+31502113883" data-vv-event="phone_click" aria-label="Bel Volt & Vroom"><PhoneIcon /><span>Bel</span></a>
+    <a className="contactAction contactActionWhatsapp" href={whatsappHref} target="_blank" rel="noopener noreferrer" data-vv-event="chat_click" aria-label="Stuur Volt & Vroom een WhatsApp-bericht"><WhatsAppIcon /><span>WhatsApp</span></a>
+    <a className="contactAction contactActionRoute" href={routeHref} target="_blank" rel="noopener noreferrer" data-vv-event="route_click" aria-label="Plan route naar Volt & Vroom"><RouteIcon /><span>Route</span></a>
   </div>;
 }
