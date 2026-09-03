@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import { adminDb } from "@/lib/firebase-admin";
 
 const WINDOW_MS = 15 * 60 * 1000;
-const MAX_REQUESTS = 5;
 
 function clientAddress(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -15,18 +14,18 @@ function fingerprint(request: Request): string {
   return createHash("sha256").update(source).digest("hex").slice(0, 32);
 }
 
-export async function consumePublicLeadQuota(request: Request): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+async function consumePublicQuota(request: Request, scope: string, maxRequests: number): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
   if (!adminDb) return { allowed: false, retryAfterSeconds: 60 };
 
   const now = Date.now();
   const bucket = Math.floor(now / WINDOW_MS);
-  const id = `${fingerprint(request)}-${bucket}`;
+  const id = `${scope}-${fingerprint(request)}-${bucket}`;
   const ref = adminDb.collection("_publicRateLimits").doc(id);
 
   const allowed = await adminDb.runTransaction(async transaction => {
     const snapshot = await transaction.get(ref);
     const count = Number(snapshot.data()?.count || 0);
-    if (count >= MAX_REQUESTS) return false;
+    if (count >= maxRequests) return false;
 
     transaction.set(ref, {
       count: count + 1,
@@ -39,4 +38,12 @@ export async function consumePublicLeadQuota(request: Request): Promise<{ allowe
 
   const retryAfterSeconds = Math.max(1, Math.ceil(((bucket + 1) * WINDOW_MS - now) / 1000));
   return { allowed, retryAfterSeconds };
+}
+
+export function consumePublicLeadQuota(request: Request) {
+  return consumePublicQuota(request, "lead", 5);
+}
+
+export function consumePublicLookupQuota(request: Request) {
+  return consumePublicQuota(request, "lookup", 20);
 }
