@@ -50,7 +50,7 @@ describe("publieke Volt & Vroom website", () => {
     expect(homepage).toContain("Historie gecontroleerd");
     expect(homepage).toContain("Techniek beoordeeld");
     expect(homepage).toContain("Accudata waar beschikbaar");
-    expect(homepage).toContain("Volt & Vroom controle");
+    expect(homepage).toContain("Volt &amp; Vroom controle");
     expect(homepage).not.toContain("Hybrid Intelligence");
     expect(homepage).not.toContain("Altijd dealeronderhouden");
     expect(homepage).not.toContain("Eén eigenaar");
