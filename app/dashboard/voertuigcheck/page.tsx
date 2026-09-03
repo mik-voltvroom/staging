@@ -42,19 +42,48 @@ function newReport(): Report {
 
 const statusLabels: Record<Status,string> = {ok:"Goed",attention:"Aandacht",fail:"Afkeur",na:"N.v.t."};
 
-function parseLaunchHealthReport(raw:string){
+type LaunchFault = { system:string; code:string; description:string; status:string };
+type LaunchParsed = { vin:string; plate:string; brand:string; model:string; mileage:string; soh:string; soc:string; cellDelta:string; dtcs:string; systemCount:number; faultCount:number; activeCount:number };
+
+function decodeLaunchBase64<T>(value:string):T{
+  const bytes=Uint8Array.from(atob(value),character=>character.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes)) as T;
+}
+
+function parseLaunchText(raw:string):LaunchParsed{
   const clean=raw.replace(/\r/g,"");
-  const find=(patterns:RegExp[])=>{for(const p of patterns){const m=clean.match(p);if(m?.[1])return m[1].trim()}return ""};
-  const vin=find([/(?:VIN|Vehicle Identification Number|Chassis No\.?)[\s:#-]*([A-HJ-NPR-Z0-9]{17})/i,/\b([A-HJ-NPR-Z0-9]{17})\b/]);
-  const plate=find([/(?:License Plate|Registration|Kenteken)[\s:#-]*([A-Z0-9-]{5,12})/i]);
-  const brand=find([/(?:Vehicle Make|Manufacturer|Merk)[\s:#-]*([^\n]+)/i]);
-  const model=find([/(?:Vehicle Model|Model)[\s:#-]*([^\n]+)/i]);
-  const mileage=find([/(?:Mileage|Odometer|Kilometerstand)[\s:#-]*([0-9.,]+)/i]);
-  const soh=find([/(?:State of Health|SOH)[\s:#-]*([0-9.,]+)\s*%/i]);
-  const soc=find([/(?:State of Charge|SOC)[\s:#-]*([0-9.,]+)\s*%/i]);
-  const cellDelta=find([/(?:Cell (?:voltage )?(?:delta|difference|deviation)|Celspreiding)[\s:#-]*([0-9.,]+)\s*mV/i]);
-  const dtcLines=[...new Set(clean.split("\n").filter(line=>/\b[PBCU][0-9A-F]{4}\b/i.test(line)).map(line=>line.trim()).filter(Boolean))];
-  return {vin,plate,brand,model,mileage,soh,soc,cellDelta,dtcs:dtcLines.join("\n")};
+  const find=(patterns:RegExp[])=>{for(const p of patterns){const match=clean.match(p);if(match?.[1])return match[1].trim()}return ""};
+  const lines=[...new Set(clean.split("\n").filter(line=>/\b[PBCU][0-9A-F]{4,6}\b/i.test(line)).map(line=>line.trim()).filter(Boolean))];
+  return {
+    vin:find([/(?:VIN|Vehicle Identification Number|Chassis No\.?)[\s:#-]*([A-HJ-NPR-Z0-9]{17})/i,/\b([A-HJ-NPR-Z0-9]{17})\b/]),
+    plate:find([/(?:License Plate|Registration|Kenteken)[\s:#-]*([A-Z0-9-]{5,12})/i]),
+    brand:find([/(?:Vehicle Make|Manufacturer|Merk)[\s:#-]*([^\n]+)/i]),
+    model:find([/(?:Vehicle Model|Model)[\s:#-]*([^\n]+)/i]),
+    mileage:find([/(?:Mileage|Odometer|Kilometerstand)[\s:#-]*([0-9.,]+)/i]),
+    soh:find([/(?:State of Health|SOH)[\s:#-]*([0-9.,]+)\s*%/i]),
+    soc:find([/(?:State of Charge|SOC)[\s:#-]*([0-9.,]+)\s*%/i]),
+    cellDelta:find([/(?:Cell (?:voltage )?(?:delta|difference|deviation)|Celspreiding)[\s:#-]*([0-9.,]+)\s*mV/i]),
+    dtcs:lines.join("\n"),systemCount:0,faultCount:lines.length,activeCount:0
+  };
+}
+
+async function parseLaunchFile(file:File):Promise<LaunchParsed>{
+  if(!file.name.toLowerCase().endsWith(".pdf"))return parseLaunchText(await file.text());
+  const pdf=new TextDecoder("latin1").decode(await file.arrayBuffer());
+  const titleEncoded=pdf.match(/\/Title\(([A-Za-z0-9+/=]+)\)/)?.[1];
+  const keywordsEncoded=pdf.match(/\/Keywords\(([A-Za-z0-9+/=]+)\)/)?.[1];
+  if(!titleEncoded||!keywordsEncoded)throw new Error("Launch metadata ontbreekt");
+  const info=decodeLaunchBase64<{Vin?:string;Make?:string;Model?:string;tester?:string}>(titleEncoded);
+  const data=decodeLaunchBase64<{systemStateBeanList?:Array<{systemName?:string;faultCodesList?:Array<{title?:string;context?:string;status?:string}>}>}>(keywordsEncoded);
+  const systems=data.systemStateBeanList??[];
+  const faults:LaunchFault[]=systems.flatMap(system=>(system.faultCodesList??[]).map(fault=>({
+    system:system.systemName??"Onbekend systeem",code:fault.title??"Onbekende code",description:fault.context??"",status:fault.status??"Onbekend"
+  })));
+  return {
+    vin:info.Vin??"",plate:"",brand:info.Make??"",model:info.Model??"",mileage:"",soh:"",soc:"",cellDelta:"",
+    dtcs:faults.map(fault=>`${fault.system} · ${fault.code} — ${fault.description} [${fault.status}]`).join("\n"),
+    systemCount:systems.length,faultCount:faults.length,activeCount:faults.filter(fault=>/active|static/i.test(fault.status)).length
+  };
 }
 
 export default function VehicleCheckPage(){
@@ -84,21 +113,16 @@ export default function VehicleCheckPage(){
     if(!file)return;
     setLaunchImport("reading");
     setLaunchMessage("Launch Health Report wordt verwerkt…");
-    if(file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf")){
-      setLaunchImport("error");
-      setLaunchMessage("Kies op de Launch V+ het tekstrapport. PDF-import volgt in de volgende adapterversie.");
-      return;
-    }
     try{
-      const parsed=parseLaunchHealthReport(await file.text());
+      const parsed=await parseLaunchFile(file);
       if(!parsed.vin&&!parsed.dtcs&&!parsed.brand&&!parsed.model)throw new Error("Geen Launch-velden gevonden");
-      setReport(r=>({...r,vin:parsed.vin||r.vin,plate:parsed.plate||r.plate,brand:parsed.brand||r.brand,model:parsed.model||r.model,mileage:parsed.mileage||r.mileage,batterySoH:parsed.soh||r.batterySoH,batterySoc:parsed.soc||r.batterySoc,cellDeltaMv:parsed.cellDelta||r.cellDeltaMv,dtcs:parsed.dtcs||"Launch Health Report: geen DTC-regels gevonden",checks:r.checks.map(c=>c.id==="warning"&&parsed.dtcs?{...c,status:"attention"}:c)}));
+      setReport(r=>({...r,vin:parsed.vin||r.vin,plate:parsed.plate||r.plate,brand:parsed.brand||r.brand,model:parsed.model||r.model,mileage:parsed.mileage||r.mileage,batterySoH:parsed.soh||r.batterySoH,batterySoc:parsed.soc||r.batterySoc,cellDeltaMv:parsed.cellDelta||r.cellDeltaMv,dtcs:parsed.dtcs||"Launch Health Report: geen DTC's gevonden",checks:r.checks.map(c=>c.id==="warning"&&parsed.faultCount?{...c,status:"attention"}:c)}));
       setObdState("launch");
       setLaunchImport("imported");
-      setLaunchMessage(`Launch-import voltooid · ${parsed.vin?"VIN herkend":"VIN controleren"} · ${parsed.dtcs?parsed.dtcs.split("\n").length:0} DTC-regels`);
+      setLaunchMessage(`PDF gekoppeld · ${parsed.systemCount||"?"} systemen · ${parsed.faultCount} foutcodes · ${parsed.activeCount} actief/statisch`);
     }catch{
       setLaunchImport("error");
-      setLaunchMessage("Dit bestand kon niet als Launch Health Report worden herkend.");
+      setLaunchMessage("Dit bestand bevat geen herkenbare Launch X-431 rapportdata.");
     }
   };
 
@@ -123,7 +147,7 @@ export default function VehicleCheckPage(){
       </div>
     </section>
 
-    <section className={styles.card}><div className={styles.sectionHead}><div><span>02</span><h2>OBD & Hybrid Health</h2></div><div className={styles.importActions}><label className={styles.launchImport}>Importeer Launch<input type="file" accept=".txt,.json,text/plain,application/json" onChange={e=>importLaunchReport(e.target.files?.[0])}/></label><button onClick={demoObd} className={styles.ghost}>Demo scan</button></div></div>
+    <section className={styles.card}><div className={styles.sectionHead}><div><span>02</span><h2>OBD & Hybrid Health</h2></div><div className={styles.importActions}><label className={styles.launchImport}>Importeer Launch<input type="file" accept=".pdf,.txt,.json,application/pdf,text/plain,application/json" onChange={e=>importLaunchReport(e.target.files?.[0])}/></label><button onClick={demoObd} className={styles.ghost}>Demo scan</button></div></div>
       {launchImport!=="idle"&&<div className={launchImport==="error"?styles.importError:styles.importStatus}><b>{launchImport==="imported"?"LAUNCH X-431 V+":"Launch-import"}</b><span>{launchMessage}</span></div>}
       <div className={styles.obdBanner}><div><b>{obdState==="launch"?"Launch Health Report gekoppeld":obdState==="demo"?"OBD-data geladen":"OBD-adapter nog niet gekoppeld"}</b><small>Web/PWA ondersteunt de volledige inspectie. Voor directe iPhone-Bluetooth OBD bouwen we een native BLE-adapterlaag; deze knop valideert nu de scanflow met realistische testdata.</small></div><span>{obdState==="launch"?"LAUNCH":obdState==="demo"?"CONNECTED":"READY"}</span></div>
       <div className={styles.grid}><label>State of Health (%)<input inputMode="decimal" value={report.batterySoH} onChange={e=>setField("batterySoH",e.target.value)} placeholder="bijv. 94"/></label><label>State of Charge (%)<input inputMode="decimal" value={report.batterySoc} onChange={e=>setField("batterySoc",e.target.value)} placeholder="bijv. 67"/></label><label>Celspreiding (mV)<input inputMode="decimal" value={report.cellDeltaMv} onChange={e=>setField("cellDeltaMv",e.target.value)} placeholder="bijv. 18"/></label><label className={styles.wide}>DTC's / diagnose<textarea value={report.dtcs} onChange={e=>setField("dtcs",e.target.value)} placeholder="P0xxx, omschrijving, status..."/></label></div>
