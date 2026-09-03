@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
+import { AnimatedProcessSteps } from "@/components/AnimatedProcessSteps";
 import { ContactForm } from "@/components/ContactForm";
 import { FeaturedInventoryRail } from "@/components/FeaturedInventoryRail";
 import { FloatingContactDock } from "@/components/FloatingContactDock";
@@ -26,12 +27,6 @@ const promises = [
   { icon: "/brand/icons/historie.svg", title: "Historie gecontroleerd", text: "Onderhoud, kilometerstand en bekende voertuiggegevens worden vóór publicatie beoordeeld." },
   { icon: "/brand/icons/onderhoud.svg", title: "Techniek beoordeeld", text: "Technische staat, uitvoering en gebruiksrisico worden als één geheel bekeken." },
   { icon: "/brand/icons/accugezondheid.svg", title: "Accudata indien beschikbaar", text: "Bij hybride en elektrische auto’s tonen we aangeleverde accu-informatie met passende context." },
-];
-
-const steps = [
-  ["01", "Vertel hoe u rijdt", "Dagelijkse afstand, laadmogelijkheden, budget en wat u belangrijk vindt."],
-  ["02", "Vergelijk met bewijs", "U ziet per auto alleen onderbouwde feiten over historie, techniek en beschikbare accu-informatie. Geen aannames."],
-  ["03", "Rijd. Vraag. Beslis.", "Een proefrit en een helder voorstel. Zonder druk, met ruimte om zelf te kiezen."],
 ];
 
 export default async function HomePage() {
@@ -102,7 +97,7 @@ export default async function HomePage() {
 
       <section className="section processSection" aria-labelledby="werkwijze-title"><div className="container">
         <div className="sectionHeading splitHeading"><div><p className="eyebrow">Zo werken wij</p><h2 id="werkwijze-title">Deskundig en persoonlijk. Beslissen in uw tempo.</h2></div><p className="sectionIntro">In drie heldere stappen krijgt u de informatie en aandacht om zelf een goede keuze te maken.</p></div>
-        <ol className="processGrid">{steps.map(([number,title,text]) => <li key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></li>)}</ol>
+        <AnimatedProcessSteps />
       </div></section>
 
       <section id="advies" className="section contactSection"><div className="container contactLayout">
