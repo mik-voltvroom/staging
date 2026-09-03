@@ -163,7 +163,15 @@ describe("publieke Volt & Vroom website", () => {
       expect(source).toContain("WhatsAppIcon");
       expect(source).toContain("RouteIcon");
       expect(source).toContain("https://wa.me/");
+      expect(source).toContain("contactActionPhone");
+      expect(source).toContain("contactActionWhatsapp");
+      expect(source).toContain("contactActionRoute");
     }
+    const refresh = read("app/frontend-refresh.css");
+    expect(refresh).toContain("#34c759");
+    expect(refresh).toContain("#25d366");
+    expect(refresh).toContain("#0a84ff");
+    expect(refresh).toContain("@media(prefers-reduced-motion:reduce)");
   });
 
   it("laadt de officiële Google Merchant-reviewbadge pas na de primaire pagina", () => {
