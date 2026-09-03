@@ -30,7 +30,7 @@ describe("publieke Volt & Vroom website", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Slim rijden.");
     expect(homepage).toContain("Meer genieten.");
-    expect(homepage).toContain("Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie");
+    expect(homepage).toContain("Hybride en elektrische occasions, geselecteerd op historie, techniek en dagelijks gebruik");
     expect(homepage.indexOf('href="#uitgelicht"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
   });
 
@@ -47,11 +47,11 @@ describe("publieke Volt & Vroom website", () => {
 
   it("formuleert de selectienorm controleerbaar en zonder onnodige absolute claims", () => {
     const homepage = read("app/page.tsx");
-    expect(homepage).toContain("Dealeronderhouden");
-    expect(homepage).toContain("Hybride, elektrisch of Icon");
-    expect(homepage).toContain("VV Verified rapport");
-    expect(homepage).toContain("SOH bij hybride & EV");
-    expect(homepage).toContain("Volt & Vroom Verified");
+    expect(homepage).toContain("Historie gecontroleerd");
+    expect(homepage).toContain("Techniek beoordeeld");
+    expect(homepage).toContain("Accudata waar beschikbaar");
+    expect(homepage).toContain("Volt & Vroom controle");
+    expect(homepage).not.toContain("Hybrid Intelligence");
     expect(homepage).not.toContain("Altijd dealeronderhouden");
     expect(homepage).not.toContain("Eén eigenaar");
   });
@@ -60,12 +60,23 @@ describe("publieke Volt & Vroom website", () => {
     const css = read("app/public.css");
     const enhancements = read("app/enhancements.css");
     const refresh = read("app/frontend-refresh.css");
-    expect(css).toContain(".proofGrid{display:grid;grid-template-columns:repeat(5,1fr)");
-    expect(css).toContain(".proofGrid{grid-template-columns:repeat(2,minmax(0,1fr))}");
+    expect(css).toContain(".proofGrid{display:grid;grid-template-columns:repeat(3,1fr)");
+    expect(css).toContain(".proofGrid{grid-template-columns:1fr}");
     expect(css).toContain(".hero .actions{display:grid;grid-template-columns:1fr}");
     expect(css).toContain("min-height:44px");
-    expect(enhancements).toContain(".mobileActionBar");
+    expect(enhancements).toContain(".mobileActionBar.isHidden");
     expect(refresh).toContain(".featuredRail");
+  });
+
+  it("houdt voertuigteksten publiek en aandrijflijnspecifiek", () => {
+    const detail = read("app/voorraad/[slug]/page.tsx");
+    const card = read("components/VehicleCard.tsx");
+    expect(detail).toContain("publicDescription");
+    expect(detail).toContain("Elektrische gegevens");
+    expect(detail).toContain("rustig met u door");
+    expect(detail).not.toContain("Hybrid Intelligence");
+    expect(detail).not.toContain(">Hybrid data<");
+    expect(card).toContain('return "Elektrisch"');
   });
 
   it("biedt afzonderlijke landingspagina's, FAQ's en een gevalideerde keuzehulp", () => {
