@@ -13,17 +13,27 @@ function driveLabel(value: string): string {
 }
 
 export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
-  return <article className="card vehicle">
-    <div className="vehicleMedia"><img src={vehicle.images[0] || "/brand/vv-symbol.svg"} alt={`${vehicle.brand} ${vehicle.model}`} /><span>{driveLabel(vehicle.driveType)}</span></div>
-    <div className="vehicleBody">
-      <div className="vehicleHeading"><div><p className="vehicleBrand">{vehicle.brand}</p><h3>{vehicle.model}</h3></div><div className="price">{eur.format(centsToEuros(vehicle.priceCents))}</div></div>
-      <p className="muted vehicleMeta">{vehicle.trim} · {vehicle.year} · {km.format(vehicle.mileageKm)} km</p>
-      <div className="badges">
-        {vehicle.batteryHealthPercent && <span className="badge">Accu {vehicle.batteryHealthPercent}%</span>}
-        {vehicle.annualSavingCents && <span className="badge">Bespaar ± {eur.format(centsToEuros(vehicle.annualSavingCents))}/jaar</span>}
-        <span className="badge">{vehicle.transmission}</span>
+  const vehicleLabel = `${vehicle.brand} ${vehicle.model} ${vehicle.trim}`;
+
+  return <Link className="vehicleCardLink" href={`/voorraad/${vehicle.slug}`} aria-label={`Bekijk ${vehicleLabel}`}>
+    <article className="card vehicle">
+      <div className="vehicleMedia"><img src={vehicle.images[0] || "/brand/vv-symbol.svg"} alt={`${vehicle.brand} ${vehicle.model}`} /><span>{driveLabel(vehicle.driveType)}</span></div>
+      <div className="vehicleBody">
+        <div className="vehicleHeading">
+          <div><p className="vehicleBrand">{vehicle.brand}</p><h3>{vehicle.model}</h3></div>
+          <div className="vehiclePrice">
+            <div className="price">{eur.format(centsToEuros(vehicle.priceCents))}</div>
+            {vehicle.monthlyPriceCents && <span className="monthlyPrice">Financiering {eur.format(centsToEuros(vehicle.monthlyPriceCents))} p/m</span>}
+          </div>
+        </div>
+        <p className="muted vehicleMeta">{vehicle.trim} · {vehicle.year} · {km.format(vehicle.mileageKm)} km</p>
+        <div className="badges">
+          {vehicle.batteryHealthPercent && <span className="badge">Accu {vehicle.batteryHealthPercent}%</span>}
+          {vehicle.annualSavingCents && <span className="badge">Bespaar ± {eur.format(centsToEuros(vehicle.annualSavingCents))}/jaar</span>}
+          <span className="badge">{vehicle.transmission}</span>
+        </div>
+        <span className="button vehicleAction"><img className="vehicleActionMark" src="/brand/vv-symbol.svg" alt="" />Bekijk deze auto <span aria-hidden="true">→</span></span>
       </div>
-      <Link className="button vehicleAction" href={`/voorraad/${vehicle.slug}`}>Bekijk deze auto <span aria-hidden="true">→</span></Link>
-    </div>
-  </article>;
+    </article>
+  </Link>;
 }
