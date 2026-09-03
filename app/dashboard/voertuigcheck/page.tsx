@@ -76,6 +76,28 @@ export default function VehicleCheckPage(){
   const reset=()=>{ if(confirm("Nieuwe voertuigcheck starten? De huidige lokale check wordt vervangen.")) setReport(newReport()); };
   const demoObd=()=>{setObdState("demo"); setReport(r=>({...r,batterySoH:r.batterySoH||"94",batterySoc:r.batterySoc||"67",cellDeltaMv:r.cellDeltaMv||"18",dtcs:r.dtcs||"Geen actieve emissiegerelateerde DTC's gevonden (demo)",checks:r.checks.map(c=>c.id==="hv"||c.id==="warning"?{...c,status:"ok"}:c)}));};
 
+  const importLaunchReport=async(file?:File)=>{
+    if(!file)return;
+    setLaunchImport("reading");
+    setLaunchMessage("Launch Health Report wordt verwerkt…");
+    if(file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf")){
+      setLaunchImport("error");
+      setLaunchMessage("Kies op de Launch V+ het tekstrapport. PDF-import volgt in de volgende adapterversie.");
+      return;
+    }
+    try{
+      const parsed=parseLaunchHealthReport(await file.text());
+      if(!parsed.vin&&!parsed.dtcs&&!parsed.brand&&!parsed.model)throw new Error("Geen Launch-velden gevonden");
+      setReport(r=>({...r,vin:parsed.vin||r.vin,plate:parsed.plate||r.plate,brand:parsed.brand||r.brand,model:parsed.model||r.model,mileage:parsed.mileage||r.mileage,batterySoH:parsed.soh||r.batterySoH,batterySoc:parsed.soc||r.batterySoc,cellDeltaMv:parsed.cellDelta||r.cellDeltaMv,dtcs:parsed.dtcs||"Launch Health Report: geen DTC-regels gevonden",checks:r.checks.map(c=>c.id==="warning"&&parsed.dtcs?{...c,status:"attention"}:c)}));
+      setObdState("launch");
+      setLaunchImport("imported");
+      setLaunchMessage(`Launch-import voltooid · ${parsed.vin?"VIN herkend":"VIN controleren"} · ${parsed.dtcs?parsed.dtcs.split("\n").length:0} DTC-regels`);
+    }catch{
+      setLaunchImport("error");
+      setLaunchMessage("Dit bestand kon niet als Launch Health Report worden herkend.");
+    }
+  };
+
   return <main className={styles.page}>
     <header className={styles.hero}>
       <div><p className={styles.kicker}>VVOS · Vehicle Intelligence</p><h1>Voertuigcheck</h1><p>Mobiele inspectie, hybride/EV-data en één uniform VVOS Voertuigrapport.</p></div>
