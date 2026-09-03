@@ -29,3 +29,31 @@
 .footerMap iframe{width:100%;height:100%;border:0}
 @media(max-width:1100px){.assuranceGrid{grid-template-columns:repeat(3,minmax(0,1fr))}.footerTop{grid-template-columns:1fr 1fr}.footerTop>div:first-child{grid-column:1/-1}}
 @media(max-width:640px){.assuranceGrid{grid-template-columns:1fr}.vehicleHeading{gap:12px}.vehiclePrice{justify-items:start;text-align:left}.footerTop{grid-template-columns:1fr}.footerTop>div:first-child{grid-column:auto}.mobileActionBar a{flex-direction:column;gap:2px;font-size:.7rem}.mobileActionBar svg{width:18px;height:18px}}
+
+
+/* Animated three-step journey */
+.processGridAnimated{overflow:visible}
+.processGridAnimated li{position:relative;isolation:isolate}
+.processGridAnimated li:nth-child(1){--process-delay:0ms}
+.processGridAnimated li:nth-child(2){--process-delay:170ms}
+.processGridAnimated li:nth-child(3){--process-delay:340ms}
+.processStepMarker{position:relative;z-index:2;width:64px;height:64px;display:grid;place-items:center;color:var(--vv-ink);transition:transform .25s ease}
+.processStepMarker svg{position:absolute;inset:0;width:64px;height:64px;overflow:visible;transform:rotate(-90deg)}
+.processStepTrack,.processStepProgress{fill:var(--vv-soft);stroke-width:2}
+.processStepTrack{stroke:var(--vv-border)}
+.processStepProgress{fill:none;stroke:var(--vv-electric);stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+.processStepMarker span{position:relative;font-family:"Manrope Variable",Manrope,sans-serif;font-size:.78rem;font-weight:800;letter-spacing:.12em}
+.processStepCopy h3{margin:28px 0 8px}
+.processGridAnimated li::before{content:"";position:absolute;left:29px;top:29px;z-index:1;width:70px;height:70px;border-radius:50%;background:rgba(22,139,255,.12);filter:blur(14px);opacity:0;transform:scale(.65)}
+.processGridAnimated li:not(:last-child)::after{content:"";position:absolute;left:64px;top:63px;z-index:0;width:100%;height:2px;background:linear-gradient(90deg,var(--vv-electric),var(--vv-ice-strong));transform:scaleX(0);transform-origin:left center}
+.processGridAnimated.isVisible li{animation:processStepReveal .72s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--process-delay)}
+.processGridAnimated.isVisible .processStepProgress{animation:processRingDraw .9s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--process-delay) + 120ms)}
+.processGridAnimated.isVisible li::before{animation:processGlow .9s ease-out both;animation-delay:calc(var(--process-delay) + 80ms)}
+.processGridAnimated.isVisible li:not(:last-child)::after{animation:processLineDraw .72s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--process-delay) + 420ms)}
+.processGridAnimated li:hover .processStepMarker{transform:translateY(-3px) scale(1.04)}
+@keyframes processStepReveal{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes processRingDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes processLineDraw{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+@keyframes processGlow{0%{opacity:0;transform:scale(.65)}45%{opacity:1}100%{opacity:0;transform:scale(1.15)}}
+@media(max-width:900px){.processGridAnimated li{display:grid;grid-template-columns:64px 1fr;gap:24px;align-items:start}.processStepCopy h3{margin:8px 0}.processGridAnimated li:not(:last-child)::after{left:63px;top:64px;width:2px;height:100%;transform:scaleY(0);transform-origin:center top}.processGridAnimated.isVisible li:not(:last-child)::after{animation-name:processLineDrawVertical}@keyframes processLineDrawVertical{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}}
+@media(prefers-reduced-motion:reduce){.processGridAnimated.isVisible li,.processGridAnimated.isVisible .processStepProgress,.processGridAnimated.isVisible li::before,.processGridAnimated.isVisible li::after{animation:none!important;opacity:1;transform:none}.processStepProgress{stroke-dashoffset:0}.processStepMarker{transition:none}}
