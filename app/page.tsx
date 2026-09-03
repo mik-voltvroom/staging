@@ -18,15 +18,13 @@ const assurances = [
   { icon: "/brand/icons/historie.svg", title: "Aantoonbare historie", text: "Onderhoud, kilometerstand, eigenaarsinformatie en relevante voertuiggegevens worden vóór verkoop gecontroleerd." },
   { icon: "/brand/icons/accugezondheid.svg", title: "Accu waar relevant", text: "Bij hybride en elektrische auto’s leggen we beschikbare hoogvolt- en SOH-data begrijpelijk uit, zonder er meer van te maken dan de meting zegt." },
   { icon: "/brand/icons/onderhoud.svg", title: "Technisch geselecteerd", text: "Leeftijd, kilometerstand, onderhoud, uitvoering en technisch risico worden als één geheel beoordeeld." },
-  { icon: "/brand/icons/praktijkverbruik.svg", title: "Advies uit de praktijk", text: "We kijken naar uw ritten, laadmogelijkheden en gebruik. Niet naar welke aandrijflijn toevallig het hardst wordt gepusht." },
+  { icon: "/brand/icons/praktijkverbruik.svg", title: "Advies uit de praktijk", text: "We kijken naar uw ritten, laadmogelijkheden en gebruik. Zo krijgt u advies dat aansluit op uw dagelijkse gebruik." },
 ];
 
 const promises = [
-  { icon: "/brand/icons/onderhoud.svg", title: "Dealeronderhouden", text: "Onderhoudshistorie moet aantoonbaar en controleerbaar zijn." },
-  { icon: "/brand/icons/hybride.svg", title: "Hybride, elektrisch of Icon", text: "Alleen auto’s die passen binnen onze drie duidelijke werelden." },
-  { icon: "/brand/icons/historie.svg", title: "VV Verified rapport", text: "Per auto leggen we relevante controlepunten en bevindingen vast." },
-  { icon: "/brand/icons/accugezondheid.svg", title: "SOH bij hybride & EV", text: "Beschikbare accugezondheid tonen we met context, waar meetdata aanwezig is." },
-  { icon: "/brand/icons/proefrit.svg", title: "Volt & Vroom Verified", text: "Onze vaste kwaliteitsstandaard voor selectie, controle en presentatie." },
+  { icon: "/brand/icons/historie.svg", title: "Historie gecontroleerd", text: "Onderhoud, kilometerstand en bekende voertuiggegevens worden vóór publicatie beoordeeld." },
+  { icon: "/brand/icons/onderhoud.svg", title: "Techniek beoordeeld", text: "Technische staat, uitvoering en gebruiksrisico worden als één geheel bekeken." },
+  { icon: "/brand/icons/accugezondheid.svg", title: "Accudata waar beschikbaar", text: "Bij hybride en elektrische auto’s tonen we aangeleverde accu-informatie met passende context." },
 ];
 
 const steps = [
@@ -51,8 +49,8 @@ export default async function HomePage() {
           <div className="heroCopy">
             <p className="eyebrow">Volt &amp; Vroom · Groningen</p>
             <h1 id="hero-title">Slim rijden.<br /><em>Meer genieten.</em></h1>
-            <p className="heroDescriptor">Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie, technische controle en inzicht in de hoogvoltaccu waar dat relevant is.</p>
-            <div className="heroTrustRow" aria-label="Onze kernbeloften"><span>Aantoonbare historie</span><span>Technisch geselecteerd</span><span>Persoonlijk advies</span></div>
+            <p className="heroDescriptor">Hybride en elektrische occasions, geselecteerd op historie, techniek en dagelijks gebruik. Bij elke auto ziet u wat we hebben gecontroleerd — inclusief accudata wanneer die beschikbaar is.</p>
+            <div className="heroTrustRow" aria-label="Onze drie zekerheden"><span>Historie gecontroleerd</span><span>Techniek beoordeeld</span><span>Accudata waar beschikbaar</span></div>
             <div className="actions heroActions">
               <a className="button heroPrimaryButton" href="#uitgelicht">Bekijk aanbod <span aria-hidden="true">→</span></a>
               <a className="button secondary" href="/keuzehulp">Welke auto past bij mij?</a>
@@ -79,14 +77,14 @@ export default async function HomePage() {
 
       <HomepageSocialVideos />
 
-      <section className="proofBar proofBarRefresh" aria-label="Vijf beloften van Volt & Vroom"><div className="container proofGrid proofGridPromises">
+      <section className="proofBar proofBarRefresh" aria-label="Drie zekerheden van Volt & Vroom"><div className="container proofGrid proofGridPromises">
         {promises.map(item => <div className="proofPromise" key={item.title}><Image src={item.icon} alt="" width={34} height={34} /><div><strong>{item.title}</strong><span>{item.text}</span></div></div>)}
       </div></section>
 
       <section id="waarom" className="section container introSection">
         <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>De juiste aandrijflijn. Aantoonbaar de juiste auto.</h2></div><p className="sectionIntro">Een goede occasion is meer dan een nette foto en een kilometerstand. Daarom maken we historie, techniek, onderhoud en beschikbare accudata onderdeel van de presentatie.</p></div>
         <div className="assuranceGrid">{assurances.map(item => <article className="assuranceCard" key={item.title}><Image src={item.icon} alt="" width={46} height={46} /><div><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>
-        <div className="carcheckStatement"><div><p className="eyebrow">Volt &amp; Vroom CarCheck</p><h3>Geen grote woorden. Wel een vast protocol.</h3></div><p>Deze auto is door Volt &amp; Vroom gecontroleerd volgens het CarCheck-protocol. De onderliggende bevindingen blijven belangrijker dan één badge of totaalscore.</p><a className="textButton" href="/vv-verified">Bekijk onze controleaanpak <span aria-hidden="true">→</span></a></div>
+        <div className="carcheckStatement"><div><p className="eyebrow">Volt &amp; Vroom controle</p><h3>Een vast protocol. Controleerbare bevindingen.</h3></div><p>Per auto leggen we relevante controlepunten en bevindingen vast. De beschikbare gegevens en bevindingen blijven belangrijker dan één badge of totaalscore.</p><a className="textButton" href="/vv-verified">Bekijk onze controleaanpak <span aria-hidden="true">→</span></a></div>
       </section>
 
       <section className="choiceSection" aria-labelledby="keuze-title"><div className="container choiceGrid">
@@ -95,19 +93,19 @@ export default async function HomePage() {
       </div></section>
 
       <section id="voorraad" className="section container">
-        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Volledig aanbod</p><h2>Alleen publiceren wat wij kunnen onderbouwen.</h2></div><p className="sectionIntro">Actuele auto’s verschijnen hier pas nadat historie, kilometerstand, technische staat en beschikbare accudata zijn gecontroleerd. Wij tonen geen verzonnen SOH- of praktijkwaarden.</p></div>
+        <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Volledig aanbod</p><h2>Actuele voorraad met controleerbare gegevens.</h2></div><p className="sectionIntro">Bij iedere auto tonen we de bekende historie, kilometerstand, technische gegevens en beschikbare accu-informatie. Ontbrekende gegevens benoemen we duidelijk.</p></div>
         {vehicles.length > 0
           ? <div className="vehicleGrid">{vehicles.map(vehicle => <VehicleCard vehicle={vehicle} key={vehicle.id} />)}</div>
           : <div className="inventoryPlaceholder"><div><span>Voorraad in voorbereiding</span><h3>Wilt u als eerste weten welke auto’s beschikbaar komen?</h3><p>Vertel ons wat u zoekt. Wij nemen persoonlijk contact op zodra een passende, gecontroleerde auto beschikbaar is.</p></div><a className="button" href="#advies">Deel uw zoekopdracht <span aria-hidden="true">→</span></a></div>}
       </section>
 
       <section className="section processSection" aria-labelledby="werkwijze-title"><div className="container">
-        <div className="sectionHeading splitHeading"><div><p className="eyebrow">Zo werken wij</p><h2 id="werkwijze-title">Deskundig zonder afstand. Verkoop zonder druk.</h2></div><p className="sectionIntro">In drie heldere stappen krijgt u de informatie en aandacht om zelf een goede keuze te maken.</p></div>
+        <div className="sectionHeading splitHeading"><div><p className="eyebrow">Zo werken wij</p><h2 id="werkwijze-title">Deskundig en persoonlijk. Beslissen in uw tempo.</h2></div><p className="sectionIntro">In drie heldere stappen krijgt u de informatie en aandacht om zelf een goede keuze te maken.</p></div>
         <ol className="processGrid">{steps.map(([number,title,text]) => <li key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></li>)}</ol>
       </div></section>
 
       <section id="advies" className="section contactSection"><div className="container contactLayout">
-        <div className="contactCopy"><p className="eyebrow">Persoonlijk advies</p><h2>Vertel ons hoe u rijdt.</h2><p className="lead">Wij leggen uit wat bij uw gebruik past en nemen persoonlijk contact met u op, zonder verkooppraat.</p><div className="contactFacts"><a href="tel:+31502113883"><span>Bel direct</span><strong>050 211 3883</strong></a><a href="mailto:mik@voltvroom.nl"><span>Stuur een e-mail</span><strong>mik@voltvroom.nl</strong></a><a className="routePlannerLink" href="https://www.google.com/maps/dir/?api=1&destination=Euvelgunnerweg%2050%2C%209723%20CW%20Groningen&travelmode=driving" target="_blank" rel="noopener noreferrer" aria-label="Plan uw route naar Volt & Vroom via Google Maps"><span>Plan uw bezoek</span><strong>Euvelgunnerweg 50, Groningen ↗</strong></a></div></div>
+        <div className="contactCopy"><p className="eyebrow">Persoonlijk advies</p><h2>Vertel ons hoe u rijdt.</h2><p className="lead">Wij leggen uit wat bij uw gebruik past. U krijgt helder advies en persoonlijk contact.</p><div className="contactFacts"><a href="tel:+31502113883"><span>Bel direct</span><strong>050 211 3883</strong></a><a href="mailto:mik@voltvroom.nl"><span>Stuur een e-mail</span><strong>mik@voltvroom.nl</strong></a><a className="routePlannerLink" href="https://www.google.com/maps/dir/?api=1&destination=Euvelgunnerweg%2050%2C%209723%20CW%20Groningen&travelmode=driving" target="_blank" rel="noopener noreferrer" aria-label="Plan uw route naar Volt & Vroom via Google Maps"><span>Plan uw bezoek</span><strong>Euvelgunnerweg 50, Groningen ↗</strong></a></div></div>
         <ContactForm vehicles={contactVehicles} />
       </div></section>
     </main>
