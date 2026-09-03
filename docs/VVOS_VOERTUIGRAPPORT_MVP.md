@@ -124,3 +124,27 @@ Kritieke DTC's, veiligheidsgebreken of ernstige HV-afwijkingen kunnen de uitkoms
 - Vergelijking met bekende modelproblemen / CarCheck database.
 - Verkoopversie van het rapport voor de klant.
 - Interne inkoopversie met margerisico en advies maximale inkoopprijs.
+
+## Launch X-431 V+ koppeling v0.1
+De eerste professionele diagnosekoppeling gebruikt het door Launch gegenereerde Health Report als overdrachtsformaat. Dit voorkomt afhankelijkheid van het gesloten VCI/Bluetooth-protocol en bewaart de merkspecifieke scan van de Launch-software.
+
+### Werkstroom
+1. Sluit de Launch VCI aan en open **Intelligent Diagnose / Health Report**.
+2. Voer bij voorkeur eerst een **Pre-Repair** volledige systeemscan uit.
+3. Kies **Report**; het rapport staat daarna onder **Reports → Health Reports**.
+4. Sla/deel het rapport als tekstbestand.
+5. Open VVOS Voertuigcheck en kies **Importeer Launch**.
+6. VVOS herkent waar aanwezig VIN, kenteken, merk, model, kilometerstand, DTC-regels, SOC, SOH en celspreiding.
+7. Controleer de geïmporteerde waarden en voltooi de fysieke inspectie.
+
+### Auditregels
+- Bron wordt vastgelegd als **LAUNCH X-431 V+ Health Report**.
+- VVOS verzint geen ontbrekende waarden en overschrijft alleen velden die het rapport daadwerkelijk bevat.
+- Een DTC is een diagnoseaanwijzing, geen automatische onderdelenvervanging of zelfstandig bewijs van een defect.
+- Bewaar bij reparaties zowel Pre-Repair als Post-Repair rapport voor vergelijking.
+
+### Volgende adapterversie
+- PDF-parser voor Launch-PDF's.
+- Upload/sync naar een VVOS-inbox zodat delen vanaf het Launch Android-tablet zonder handmatige bestandskeuze gaat.
+- Mapping van Launch ECU-benamingen en statusvelden naar het genormaliseerde VVOS-datamodel.
+- Onderzoek naar officiële Launch cloud-/partnerinterface; geen reverse engineering van de VCI-beveiliging.
