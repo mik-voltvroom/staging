@@ -79,6 +79,25 @@ describe("publieke Volt & Vroom website", () => {
     expect(card).toContain('return "Elektrisch"');
   });
 
+  it("biedt een veilige en volledige inruilroute", () => {
+    const page = read("app/inruilen/page.tsx");
+    const form = read("components/TradeInForm.tsx");
+    const lookup = read("app/api/trade-ins/lookup/route.ts");
+    const submission = read("app/api/trade-ins/route.ts");
+    const repository = read("lib/repositories/trade-in-repository.ts");
+    expect(page).toContain("Uw auto inruilen, zonder giswerk");
+    expect(form).toContain("Stap 1 van 3");
+    expect(form).toContain("maximaal 4 MB");
+    expect(form).toContain('fetch("/api/trade-ins"');
+    expect(lookup).toContain("lookupRdwVehicle");
+    expect(submission).toContain("tradeInSubmissionSchema");
+    expect(submission).toContain("MAX_TRADE_IN_PHOTOS");
+    expect(repository).toContain("adminDb.batch()");
+    expect(repository).toContain('cacheControl: "private, no-store"');
+    expect(read("components/Header.tsx")).toContain('href="/inruilen"');
+    expect(read("app/sitemap.ts")).toContain('"/inruilen"');
+  });
+
   it("biedt afzonderlijke landingspagina's, FAQ's en een gevalideerde keuzehulp", () => {
     expect(read("app/hybride/page.tsx")).toContain("Hybride wanneer dat slimmer is");
     expect(read("app/elektrisch/page.tsx")).toContain("Elektrisch wanneer het klopt");
