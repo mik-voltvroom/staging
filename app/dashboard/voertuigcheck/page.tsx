@@ -6,7 +6,7 @@ import styles from "./vehicle-check.module.css";
 type Status = "ok" | "attention" | "fail" | "na";
 type Check = { id: string; label: string; status: Status; note: string };
 type Tyre = { position: string; tread: string; pressure: string };
-type Report = {
+type LaunchImportState = "idle" | "reading" | "imported" | "error";\n\ntype Report = {
   id: string;
   createdAt: string;
   inspector: string;
@@ -40,10 +40,25 @@ function newReport(): Report {
 
 const statusLabels: Record<Status,string> = {ok:"Goed",attention:"Aandacht",fail:"Afkeur",na:"N.v.t."};
 
+function parseLaunchHealthReport(raw:string){
+  const clean=raw.replace(/\r/g,"");
+  const find=(patterns:RegExp[])=>{for(const p of patterns){const m=clean.match(p);if(m?.[1])return m[1].trim()}return ""};
+  const vin=find([/(?:VIN|Vehicle Identification Number|Chassis No\.?)[\s:#-]*([A-HJ-NPR-Z0-9]{17})/i,/\b([A-HJ-NPR-Z0-9]{17})\b/]);
+  const plate=find([/(?:License Plate|Registration|Kenteken)[\s:#-]*([A-Z0-9-]{5,12})/i]);
+  const brand=find([/(?:Vehicle Make|Manufacturer|Merk)[\s:#-]*([^\n]+)/i]);
+  const model=find([/(?:Vehicle Model|Model)[\s:#-]*([^\n]+)/i]);
+  const mileage=find([/(?:Mileage|Odometer|Kilometerstand)[\s:#-]*([0-9.,]+)/i]);
+  const soh=find([/(?:State of Health|SOH)[\s:#-]*([0-9.,]+)\s*%/i]);
+  const soc=find([/(?:State of Charge|SOC)[\s:#-]*([0-9.,]+)\s*%/i]);
+  const cellDelta=find([/(?:Cell (?:voltage )?(?:delta|difference|deviation)|Celspreiding)[\s:#-]*([0-9.,]+)\s*mV/i]);
+  const dtcLines=[...new Set(clean.split("\n").filter(line=>/\b[PBCU][0-9A-F]{4}\b/i.test(line)).map(line=>line.trim()).filter(Boolean))];
+  return {vin,plate,brand,model,mileage,soh,soc,cellDelta,dtcs:dtcLines.join("\n")};
+}
+
 export default function VehicleCheckPage(){
   const [report,setReport] = useState<Report>(newReport());
   const [saved,setSaved] = useState(false);
-  const [obdState,setObdState] = useState<"idle"|"demo">("idle");
+  const [obdState,setObdState] = useState<"idle"|"demo"|"launch">("idle");\n  const [launchImport,setLaunchImport] = useState<LaunchImportState>("idle");\n  const [launchMessage,setLaunchMessage] = useState("");
 
   useEffect(()=>{ const raw=localStorage.getItem(STORAGE_KEY); if(raw){try{setReport(JSON.parse(raw))}catch{}} },[]);
   useEffect(()=>{ localStorage.setItem(STORAGE_KEY,JSON.stringify(report)); setSaved(true); const t=setTimeout(()=>setSaved(false),800); return ()=>clearTimeout(t); },[report]);
@@ -82,8 +97,9 @@ export default function VehicleCheckPage(){
       </div>
     </section>
 
-    <section className={styles.card}><div className={styles.sectionHead}><div><span>02</span><h2>OBD & Hybrid Health</h2></div><button onClick={demoObd} className={styles.ghost}>Demo scan</button></div>
-      <div className={styles.obdBanner}><div><b>{obdState==="demo"?"OBD-data geladen":"OBD-adapter nog niet gekoppeld"}</b><small>Web/PWA ondersteunt de volledige inspectie. Voor directe iPhone-Bluetooth OBD bouwen we een native BLE-adapterlaag; deze knop valideert nu de scanflow met realistische testdata.</small></div><span>{obdState==="demo"?"CONNECTED":"READY"}</span></div>
+    <section className={styles.card}><div className={styles.sectionHead}><div><span>02</span><h2>OBD & Hybrid Health</h2></div><div className={styles.importActions}><label className={styles.launchImport}>Importeer Launch<input type="file" accept=".txt,.json,text/plain,application/json" onChange={e=>importLaunchReport(e.target.files?.[0])}/></label><button onClick={demoObd} className={styles.ghost}>Demo scan</button></div></div>
+      {launchImport!=="idle"&&<div className={launchImport==="error"?styles.importError:styles.importStatus}><b>{launchImport==="imported"?"LAUNCH X-431 V+":"Launch-import"}</b><span>{launchMessage}</span></div>}
+      <div className={styles.obdBanner}><div><b>{obdState==="launch"?"Launch Health Report gekoppeld":obdState==="demo"?"OBD-data geladen":"OBD-adapter nog niet gekoppeld"}</b><small>Web/PWA ondersteunt de volledige inspectie. Voor directe iPhone-Bluetooth OBD bouwen we een native BLE-adapterlaag; deze knop valideert nu de scanflow met realistische testdata.</small></div><span>{obdState==="launch"?"LAUNCH":obdState==="demo"?"CONNECTED":"READY"}</span></div>
       <div className={styles.grid}><label>State of Health (%)<input inputMode="decimal" value={report.batterySoH} onChange={e=>setField("batterySoH",e.target.value)} placeholder="bijv. 94"/></label><label>State of Charge (%)<input inputMode="decimal" value={report.batterySoc} onChange={e=>setField("batterySoc",e.target.value)} placeholder="bijv. 67"/></label><label>Celspreiding (mV)<input inputMode="decimal" value={report.cellDeltaMv} onChange={e=>setField("cellDeltaMv",e.target.value)} placeholder="bijv. 18"/></label><label className={styles.wide}>DTC's / diagnose<textarea value={report.dtcs} onChange={e=>setField("dtcs",e.target.value)} placeholder="P0xxx, omschrijving, status..."/></label></div>
     </section>
 
@@ -95,6 +111,6 @@ export default function VehicleCheckPage(){
 
     <section className={styles.card}><div className={styles.sectionHead}><div><span>05</span><h2>Proefrit & advies</h2></div><p>Laatste beoordeling</p></div><div className={styles.stack}><label>Proefrit<textarea value={report.roadTest} onChange={e=>setField("roadTest",e.target.value)} placeholder="Sturen, remmen, transmissie, trillingen, geluiden, regeneratie..."/></label><label>Inkoop-/verkoopadvies<textarea value={report.advice} onChange={e=>setField("advice",e.target.value)} placeholder="Vrijgeven, eerst herstellen, specialist laten controleren..."/></label></div></section>
 
-    <section className={`${styles.card} ${styles.report}`}><div className={styles.reportBrand}><img src="/brand/vv-logo-horizontal.svg" alt="Volt & Vroom"/><div><span>VVOS VOERTUIGRAPPORT</span><strong>{report.id}</strong></div></div><div className={styles.reportTitle}><div><p>{report.plate||"Kenteken nog niet ingevuld"}</p><h2>{[report.brand,report.model].filter(Boolean).join(" ")||"Voertuig"}</h2><small>{report.mileage?`${report.mileage} km · `:""}{report.driveType.toUpperCase()}</small></div><div className={styles.reportScore}><b>{score}</b><span>/ 100</span><strong>{verdict}</strong></div></div><div className={styles.reportGrid}><div><span>HV accugezondheid</span><strong>{report.batterySoH?`${report.batterySoH}%`:"Niet gemeten"}</strong></div><div><span>Celspreiding</span><strong>{report.cellDeltaMv?`${report.cellDeltaMv} mV`:"Niet gemeten"}</strong></div><div><span>Inspecteur</span><strong>{report.inspector}</strong></div><div><span>Datum</span><strong>{new Date(report.createdAt).toLocaleDateString("nl-NL")}</strong></div></div><div className={styles.findings}><h3>Bevindingen</h3>{report.checks.filter(c=>c.status!=="ok"&&c.status!=="na").length===0?<p>Geen aandachtspunten geregistreerd.</p>:report.checks.filter(c=>c.status!=="ok"&&c.status!=="na").map(c=><p key={c.id}><b>{statusLabels[c.status]}</b> · {c.label}{c.note?` — ${c.note}`:""}</p>)}</div>{report.advice&&<div className={styles.findings}><h3>Advies</h3><p>{report.advice}</p></div>}</section>
+    <section className={`${styles.card} ${styles.report}`}><div className={styles.reportBrand}><img src="/brand/vv-logo-horizontal.svg" alt="Volt & Vroom"/><div><span>VVOS VOERTUIGRAPPORT</span><strong>{report.id}</strong></div></div><div className={styles.reportTitle}><div><p>{report.plate||"Kenteken nog niet ingevuld"}</p><h2>{[report.brand,report.model].filter(Boolean).join(" ")||"Voertuig"}</h2><small>{report.mileage?`${report.mileage} km · `:""}{report.driveType.toUpperCase()}</small></div><div className={styles.reportScore}><b>{score}</b><span>/ 100</span><strong>{verdict}</strong></div></div><div className={styles.reportGrid}><div><span>HV accugezondheid</span><strong>{report.batterySoH?`${report.batterySoH}%`:"Niet gemeten"}</strong></div><div><span>Celspreiding</span><strong>{report.cellDeltaMv?`${report.cellDeltaMv} mV`:"Niet gemeten"}</strong></div><div><span>Inspecteur</span><strong>{report.inspector}</strong></div><div><span>Datum</span><strong>{new Date(report.createdAt).toLocaleDateString("nl-NL")}</strong></div></div>{obdState==="launch"&&<p className={styles.dataSource}>Diagnosebron: LAUNCH X-431 V+ Health Report · geïmporteerd in VVOS</p><div className={styles.reportGrid}></div><div className={styles.findings}><h3>Bevindingen</h3>{report.checks.filter(c=>c.status!=="ok"&&c.status!=="na").length===0?<p>Geen aandachtspunten geregistreerd.</p>:report.checks.filter(c=>c.status!=="ok"&&c.status!=="na").map(c=><p key={c.id}><b>{statusLabels[c.status]}</b> · {c.label}{c.note?` — ${c.note}`:""}</p>)}</div>{report.advice&&<div className={styles.findings}><h3>Advies</h3><p>{report.advice}</p></div>}</section>
   </main>;
 }
