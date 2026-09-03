@@ -6,7 +6,9 @@ import styles from "./vehicle-check.module.css";
 type Status = "ok" | "attention" | "fail" | "na";
 type Check = { id: string; label: string; status: Status; note: string };
 type Tyre = { position: string; tread: string; pressure: string };
-type LaunchImportState = "idle" | "reading" | "imported" | "error";\n\ntype Report = {
+type LaunchImportState = "idle" | "reading" | "imported" | "error";
+
+type Report = {
   id: string;
   createdAt: string;
   inspector: string;
@@ -58,7 +60,9 @@ function parseLaunchHealthReport(raw:string){
 export default function VehicleCheckPage(){
   const [report,setReport] = useState<Report>(newReport());
   const [saved,setSaved] = useState(false);
-  const [obdState,setObdState] = useState<"idle"|"demo"|"launch">("idle");\n  const [launchImport,setLaunchImport] = useState<LaunchImportState>("idle");\n  const [launchMessage,setLaunchMessage] = useState("");
+  const [obdState,setObdState] = useState<"idle"|"demo"|"launch">("idle");
+  const [launchImport,setLaunchImport] = useState<LaunchImportState>("idle");
+  const [launchMessage,setLaunchMessage] = useState("");
 
   useEffect(()=>{ const raw=localStorage.getItem(STORAGE_KEY); if(raw){try{setReport(JSON.parse(raw))}catch{}} },[]);
   useEffect(()=>{ localStorage.setItem(STORAGE_KEY,JSON.stringify(report)); setSaved(true); const t=setTimeout(()=>setSaved(false),800); return ()=>clearTimeout(t); },[report]);
