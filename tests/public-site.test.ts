@@ -168,9 +168,9 @@ describe("publieke Volt & Vroom website", () => {
       expect(source).toContain("contactActionRoute");
     }
     const refresh = read("app/frontend-refresh.css");
-    expect(refresh).toContain("#34c759");
-    expect(refresh).toContain("#25d366");
-    expect(refresh).toContain("#0a84ff");
+    expect(refresh).toContain(".mobileActionBar .contactActionPhone{background:#34c759!important}");
+    expect(refresh).toContain(".mobileActionBar .contactActionWhatsapp{background:#25d366!important}");
+    expect(refresh).toContain(".mobileActionBar .contactActionRoute{background:#0a84ff!important}");
     expect(refresh).toContain("@media(prefers-reduced-motion:reduce)");
   });
 
