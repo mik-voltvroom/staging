@@ -9,7 +9,7 @@ export function MobileActionBar() {
   const [formInView, setFormInView] = useState(false);
 
   useEffect(() => {
-    const form = document.querySelector(".contactForm");
+    const form = document.querySelector(".contactForm, [data-mobile-action-anchor]");
     if (!form) {
       setFormInView(false);
       return;
