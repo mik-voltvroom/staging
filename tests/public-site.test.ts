@@ -49,7 +49,7 @@ describe("publieke Volt & Vroom website", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Historie gecontroleerd");
     expect(homepage).toContain("Techniek beoordeeld");
-    expect(homepage).toContain("Accudata waar beschikbaar");
+    expect(homepage).toContain("Accudata indien beschikbaar");
     expect(homepage).toContain("Volt &amp; Vroom controle");
     expect(homepage).not.toContain("Hybrid Intelligence");
     expect(homepage).not.toContain("Altijd dealeronderhouden");
@@ -77,6 +77,9 @@ describe("publieke Volt & Vroom website", () => {
     expect(detail).not.toContain("Hybrid Intelligence");
     expect(detail).not.toContain(">Hybrid data<");
     expect(card).toContain('return "Elektrisch"');
+    expect(card).toContain('className="vehicleCardLink"');
+    expect(card).toContain("monthlyPriceCents");
+    expect(card).toContain('src="/brand/vv-symbol.svg"');
   });
 
   it("biedt een veilige en volledige inruilroute", () => {
@@ -128,11 +131,24 @@ describe("publieke Volt & Vroom website", () => {
     const footer = read("components/SiteFooter.tsx");
     const contact = read("app/contact/page.tsx");
 
+    expect(footer).toContain('className="footerMap"');
+    expect(footer).toContain("&output=embed");
+
     for (const source of [homepage, footer, contact]) {
       expect(source).toContain("https://www.google.com/maps/dir/?api=1");
       expect(source).toContain("Euvelgunnerweg%2050%2C%209723%20CW%20Groningen");
       expect(source).toContain('target="_blank"');
       expect(source).toContain('rel="noopener noreferrer"');
+    }
+  });
+
+
+  it("biedt herkenbare bel-, WhatsApp- en routeacties", () => {
+    for (const source of [read("components/FloatingContactDock.tsx"), read("components/MobileActionBar.tsx")]) {
+      expect(source).toContain("PhoneIcon");
+      expect(source).toContain("WhatsAppIcon");
+      expect(source).toContain("RouteIcon");
+      expect(source).toContain("https://wa.me/");
     }
   });
 

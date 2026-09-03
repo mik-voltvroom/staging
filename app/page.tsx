@@ -19,17 +19,18 @@ const assurances = [
   { icon: "/brand/icons/accugezondheid.svg", title: "Accu waar relevant", text: "Bij hybride en elektrische auto’s leggen we beschikbare hoogvolt- en SOH-data begrijpelijk uit, zonder er meer van te maken dan de meting zegt." },
   { icon: "/brand/icons/onderhoud.svg", title: "Technisch geselecteerd", text: "Leeftijd, kilometerstand, onderhoud, uitvoering en technisch risico worden als één geheel beoordeeld." },
   { icon: "/brand/icons/praktijkverbruik.svg", title: "Advies uit de praktijk", text: "We kijken naar uw ritten, laadmogelijkheden en gebruik. Zo krijgt u advies dat aansluit op uw dagelijkse gebruik." },
+  { icon: "/brand/icons/elektrisch.svg", title: "Energie voor thuis", text: "Laadpalen, energiecontracten en thuisbatterijen. Plaatsing waar mogelijk binnen 14 dagen." },
 ];
 
 const promises = [
   { icon: "/brand/icons/historie.svg", title: "Historie gecontroleerd", text: "Onderhoud, kilometerstand en bekende voertuiggegevens worden vóór publicatie beoordeeld." },
   { icon: "/brand/icons/onderhoud.svg", title: "Techniek beoordeeld", text: "Technische staat, uitvoering en gebruiksrisico worden als één geheel bekeken." },
-  { icon: "/brand/icons/accugezondheid.svg", title: "Accudata waar beschikbaar", text: "Bij hybride en elektrische auto’s tonen we aangeleverde accu-informatie met passende context." },
+  { icon: "/brand/icons/accugezondheid.svg", title: "Accudata indien beschikbaar", text: "Bij hybride en elektrische auto’s tonen we aangeleverde accu-informatie met passende context." },
 ];
 
 const steps = [
   ["01", "Vertel hoe u rijdt", "Dagelijkse afstand, laadmogelijkheden, budget en wat u belangrijk vindt."],
-  ["02", "Vergelijk met bewijs", "U ziet de auto, historie, techniek en beschikbare accu-informatie naast elkaar."],
+  ["02", "Vergelijk met bewijs", "U ziet per auto alleen onderbouwde feiten over historie, techniek en beschikbare accu-informatie. Geen aannames."],
   ["03", "Rijd. Vraag. Beslis.", "Een proefrit en een helder voorstel. Zonder druk, met ruimte om zelf te kiezen."],
 ];
 
@@ -50,10 +51,10 @@ export default async function HomePage() {
             <p className="eyebrow">Volt &amp; Vroom · Groningen</p>
             <h1 id="hero-title">Slim rijden.<br /><em>Meer genieten.</em></h1>
             <p className="heroDescriptor">Hybride en elektrische occasions, geselecteerd op historie, techniek en dagelijks gebruik. Bij elke auto ziet u wat we hebben gecontroleerd — inclusief accudata wanneer die beschikbaar is.</p>
-            <div className="heroTrustRow" aria-label="Onze drie zekerheden"><span>Historie gecontroleerd</span><span>Techniek beoordeeld</span><span>Accudata waar beschikbaar</span></div>
+            <div className="heroTrustRow" aria-label="Onze vier zekerheden"><span>Historie gecontroleerd</span><span>Techniek beoordeeld</span><span>Accudata indien beschikbaar</span><span>Financiering mogelijk</span></div>
             <div className="actions heroActions">
               <a className="button heroPrimaryButton" href="#uitgelicht">Bekijk aanbod <span aria-hidden="true">→</span></a>
-              <a className="button secondary" href="/keuzehulp">Welke auto past bij mij?</a>
+              <a className="button secondary" href="/keuzehulp">Vind de juiste auto</a>
             </div>
           </div>
           <div className="heroVisual heroVisualRefresh">
@@ -62,7 +63,7 @@ export default async function HomePage() {
                 {latestVehicle.images[0]
                   ? <img src={latestVehicle.images[0]} alt={`${latestVehicle.brand} ${latestVehicle.model} ${latestVehicle.trim}`} />
                   : <div className="latestHeroFallback"><span>V&amp;V</span></div>}
-                <span className="latestHeroLabel">Laatst binnengekomen auto</span>
+                <span className="latestHeroLabel">Net binnengekomen</span>
               </div>
               <div className="latestHeroInfo">
                 <div><span>{latestVehicle.driveType === "electric" ? "Elektrisch" : latestVehicle.driveType === "plug-in-hybrid" ? "Plug-in hybride" : latestVehicle.driveType === "full-hybrid" ? "Hybride" : latestVehicle.fuelType}</span><h2>{latestVehicle.brand} {latestVehicle.model}</h2><p>{latestVehicle.trim}</p></div>
