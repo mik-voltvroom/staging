@@ -132,9 +132,9 @@ De eerste professionele diagnosekoppeling gebruikt het door Launch gegenereerde 
 1. Sluit de Launch VCI aan en open **Intelligent Diagnose / Health Report**.
 2. Voer bij voorkeur eerst een **Pre-Repair** volledige systeemscan uit.
 3. Kies **Report**; het rapport staat daarna onder **Reports → Health Reports**.
-4. Sla/deel het rapport als tekstbestand.
+4. Deel of bewaar het originele Launch-PDF.
 5. Open VVOS Voertuigcheck en kies **Importeer Launch**.
-6. VVOS herkent waar aanwezig VIN, kenteken, merk, model, kilometerstand, DTC-regels, SOC, SOH en celspreiding.
+6. VVOS decodeert de Base64 JSON-metadata uit het originele PDF en herkent VIN, merk, tester, ECU's, DTC-code, omschrijving en status. Aanvullende tekstvelden blijven als fallback ondersteund.
 7. Controleer de geïmporteerde waarden en voltooi de fysieke inspectie.
 
 ### Auditregels
@@ -144,7 +144,10 @@ De eerste professionele diagnosekoppeling gebruikt het door Launch gegenereerde 
 - Bewaar bij reparaties zowel Pre-Repair als Post-Repair rapport voor vergelijking.
 
 ### Volgende adapterversie
-- PDF-parser voor Launch-PDF's.
+- Normalisatie en opslag van de originele Launch-PDF naast het VVOS-scanrecord.
 - Upload/sync naar een VVOS-inbox zodat delen vanaf het Launch Android-tablet zonder handmatige bestandskeuze gaat.
 - Mapping van Launch ECU-benamingen en statusvelden naar het genormaliseerde VVOS-datamodel.
 - Onderzoek naar officiële Launch cloud-/partnerinterface; geen reverse engineering van de VCI-beveiliging.
+
+### Gevalideerd praktijkbestand
+De PDF-import is afgestemd op een origineel rapport van **X-431 PRO3 (V+ 5.0)** met OpenPDF metadata. Het testbestand bevatte 46 systemen, 32 foutcodes en drie Active/Static meldingen. De zichtbare rapporttekst en de gestructureerde metadata kwamen overeen.
