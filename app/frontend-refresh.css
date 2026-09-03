@@ -94,9 +94,9 @@
   outline-offset:2px;
   box-shadow:0 0 0 5px rgba(10,132,255,.48),0 10px 24px rgba(13,17,23,.18);
 }
-.contactActionPhone{background:#34c759!important}
-.contactActionWhatsapp{background:#25d366!important}
-.contactActionRoute{background:#0a84ff!important}
+.floatingContactDock .contactActionPhone,.mobileActionBar .contactActionPhone{background:#34c759!important}
+.floatingContactDock .contactActionWhatsapp,.mobileActionBar .contactActionWhatsapp{background:#25d366!important}
+.floatingContactDock .contactActionRoute,.mobileActionBar .contactActionRoute{background:#0a84ff!important}
 .floatingContactDock .dockIcon{
   width:31px;
   height:31px;
