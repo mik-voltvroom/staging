@@ -68,6 +68,20 @@ describe("publieke Volt & Vroom website", () => {
     expect(refresh).toContain(".featuredRail");
   });
 
+  it("animeert de drie processtappen toegankelijk en slechts eenmaal", () => {
+    const homepage = read("app/page.tsx");
+    const processSteps = read("components/AnimatedProcessSteps.tsx");
+    const refresh = read("app/frontend-refresh.css");
+
+    expect(homepage).toContain("<AnimatedProcessSteps />");
+    expect(processSteps).toContain("IntersectionObserver");
+    expect(processSteps).toContain("observer.disconnect()");
+    expect(processSteps).toContain("prefers-reduced-motion: reduce");
+    expect(refresh).toContain("@keyframes processStepReveal");
+    expect(refresh).toContain("@keyframes processRingDraw");
+    expect(refresh).toContain("@media(prefers-reduced-motion:reduce)");
+  });
+
   it("houdt voertuigteksten publiek en aandrijflijnspecifiek", () => {
     const detail = read("app/voorraad/[slug]/page.tsx");
     const card = read("components/VehicleCard.tsx");
