@@ -18,9 +18,9 @@ const isProductionSite = siteUrl === "https://www.voltvroom.nl" || siteUrl === "
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Volt & Vroom | Slim rijden. Meer genieten.",
-  description: "Zorgvuldig geselecteerde hybride en elektrische occasions met aantoonbare historie, inzicht in de hoogvoltaccu en persoonlijk advies vanuit Groningen.",
-  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Hybride of elektrisch? Volt & Vroom legt uit wat bij uw gebruik past." }] },
-  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Geteste auto’s. Eerlijke informatie. Persoonlijk advies.", images: ["/editorial/hero-v2.png"] },
+  description: "Hybride en elektrische occasions, geselecteerd op historie, techniek en dagelijks gebruik. Accudata waar beschikbaar.",
+  openGraph: { type: "website", locale: "nl_NL", siteName: "Volt & Vroom", title: "Volt & Vroom | Slim rijden. Meer genieten.", description: "Geselecteerde auto’s. Controleerbare informatie. Persoonlijk advies.", url: "/", images: [{ url: "/editorial/hero-v2.png", width: 1680, height: 945, alt: "Hybride of elektrisch? Volt & Vroom legt uit wat bij uw gebruik past." }] },
+  twitter: { card: "summary_large_image", title: "Volt & Vroom", description: "Geselecteerde auto’s. Controleerbare informatie. Persoonlijk advies.", images: ["/editorial/hero-v2.png"] },
   robots: isProductionSite ? { index: true, follow: true } : { index: false, follow: false, noarchive: true },
 };
 
