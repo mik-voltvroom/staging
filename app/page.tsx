@@ -62,7 +62,7 @@ export default async function HomePage() {
                 {latestVehicle.images[0]
                   ? <img src={latestVehicle.images[0]} alt={`${latestVehicle.brand} ${latestVehicle.model} ${latestVehicle.trim}`} />
                   : <div className="latestHeroFallback"><span>V&amp;V</span></div>}
-                <span className="latestHeroLabel">Nieuw in voorraad</span>
+                <span className="latestHeroLabel">Laatst binnengekomen auto</span>
               </div>
               <div className="latestHeroInfo">
                 <div><span>{latestVehicle.driveType === "electric" ? "Elektrisch" : latestVehicle.driveType === "plug-in-hybrid" ? "Plug-in hybride" : latestVehicle.driveType === "full-hybrid" ? "Hybride" : latestVehicle.fuelType}</span><h2>{latestVehicle.brand} {latestVehicle.model}</h2><p>{latestVehicle.trim}</p></div>
