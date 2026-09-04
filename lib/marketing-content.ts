@@ -129,10 +129,10 @@ export const marketingLandings: Record<string, MarketingLanding> = {
 export const knowledgeArticles: KnowledgeArticle[] = [
   {
     slug: "elektrische-occasion-kopen-controlepunten",
-    title: "Elektrische occasion kopen: 9 controlepunten vóór u beslist",
-    description: "Waar let u op bij een gebruikte elektrische auto? Negen praktische controlepunten voor accu, bereik, laden, historie, banden, software en proefrit.",
+    title: "Elektrische occasion kopen: 7 controlepunten vóór u beslist",
+    description: "Waar let u op bij een gebruikte elektrische auto? Zeven praktische controlepunten voor accu, bereik, laden, historie, banden, software en proefrit.",
     eyebrow: "Koopgids · Elektrisch",
-    lead: "Een elektrische occasion vraagt niet per se om méér twijfel, wel om andere vragen. Met deze negen controlepunten vergelijkt u auto’s op informatie die in dagelijks gebruik verschil maakt.",
+    lead: "Een elektrische occasion vraagt niet per se om méér twijfel, wel om andere vragen. Met deze zeven controlepunten vergelijkt u auto’s op informatie die in dagelijks gebruik verschil maakt.",
     readTime: "7 minuten",
     publishedAt: "2026-09-04",
     updatedAt: "2026-09-04",
