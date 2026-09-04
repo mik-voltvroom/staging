@@ -5,6 +5,7 @@ import "./globals.css";
 import "./public.css";
 import "./enhancements.css";
 import "./frontend-refresh.css";
+import "./seo-content.css";
 import "./social-video.css";
 import "./social-video-editor.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
