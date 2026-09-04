@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
 import { GET as getMerchantFeed } from "@/app/api/merchant-feed/route";
 import { GET as getRdwVehicle } from "@/app/api/rdw/vehicle/route";
 import { GET as getPortal } from "@/app/api/portal/[token]/route";
@@ -89,4 +90,74 @@ describe("production data boundaries", () => {
     expect(isLocalDemoAuthBypassAllowed()).toBe(false);
     expect(isAuthenticationRequired()).toBe(true);
   });
+
+  it("rejects staging Firebase values in the production readiness gate", () => {
+    const secret = "x".repeat(32);
+    const result = spawnSync(process.execPath, ["scripts/production-readiness.mjs"], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        NODE_ENV: "production",
+        VVOS_ENV: "production",
+        VVOS_DATA_MODE: "firebase",
+        NEXT_PUBLIC_VVOS_DATA_MODE: "firebase",
+        VVOS_REQUIRE_AUTH: "true",
+        NEXT_PUBLIC_SITE_URL: "https://www.voltvroom.nl",
+        NEXT_PUBLIC_FIREBASE_API_KEY: "production-shaped-api-key",
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "voltvroom-staging.firebaseapp.com",
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: "voltvroom-staging",
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "voltvroom-staging.firebasestorage.app",
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "123456789",
+        NEXT_PUBLIC_FIREBASE_APP_ID: "1:123456789:web:production",
+        GOOGLE_CLOUD_PROJECT: "voltvroom-staging",
+        CRON_SECRET: secret,
+        VWE_WEBHOOK_SECRET: secret,
+        HEXON_SYNC_USERNAME: secret,
+        HEXON_SYNC_PASSWORD: secret,
+        PORTAL_TOKEN_SECRET: secret,
+        AUDIT_HASH_SALT: secret,
+      },
+    });
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.stdout).unsafe).toContain("Firebase clientconfig mag geen stagingwaarde bevatten");
+  });
+
+  it("accepts a complete production-shaped public website configuration", () => {
+    const secret = "x".repeat(32);
+    const result = spawnSync(process.execPath, ["scripts/production-readiness.mjs"], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        NODE_ENV: "production",
+        VVOS_ENV: "production",
+        VVOS_DATA_MODE: "firebase",
+        NEXT_PUBLIC_VVOS_DATA_MODE: "firebase",
+        VVOS_REQUIRE_AUTH: "true",
+        NEXT_PUBLIC_SITE_URL: "https://www.voltvroom.nl",
+        NEXT_PUBLIC_FIREBASE_API_KEY: "production-shaped-api-key",
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "voltvroom-productie.firebaseapp.com",
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: "voltvroom-productie",
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "voltvroom-productie.firebasestorage.app",
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "123456789",
+        NEXT_PUBLIC_FIREBASE_APP_ID: "1:123456789:web:production",
+        GOOGLE_CLOUD_PROJECT: "voltvroom-productie",
+        CRON_SECRET: secret,
+        VWE_WEBHOOK_SECRET: secret,
+        HEXON_SYNC_USERNAME: secret,
+        HEXON_SYNC_PASSWORD: secret,
+        PORTAL_TOKEN_SECRET: secret,
+        AUDIT_HASH_SALT: secret,
+      },
+    });
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      ready: true,
+      target: "https://www.voltvroom.nl",
+      missing: [],
+      unsafe: [],
+    });
+  });
+
 });

@@ -34,6 +34,7 @@ Deze gate controleert legacy merk-/secretsporen, repository-integriteit, TypeScr
 - [Deployment- en rollback-runbook](docs/operations/DEPLOYMENT_RUNBOOK.md)
 - [Secret matrix](docs/operations/SECRET_MATRIX.md)
 - [Production checklist](docs/operations/PRODUCTION_CHECKLIST.md)
+- [Draaiboek openbare website livegang](docs/operations/PUBLIC_SITE_GO_LIVE.md)
 - [Securitybeleid](SECURITY.md)
 
 Versie: `1.0.0-rc.2-otap`.
