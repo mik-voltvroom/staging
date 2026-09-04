@@ -111,7 +111,7 @@ describe("publieke Volt & Vroom website", () => {
     expect(submission).toContain("MAX_TRADE_IN_PHOTOS");
     expect(repository).toContain("adminDb.batch()");
     expect(repository).toContain('cacheControl: "private, no-store"');
-    expect(read("components/Header.tsx")).toContain('href="/inruilen"');
+    expect(read("components/Header.tsx")).toContain('href: "/inruilen"');
     expect(read("app/sitemap.ts")).toContain('"/inruilen"');
   });
 
