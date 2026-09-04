@@ -111,7 +111,7 @@ describe("publieke Volt & Vroom website", () => {
     expect(submission).toContain("MAX_TRADE_IN_PHOTOS");
     expect(repository).toContain("adminDb.batch()");
     expect(repository).toContain('cacheControl: "private, no-store"');
-    expect(read("components/Header.tsx")).toContain('href="/inruilen"');
+    expect(read("components/Header.tsx")).toContain('href: "/inruilen"');
     expect(read("app/sitemap.ts")).toContain('"/inruilen"');
   });
 
@@ -172,6 +172,31 @@ describe("publieke Volt & Vroom website", () => {
     expect(refresh).toContain(".mobileActionBar .contactActionWhatsapp{background:#25d366!important}");
     expect(refresh).toContain(".mobileActionBar .contactActionRoute{background:#0a84ff!important}");
     expect(refresh).toContain("@media(prefers-reduced-motion:reduce)");
+  });
+
+  it("publiceert een samenhangend SEO- en SEA-contentcluster", () => {
+    const content = read("lib/marketing-content.ts");
+    const landing = read("components/MarketingLandingPage.tsx");
+    const article = read("components/KnowledgeArticlePage.tsx");
+    const sitemap = read("app/sitemap.ts");
+    const header = read("components/Header.tsx");
+    const footer = read("components/SiteFooter.tsx");
+
+    expect(content).toContain("elektrische-auto-kopen-groningen");
+    expect(content).toContain("hybride-auto-kopen-groningen");
+    expect(content).toContain("auto-inruilen-groningen");
+    expect(content).toContain("elektrische-occasion-kopen-controlepunten");
+    expect(content).toContain("soh-accu-elektrische-auto-uitleg");
+    expect(content).toContain("hybride-of-elektrisch-wat-past-bij-mij");
+    expect(landing).toContain('"@type": "Service"');
+    expect(landing).toContain("Veelgestelde vragen");
+    expect(article).toContain('"@type": "Article"');
+    expect(article).toContain('"@type": "BreadcrumbList"');
+    expect(read("app/kennis/[slug]/page.tsx")).toContain("generateStaticParams");
+    expect(sitemap).toContain("knowledgeArticles");
+    expect(sitemap).toContain("marketingLandings");
+    expect(header).toContain('href: "/kennis"');
+    expect(footer).toContain('href="/kennis"');
   });
 
   it("laadt de officiële Google Merchant-reviewbadge pas na de primaire pagina", () => {

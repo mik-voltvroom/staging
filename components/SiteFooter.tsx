@@ -8,6 +8,7 @@ export function SiteFooter() {
     <div className="container footerTop">
       <div><BrandLogo dark /><p>Slim rijden. Meer genieten.</p></div>
       <div><strong>Ontdek</strong><a href="/hybride">Hybride</a><a href="/elektrisch">Elektrisch</a><a href="/icons">Icons</a><a href="/#voorraad">Aanbod</a><a href="/uit-de-praktijk">Uit de praktijk</a></div>
+      <div><strong>Kennis &amp; advies</strong><a href="/kennis">Alle artikelen</a><a href="/kennis/elektrische-occasion-kopen-controlepunten">Elektrische occasion kopen</a><a href="/kennis/soh-accu-elektrische-auto-uitleg">SOH en accugezondheid</a><a href="/kennis/hybride-of-elektrisch-wat-past-bij-mij">Hybride of elektrisch</a></div>
       <div><strong>Zekerheid</strong><a href="/vv-verified">VV Verified</a><a href="/inruilen">Auto inruilen</a><a href="/keuzehulp" data-vv-event="match_started">Hybrid &amp; EV Match</a><a href="/contact">Contact &amp; route</a></div>
       <div className="footerContact">
         <strong>Contact</strong>
