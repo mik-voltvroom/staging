@@ -58,6 +58,8 @@ export interface Vehicle {
   mileageKm: number;
   priceCents: number;
   monthlyPriceCents?: number;
+  leasePriceCents?: number;
+  roadTaxLabel?: string;
   driveType: DriveType;
   fuelType: string;
   transmission: string;
