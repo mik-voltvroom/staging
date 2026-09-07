@@ -10,6 +10,8 @@ const vehicleXml = `<?xml version="1.0" encoding="UTF-8"?>
   <bouwjaar>2024</bouwjaar><tellerstand>12.345</tellerstand><brandstof>Elektrisch</brandstof>
   <transmissie>Automaat</transmissie><carrosserie>Hatchback</carrosserie><kleur>Zwart</kleur><kenteken>AB-12-CD</kenteken>
   <verkoopprijs_particulier><bedrag>39.950,00</bedrag><munteenheid>EUR</munteenheid></verkoopprijs_particulier>
+  <leaseprijs_per_maand><bedrag>649,00</bedrag><munteenheid>EUR</munteenheid></leaseprijs_per_maand>
+  <wegenbelasting>€ 99 - € 108 per kwartaal</wegenbelasting>
   <opmerkingen>Volledig elektrische Polestar.</opmerkingen>
   <afbeeldingen><afbeelding><url>https://images.example.test/polestar.jpg</url></afbeelding></afbeeldingen>
 </voertuig>`;
@@ -27,7 +29,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.action).toBe("upsert");
     expect(mutation.providerAction).toBe("add");
     expect(mutation.externalId).toBe("5016729");
-    expect(mutation.vehicle).toMatchObject({ id: "hexon-5016729", brand: "Polestar", model: "2", year: 2024, mileageKm: 12345, priceCents: 3995000, driveType: "electric", status: "available", images: ["https://images.example.test/polestar.jpg"] });
+    expect(mutation.vehicle).toMatchObject({ id: "hexon-5016729", brand: "Polestar", model: "2", year: 2024, mileageKm: 12345, priceCents: 3995000, leasePriceCents: 64900, roadTaxLabel: "€ 99 - € 108 per kwartaal", driveType: "electric", status: "available", images: ["https://images.example.test/polestar.jpg"] });
     expect(mutation.vehicle?.publication?.channels.website).toBe(true);
   });
 
