@@ -12,6 +12,8 @@ const vehicleXml = `<?xml version="1.0" encoding="UTF-8"?>
   <verkoopprijs_particulier><bedrag>39.950,00</bedrag><munteenheid>EUR</munteenheid></verkoopprijs_particulier>
   <leaseprijs_per_maand><bedrag>649,00</bedrag><munteenheid>EUR</munteenheid></leaseprijs_per_maand>
   <wegenbelasting>€ 99 - € 108 per kwartaal</wegenbelasting>
+  <vermogen_motor_pk>231</vermogen_motor_pk>
+  <aantal_eigenaren>2</aantal_eigenaren>
   <opmerkingen>Volledig elektrische Polestar.</opmerkingen>
   <afbeeldingen><afbeelding><url>https://images.example.test/polestar.jpg</url></afbeelding></afbeeldingen>
 </voertuig>`;
@@ -29,7 +31,7 @@ describe("Mobilox/Hexon incremental inventory", () => {
     expect(mutation.action).toBe("upsert");
     expect(mutation.providerAction).toBe("add");
     expect(mutation.externalId).toBe("5016729");
-    expect(mutation.vehicle).toMatchObject({ id: "hexon-5016729", brand: "Polestar", model: "2", year: 2024, mileageKm: 12345, priceCents: 3995000, leasePriceCents: 64900, roadTaxLabel: "€ 99 - € 108 per kwartaal", driveType: "electric", status: "available", images: ["https://images.example.test/polestar.jpg"] });
+    expect(mutation.vehicle).toMatchObject({ id: "hexon-5016729", brand: "Polestar", model: "2", year: 2024, mileageKm: 12345, priceCents: 3995000, leasePriceCents: 64900, roadTaxLabel: "€ 99 - € 108 per kwartaal", powerHp: 231, ownerCount: 2, driveType: "electric", status: "available", images: ["https://images.example.test/polestar.jpg"] });
     expect(mutation.vehicle?.publication?.channels.website).toBe(true);
   });
 
