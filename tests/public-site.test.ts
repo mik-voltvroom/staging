@@ -85,6 +85,8 @@ describe("publieke Volt & Vroom website", () => {
   it("houdt voertuigteksten publiek en aandrijflijnspecifiek", () => {
     const detail = read("app/voorraad/[slug]/page.tsx");
     const card = read("components/VehicleCard.tsx");
+    const homepage = read("app/page.tsx");
+    const refresh = read("app/frontend-refresh.css");
     expect(detail).toContain("publicDescription");
     expect(detail).toContain("Elektrische gegevens");
     expect(detail).toContain("rustig met u door");
@@ -98,9 +100,15 @@ describe("publieke Volt & Vroom website", () => {
     expect(card).toContain("Wegenbelasting");
     expect(card).toContain("Elektrisch rijbereik");
     expect(card).toContain("SOH-waarde");
+    expect(card).toContain("Vermogen");
+    expect(card).toContain("Aantal eigenaren");
     expect(card).toContain("Leaseprijs");
     expect(card).toContain('className="vehicleFacts"');
     expect(card).toContain('src="/brand/vv-symbol.svg"');
+    expect(homepage).toContain('className="inventoryWatermark"');
+    expect(homepage).toContain('src="/brand/vv-logo-horizontal.svg"');
+    expect(refresh).toContain(".inventoryWatermark");
+    expect(refresh).toContain("opacity:.25");
   });
 
   it("biedt een veilige en volledige inruilroute", () => {
