@@ -10,15 +10,20 @@ export function driveLabel(value: string): "Hybride" | "Elektrisch" | "Icoon" {
   return "Icoon";
 }
 
-export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
-  const vehicleLabel = `${vehicle.brand} ${vehicle.model} ${vehicle.trim}`;
+export function vehicleFacts(vehicle: Vehicle): [string, string][] {
   const hasElectricDrive = vehicle.driveType === "electric" || vehicle.driveType.includes("hybrid");
-  const facts = [
+  const isIcon = !hasElectricDrive;
+  return [
     ["Wegenbelasting", vehicle.roadTaxLabel || "Niet vermeld"],
-    ["Elektrisch rijbereik", hasElectricDrive && vehicle.electricRangeKm ? `${km.format(vehicle.electricRangeKm)} km` : "n.v.t."],
-    ["SOH-waarde", hasElectricDrive && vehicle.batteryHealthPercent !== undefined ? `${vehicle.batteryHealthPercent}%` : "n.v.t."],
+    [isIcon ? "Vermogen" : "Elektrisch rijbereik", isIcon ? (vehicle.powerHp ? `${km.format(vehicle.powerHp)} pk` : "Niet vermeld") : (vehicle.electricRangeKm ? `${km.format(vehicle.electricRangeKm)} km` : "n.v.t.")],
+    [isIcon ? "Aantal eigenaren" : "SOH-waarde", isIcon ? (vehicle.ownerCount !== undefined ? km.format(vehicle.ownerCount) : "Niet vermeld") : (vehicle.batteryHealthPercent !== undefined ? `${vehicle.batteryHealthPercent}%` : "n.v.t.")],
     ["Leaseprijs", vehicle.leasePriceCents ? `${eur.format(centsToEuros(vehicle.leasePriceCents))} p/m` : "Op aanvraag"],
   ];
+}
+
+export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+  const vehicleLabel = `${vehicle.brand} ${vehicle.model} ${vehicle.trim}`;
+  const facts = vehicleFacts(vehicle);
 
   return <Link className="vehicleCardLink" href={`/voorraad/${vehicle.slug}`} aria-label={`Bekijk ${vehicleLabel}`}>
     <article className="card vehicle">
