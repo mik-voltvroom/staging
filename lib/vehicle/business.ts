@@ -128,3 +128,31 @@ export function vehicleCommercialSummary(vehicle: Pick<Vehicle, "commercial" | "
     marginOnTarget: costsKnown && marginCents >= commercial.targetMarginCents,
   };
 }
+
+export type PublicVehicleCategory = "Elektrisch" | "Hybride" | "Icon" | "Overig";
+
+/** Keep public collection labels consistent across cards, filters and details. */
+export function publicVehicleCategory(
+  vehicle: Pick<Vehicle, "driveType" | "fuelType">,
+): PublicVehicleCategory {
+  if (vehicle.driveType === "electric") return "Elektrisch";
+  if (vehicle.driveType === "full-hybrid" || vehicle.driveType === "plug-in-hybrid") return "Hybride";
+  if (vehicle.driveType === "combustion") return "Icon";
+
+  const fuel = vehicle.fuelType.trim().toLowerCase();
+  if (fuel.includes("elektr")) return "Elektrisch";
+  if (fuel.includes("hybrid") || fuel.includes("hybride")) return "Hybride";
+  if (fuel.includes("benzine") || fuel.includes("diesel") || fuel.includes("petrol")) return "Icon";
+  return "Overig";
+}
+
+export function publicVehicleEnteredAt(vehicle: Pick<Vehicle, "commercial" | "createdAt" | "updatedAt">): number {
+  const candidates = [vehicle.commercial?.stockEnteredAt, vehicle.createdAt, vehicle.updatedAt];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const timestamp = Date.parse(candidate);
+    if (Number.isFinite(timestamp)) return timestamp;
+  }
+  return 0;
+}
+
