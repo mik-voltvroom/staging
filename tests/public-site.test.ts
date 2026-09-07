@@ -91,8 +91,15 @@ describe("publieke Volt & Vroom website", () => {
     expect(detail).not.toContain("Hybrid Intelligence");
     expect(detail).not.toContain(">Hybrid data<");
     expect(card).toContain('return "Elektrisch"');
+    expect(card).toContain('return "Icoon"');
     expect(card).toContain('className="vehicleCardLink"');
     expect(card).toContain("monthlyPriceCents");
+    expect(card).toContain("leasePriceCents");
+    expect(card).toContain("Wegenbelasting");
+    expect(card).toContain("Elektrisch rijbereik");
+    expect(card).toContain("SOH-waarde");
+    expect(card).toContain("Leaseprijs");
+    expect(card).toContain('className="vehicleFacts"');
     expect(card).toContain('src="/brand/vv-symbol.svg"');
   });
 
