@@ -256,6 +256,16 @@ function findPriceCents(root: unknown): number {
   throw new Error("Hexon verkoopprijs ontbreekt of is ongeldig.");
 }
 
+function findOptionalPriceCents(root: unknown, names: string[]): number | undefined {
+  for (const key of names) {
+    const priceNode = firstField(root, [key]);
+    if (priceNode === undefined) continue;
+    const amount = parseNumber(firstField(priceNode, ["bedrag", "prijs", "maandbedrag"]) ?? priceNode);
+    if (amount !== undefined && amount > 0) return eurosToCents(amount, key);
+  }
+  return undefined;
+}
+
 function inferDriveType(fuel: string, pluginHybrid: boolean): DriveType {
   const value = fuel.trim().toLowerCase();
   if (value === "e" || value === "electric" || value === "elektrisch") return "electric";
@@ -358,6 +368,8 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   const description = sanitizeProviderDescription(firstText(parsed, ["opmerkingen", "omschrijving"]));
   const batteryHealthPercent = firstInteger(parsed, ["accu_conditie"]);
   const electricRangeKm = firstInteger(parsed, ["wltp_actieradius_elektrisch_combined", "actieradius_elektrisch"]);
+  const leasePriceCents = findOptionalPriceCents(parsed, ["leaseprijs_per_maand", "private_lease_prijs", "leaseprijs"]);
+  const roadTaxLabel = firstText(parsed, ["wegenbelasting", "motorrijtuigenbelasting", "mrb"]);
   const consumptionPer100Km = firstNumber(parsed, ["wltp_brandstofverbruik_combined_weighted", "wltp_brandstofverbruik_combined", "gemiddeld_verbruik"]);
   const warrantyMonths = firstInteger(parsed, ["garantie_maanden", "fabrieksgarantie_aantal_maanden"]);
 
@@ -370,6 +382,8 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
     year,
     mileageKm,
     priceCents: findPriceCents(parsed),
+    ...(leasePriceCents !== undefined ? { leasePriceCents } : {}),
+    ...(roadTaxLabel ? { roadTaxLabel } : {}),
     driveType,
     fuelType,
     transmission: displayTransmission(firstText(parsed, ["transmissie", "versnellingsbak"])),
