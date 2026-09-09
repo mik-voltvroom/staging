@@ -8,6 +8,7 @@ export type ObservationSource = "manual" | "voice";
 export type MediaKind = "photo" | "video";
 export type MediaStatus = "pending" | "uploaded" | "failed";
 export type WearableAdapterType = "browser_camera" | "meta_companion" | "mock";
+export type CarCheckDecision = "INCOMPLETE" | "VV_APPROVED" | "REPAIR_REQUIRED" | "REJECTED";
 
 export interface DeviceCapabilities { camera: boolean; microphone: boolean; audioOutput: boolean; display: boolean; video: boolean; }
 export interface WearableDeviceSnapshot { adapter: WearableAdapterType; name: string; connected: boolean; batteryPercent?: number; network: "online" | "offline" | "unknown"; capabilities: DeviceCapabilities; }
@@ -32,6 +33,7 @@ export interface InspectionSession {
   id: string; vehicleId: string; inspectorId: string; inspectorEmail?: string | null; status: InspectionStatus; startedAt: string; completedAt?: string; updatedAt: string;
   device: WearableDeviceSnapshot; currentSection: InspectionSectionId; currentItemId: string; mileageKm?: number; checklist: InspectionChecklistItem[];
   observations: InspectionObservation[]; media: InspectionMedia[]; findings: Finding[]; version: 1;
+  carCheckDecision?: CarCheckDecision; carCheckScorePercent?: number; carCheckHandledPoints?: number; carCheckReleaseBlocked?: boolean; carCheckRepairCostCents?: number;
 }
 
 export interface InspectionObservation { id: string; inspectionId: string; vehicleId: string; text: string; source: ObservationSource; section: InspectionSectionId; itemId?: string; createdBy: string; createdAt: string; }
