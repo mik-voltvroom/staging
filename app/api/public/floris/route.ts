@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildFlorisContext } from "@/lib/floris/context";
-import { askFloris, requiresCurrentWebInfo } from "@/lib/floris/service";
+import { requiresCurrentWebInfo } from "@/lib/floris/routing";
+import { askFloris } from "@/lib/floris/service";
 import { listPublicVehicles } from "@/lib/repositories/public-vehicle-repository";
 import { consumePublicFlorisQuota } from "@/lib/security/public-rate-limit";
 
