@@ -3,6 +3,7 @@ import { z } from "zod";
 import { authorizeApi } from "@/lib/auth/api";
 import { adminDb } from "@/lib/firebase-admin";
 import { normalizeVehicleDocument } from "@/lib/vehicle/money";
+import { evaluateCarCheck101 } from "@/lib/glasses/carcheck101";
 import { getInspectionSession } from "@/lib/glasses/repository";
 import { vvosAIService } from "@/lib/glasses/ai-service";
 import { savePurchaseAdvice } from "@/lib/glasses/purchase-repository";
@@ -30,6 +31,10 @@ export async function POST(request: Request, context: Context): Promise<Response
   const vehicle = normalizeVehicleDocument(vehicleDoc.id, vehicleDoc.data() ?? {});
   const session = body.data.inspectionId ? await getInspectionSession(body.data.inspectionId) : null;
   if (body.data.inspectionId && (!session || session.vehicleId !== vehicle.id)) return NextResponse.json({ ok: false, error: "Inspectie hoort niet bij dit voertuig." }, { status: 409 });
+  if (session) {
+    const carCheck = evaluateCarCheck101(session);
+    if (carCheck.decision === "INCOMPLETE") return NextResponse.json({ ok: false, error: `Purchase Intelligence vereist een complete VV CarCheck 101. ${carCheck.reason}`, carCheck }, { status: 409 });
+  }
   const { inspectionId: _inspectionId, ...overrides } = body.data;
   const advice = await vvosAIService.generatePurchaseAdvice(vehicle, session ?? undefined, overrides);
   await savePurchaseAdvice(advice);
