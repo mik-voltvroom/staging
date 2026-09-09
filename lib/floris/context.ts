@@ -1,4 +1,3 @@
-import "server-only";
 import type { Vehicle } from "@/types";
 
 export interface FlorisVehicleContext {
@@ -76,6 +75,7 @@ function energyProfile(vehicle: Vehicle): Record<string, string | number | boole
 }
 
 export function toFlorisVehicleContext(vehicle: Vehicle): FlorisVehicleContext {
+  const licensePlate = safeText(vehicle.licensePlate, 16);
   return {
     id: vehicle.id,
     slug: vehicle.slug,
@@ -89,7 +89,7 @@ export function toFlorisVehicleContext(vehicle: Vehicle): FlorisVehicleContext {
     transmission: safeText(vehicle.transmission) ?? "onbekend",
     bodyStyle: safeText(vehicle.bodyStyle) ?? "onbekend",
     color: safeText(vehicle.color) ?? "onbekend",
-    ...(safeText(vehicle.licensePlate, 16) ? { licensePlate: safeText(vehicle.licensePlate, 16) } : {}),
+    ...(licensePlate ? { licensePlate } : {}),
     ...(finiteNumber(vehicle.batteryHealthPercent) !== undefined ? { batteryHealthPercent: vehicle.batteryHealthPercent } : {}),
     ...(finiteNumber(vehicle.electricRangeKm) !== undefined ? { electricRangeKm: vehicle.electricRangeKm } : {}),
     ...(finiteNumber(vehicle.consumptionPer100Km) !== undefined ? { consumptionPer100Km: vehicle.consumptionPer100Km } : {}),
