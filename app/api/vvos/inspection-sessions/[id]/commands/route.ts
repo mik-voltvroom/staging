@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authorizeApi } from "@/lib/auth/api";
-import { checklistItemForTireLocation, moveChecklistCursor, parseVoiceCommand } from "@/lib/glasses/business";
+import { checklistItemForTireLocation, moveChecklistCursor } from "@/lib/glasses/business";
+import { vvosAIService } from "@/lib/glasses/ai-service";
 import { addInspectionFinding, addInspectionObservation, getInspectionSession, hasProcessedInspectionCommand, markInspectionCommandProcessed, updateInspectionSession } from "@/lib/glasses/repository";
 import { writeAuditEvent } from "@/lib/audit/audit-log";
 import type { Finding, InspectionObservation } from "@/lib/glasses/model";
@@ -25,7 +26,7 @@ export async function POST(request: Request, context: Context): Promise<Response
     return NextResponse.json({ ok: true, duplicate: true, responseText: "Actie was al verwerkt.", session });
   }
 
-  const command = parseVoiceCommand(parsedBody.data.transcript, session);
+  const command = await vvosAIService.classifyVoiceIntent(parsedBody.data.transcript, session);
   const now = new Date().toISOString();
   let responseText = "Opgeslagen.";
   let clientAction: "capture_photo" | undefined;
@@ -101,7 +102,8 @@ export async function POST(request: Request, context: Context): Promise<Response
       responseText = "Inspectie klaar voor controle.";
       break;
     case "REQUEST_PURCHASE_ADVICE":
-      return NextResponse.json({ ok: false, error: "Inkoopadvies wordt in P1 aangesloten op Purchase Intelligence.", command }, { status: 501 });
+      responseText = "Open de review om het actuele inkoopadvies met alle aannames te berekenen.";
+      break;
     default: {
       await addObservation(parsedBody.data.transcript);
       if (/\b(netjes|goed|in orde|geen bijzonderheden|geen schade)\b/i.test(parsedBody.data.transcript)) {
