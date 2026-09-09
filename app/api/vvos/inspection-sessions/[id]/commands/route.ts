@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authorizeApi } from "@/lib/auth/api";
+import { adminDb } from "@/lib/firebase-admin";
 import { checklistItemForTireLocation, moveChecklistCursor } from "@/lib/glasses/business";
 import { vvosAIService } from "@/lib/glasses/ai-service";
+import type { PurchaseAdvice } from "@/lib/glasses/purchase-intelligence";
+import { savePurchaseAdvice } from "@/lib/glasses/purchase-repository";
+import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 import { addInspectionFinding, addInspectionObservation, getInspectionSession, hasProcessedInspectionCommand, markInspectionCommandProcessed, updateInspectionSession } from "@/lib/glasses/repository";
 import { writeAuditEvent } from "@/lib/audit/audit-log";
 import type { Finding, InspectionObservation } from "@/lib/glasses/model";
@@ -10,6 +14,13 @@ import type { Finding, InspectionObservation } from "@/lib/glasses/model";
 export const runtime = "nodejs";
 const schema = z.object({ transcript: z.string().trim().min(1).max(800), source: z.enum(["voice", "manual"]).default("voice") });
 type Context = { params: Promise<{ id: string }> };
+
+function spokenPurchaseVerdict(verdict: PurchaseAdvice["verdict"]): string {
+  if (verdict === "STERK_INKOPEN") return "Sterk inkopen";
+  if (verdict === "INKOPEN") return "Inkopen";
+  if (verdict === "NIET_INKOPEN") return "Niet inkopen";
+  return "Alleen inkopen onder deze prijs";
+}
 
 export async function POST(request: Request, context: Context): Promise<Response> {
   const authorization = await authorizeApi(request, "inspections.write");
@@ -30,6 +41,7 @@ export async function POST(request: Request, context: Context): Promise<Response
   const now = new Date().toISOString();
   let responseText = "Opgeslagen.";
   let clientAction: "capture_photo" | undefined;
+  let purchaseAdvice: PurchaseAdvice | undefined;
 
   const addObservation = async (text: string): Promise<void> => {
     const observation: InspectionObservation = { id: crypto.randomUUID(), inspectionId: id, vehicleId: session.vehicleId, text, source: parsedBody.data.source, section: session.currentSection, itemId: session.currentItemId, createdBy: actor.uid, createdAt: now };
@@ -101,9 +113,16 @@ export async function POST(request: Request, context: Context): Promise<Response
       await updateInspectionSession(id, { status: "review" });
       responseText = "Inspectie klaar voor controle.";
       break;
-    case "REQUEST_PURCHASE_ADVICE":
-      responseText = "Open de review om het actuele inkoopadvies met alle aannames te berekenen.";
+    case "REQUEST_PURCHASE_ADVICE": {
+      if (!adminDb) return NextResponse.json({ ok: false, error: "VVOS database niet beschikbaar." }, { status: 503 });
+      const vehicleDoc = await adminDb.collection("vehicles").doc(session.vehicleId).get();
+      if (!vehicleDoc.exists) return NextResponse.json({ ok: false, error: "Voertuig niet gevonden." }, { status: 404 });
+      const vehicle = normalizeVehicleDocument(vehicleDoc.id, vehicleDoc.data() ?? {});
+      purchaseAdvice = await vvosAIService.generatePurchaseAdvice(vehicle, session);
+      await savePurchaseAdvice(purchaseAdvice);
+      responseText = `Maximale inkoopprijs ${Math.round(purchaseAdvice.maximumPurchasePriceCents / 100).toLocaleString("nl-NL")} euro. ${spokenPurchaseVerdict(purchaseAdvice.verdict)}.`;
       break;
+    }
     default: {
       await addObservation(parsedBody.data.transcript);
       if (/\b(netjes|goed|in orde|geen bijzonderheden|geen schade)\b/i.test(parsedBody.data.transcript)) {
@@ -117,6 +136,6 @@ export async function POST(request: Request, context: Context): Promise<Response
   }
 
   if (idempotencyKey) await markInspectionCommandProcessed(id, idempotencyKey, command.intent);
-  await writeAuditEvent({ action: "inspection.command", entityType: "inspection", entityId: id, actor, request, metadata: { intent: command.intent, confidence: command.confidence } });
-  return NextResponse.json({ ok: true, command, responseText, clientAction, session: await getInspectionSession(id) });
+  await writeAuditEvent({ action: "inspection.command", entityType: "inspection", entityId: id, actor, request, metadata: { intent: command.intent, confidence: command.confidence, purchaseAdviceId: purchaseAdvice?.id } });
+  return NextResponse.json({ ok: true, command, responseText, clientAction, purchaseAdvice, session: await getInspectionSession(id) });
 }
