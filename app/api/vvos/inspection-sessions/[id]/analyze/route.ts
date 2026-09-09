@@ -4,6 +4,7 @@ import { authorizeApi } from "@/lib/auth/api";
 import { adminStorage } from "@/lib/firebase-admin";
 import { vvosAIService } from "@/lib/glasses/ai-service";
 import { addInspectionFinding, getInspectionMedia, getInspectionSession } from "@/lib/glasses/repository";
+import { emitDomainEvent } from "@/lib/events/domain-events";
 import { writeAuditEvent } from "@/lib/audit/audit-log";
 import type { Finding } from "@/lib/glasses/model";
 
@@ -25,6 +26,7 @@ export async function POST(request: Request, context: Context): Promise<Response
 
   if (body.data.action === "summary") {
     const summary = await vvosAIService.generateInspectionSummary(session);
+    await emitDomainEvent({ name: "inspection.summary_generated", aggregateType: "inspection", aggregateId: id, vehicleId: session.vehicleId, inspectionId: id, actorId: actor.uid, payload: { progressPercent: summary.progressPercent, confirmedFindings: summary.confirmedFindings } });
     await writeAuditEvent({ action: "inspection.summary_generated", entityType: "inspection", entityId: id, actor, request, metadata: { progressPercent: summary.progressPercent } });
     return NextResponse.json({ ok: true, summary });
   }
@@ -43,6 +45,7 @@ export async function POST(request: Request, context: Context): Promise<Response
       source: "vision", reviewStatus: "suggested", createdBy: actor.uid, createdAt: now, updatedAt: now,
     }));
     await Promise.all(findings.map(addInspectionFinding));
+    await emitDomainEvent({ name: "inspection.vision_suggested", aggregateType: "inspection", aggregateId: id, vehicleId: session.vehicleId, inspectionId: id, actorId: actor.uid, payload: { mediaId: media.id, findingIds: findings.map(finding => finding.id), count: findings.length } });
     await writeAuditEvent({ action: "inspection.vision_suggestions_created", entityType: "inspection", entityId: id, actor, request, metadata: { mediaId: media.id, count: findings.length } });
     return NextResponse.json({ ok: true, suggestions: findings, session: await getInspectionSession(id) });
   } catch (error) {
