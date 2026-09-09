@@ -66,7 +66,7 @@ export async function POST(request: Request, context: Context): Promise<Response
       const value = command.entities.value;
       const location = command.entities.location;
       const itemId = location ? checklistItemForTireLocation(location) : undefined;
-      if (value === undefined || !itemId || value < 0 || value > 20) return NextResponse.json({ ok: false, error: "Profieldiepte of wielpositie is onduidelijk." }, { status: 422 });
+      if (value === undefined || !location || !itemId || value < 0 || value > 20) return NextResponse.json({ ok: false, error: "Profieldiepte of wielpositie is onduidelijk." }, { status: 422 });
       const status = value < 1.6 ? "fail" as const : value < 3 ? "attention" as const : "ok" as const;
       const checklist = session.checklist.map(item => item.id === itemId ? { ...item, status, value, unit: "mm", updatedAt: now } : item);
       await updateInspectionSession(id, { checklist, currentSection: "tires", currentItemId: itemId });
