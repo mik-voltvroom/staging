@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Vehicle } from "@/types";
 import type { InspectionSession, WearableDeviceAdapter } from "@/lib/glasses/model";
+import type { InspectionSummary } from "@/lib/glasses/ai-service";
+import type { PurchaseAdvice } from "@/lib/glasses/purchase-intelligence";
 import { inspectionProgress, reviewSummary } from "@/lib/glasses/business";
 import { BrowserCameraAdapter, MockGlassesAdapter } from "@/lib/glasses/device";
 import { listVehicles } from "@/lib/repositories/vehicle-repository";
@@ -13,6 +15,8 @@ type SessionPayload = { ok: boolean; error?: string; session?: InspectionSession
 type CommandPayload = SessionPayload & { responseText?: string; clientAction?: "capture_photo" };
 type PreparePayload = { ok: boolean; error?: string; uploadUrl?: string; media?: { id: string } };
 type MediaPayload = { ok: boolean; error?: string; url?: string };
+type SummaryPayload = { ok: boolean; error?: string; summary?: InspectionSummary };
+type PurchasePayload = { ok: boolean; error?: string; advice?: PurchaseAdvice };
 
 type SpeechResult = { 0: { transcript: string } };
 type SpeechEvent = { results: ArrayLike<SpeechResult> };
@@ -24,6 +28,7 @@ const QUEUE_KEY = "vvos.glasses.command-queue.v1";
 const api = (id: string, suffix = "") => `/api/vvos/inspection-sessions/${id}${suffix}`;
 const vehicleName = (vehicle: Vehicle) => `${vehicle.brand} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`;
 const euro = (cents: number) => new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(cents / 100);
+const verdictLabel = (verdict: PurchaseAdvice["verdict"]) => ({ STERK_INKOPEN: "STERK INKOPEN", INKOPEN: "INKOPEN", ALLEEN_ONDER_MAX: "ALLEEN INKOPEN ONDER MAX", NIET_INKOPEN: "NIET INKOPEN" }[verdict]);
 
 export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
   const adapter = useRef<WearableDeviceAdapter | null>(null);
@@ -40,6 +45,8 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Klaar voor CarCheck");
   const [error, setError] = useState("");
+  const [inspectionSummary, setInspectionSummary] = useState<InspectionSummary | null>(null);
+  const [purchaseAdvice, setPurchaseAdvice] = useState<PurchaseAdvice | null>(null);
 
   useEffect(() => {
     adapter.current = devMode ? new MockGlassesAdapter() : new BrowserCameraAdapter();
@@ -61,6 +68,10 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
     if (navigator.onLine) void flushQueue();
     return () => { window.removeEventListener("online", up); window.removeEventListener("offline", down); };
   }, []);
+
+  useEffect(() => {
+    if (session && ["review", "completed"].includes(session.status)) void loadInspectionSummary(session.id);
+  }, [session?.id, session?.status]);
 
   const selected = vehicles.find(vehicle => vehicle.id === vehicleId);
   const activeVehicle = session ? vehicles.find(vehicle => vehicle.id === session.vehicleId) : selected;
@@ -84,7 +95,7 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
 
   async function startInspection() {
     if (!selected || !adapter.current) return;
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setInspectionSummary(null); setPurchaseAdvice(null);
     try {
       const response = await fetch("/api/vvos/inspection-sessions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ vehicleId: selected.id, device: adapter.current.getSnapshot() }) });
       const payload = await response.json() as SessionPayload;
@@ -133,7 +144,7 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
       const payload = await response.json() as CommandPayload;
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Commando verwerken mislukt.");
       if (payload.session) setSession(payload.session);
-      setCommand(""); setStatus(payload.responseText || "Opgeslagen");
+      setPurchaseAdvice(null); setCommand(""); setStatus(payload.responseText || "Opgeslagen");
       if (payload.responseText) await adapter.current?.speak(payload.responseText);
       if (payload.clientAction === "capture_photo") await capturePhoto();
     } catch (cause) {
@@ -156,7 +167,7 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
       const confirmResponse = await fetch(api(session.id, "/media"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "confirm", mediaId: prepared.media.id, sizeBytes: capture.file.size }) });
       const confirmed = await confirmResponse.json() as SessionPayload;
       if (!confirmResponse.ok || !confirmed.session) throw new Error(confirmed.error || "Foto bevestigen mislukt.");
-      setSession(confirmed.session); setStatus("Foto opgeslagen"); await adapter.current.speak("Foto opgeslagen.");
+      setSession(confirmed.session); setPurchaseAdvice(null); setStatus("Foto opgeslagen"); await adapter.current.speak("Foto opgeslagen.");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Foto maken mislukt."); }
     finally { setBusy(false); }
   }
@@ -171,18 +182,39 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
     recognition.current = speech; setListening(true); setStatus("Luisteren…"); speech.start();
   }
 
+  async function loadInspectionSummary(inspectionId: string) {
+    try {
+      const response = await fetch(api(inspectionId, "/analyze"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "summary" }) });
+      const payload = await response.json() as SummaryPayload;
+      if (response.ok && payload.summary) setInspectionSummary(payload.summary);
+    } catch { /* summary is supportive; CarCheck remains usable */ }
+  }
+
+  async function calculatePurchaseAdvice() {
+    if (!session || !activeVehicle) return;
+    setBusy(true); setError("");
+    try {
+      const response = await fetch(`/api/vvos/vehicles/${encodeURIComponent(activeVehicle.id)}/purchase-advice`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ inspectionId: session.id }) });
+      const payload = await response.json() as PurchasePayload;
+      if (!response.ok || !payload.advice) throw new Error(payload.error || "Inkoopadvies kon niet worden berekend.");
+      setPurchaseAdvice(payload.advice); setStatus("Inkoopadvies bijgewerkt");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Inkoopadvies kon niet worden berekend."); }
+    finally { setBusy(false); }
+  }
+
   async function finish() {
     if (!session) return;
     const response = await fetch(api(session.id, "/complete"), { method: "POST" });
     const payload = await response.json() as SessionPayload;
     if (!response.ok || !payload.session) { setError(payload.error || "Afronden mislukt."); return; }
-    setSession(payload.session); setStatus("CarCheck controleren");
+    setSession(payload.session); setPurchaseAdvice(null); setStatus("CarCheck controleren");
   }
   async function reviewFinding(findingId: string, reviewStatus: "confirmed" | "dismissed") {
     if (!session) return;
     const response = await fetch(api(session.id, "/findings"), { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ findingId, reviewStatus }) });
     const payload = await response.json() as SessionPayload;
-    if (response.ok && payload.session) setSession(payload.session); else setError(payload.error || "Bevinding aanpassen mislukt.");
+    if (response.ok && payload.session) { setSession(payload.session); setPurchaseAdvice(null); void loadInspectionSummary(payload.session.id); }
+    else setError(payload.error || "Bevinding aanpassen mislukt.");
   }
   async function openMedia(mediaId: string) {
     if (!session) return;
@@ -196,7 +228,7 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
     const response = await fetch(api(session.id), { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: next }) });
     const payload = await response.json() as SessionPayload;
     if (!response.ok || !payload.session) { setError(payload.error || "CarCheck aanpassen mislukt."); return; }
-    setSession(payload.session); setStatus(next === "completed" ? "CarCheck definitief opgeslagen" : "Inspectie hervat");
+    setSession(payload.session); setPurchaseAdvice(null); setStatus(next === "completed" ? "CarCheck definitief opgeslagen" : "Inspectie hervat");
   }
 
   return <main className={styles.shell}>
@@ -205,12 +237,16 @@ export function GlassesWorkspace({ devMode = false }: { devMode?: boolean }) {
 
     {!session && <>
       <section className={styles.deviceCard}><div className={styles.deviceIcon}>VV</div><div className={styles.deviceCopy}><span className={styles.eyebrow}>Device</span><h2>{device?.name ?? "VVOS Companion"}</h2><p>{connected ? "Camera en audio zijn gereed." : "Verbind de camera-interface voor een CarCheck."}</p></div><button className={styles.primaryButton} onClick={() => void connect()} disabled={busy}>{connected ? "Opnieuw verbinden" : "Verbinden"}</button><div className={styles.deviceStats}><span><i className={device?.capabilities.camera ? styles.ok : ""}/>Camera</span><span><i className={device?.capabilities.microphone ? styles.ok : ""}/>Audio</span><span><i className={online ? styles.ok : styles.warn}/>{online ? "Online" : "Offline"}</span>{device?.batteryPercent !== undefined && <span>{device.batteryPercent}% batterij</span>}</div></section>
-      {openSessions.length > 0 && <section className={styles.section}><div className={styles.sectionHead}><div><span className={styles.eyebrow}>Verder waar u was</span><h2>Open inspecties</h2></div></div><div className={styles.resumeGrid}>{openSessions.map(item => { const vehicle = vehicles.find(v => v.id === item.vehicleId); return <button className={styles.resumeCard} key={item.id} onClick={() => { setSession(item); setVehicleId(item.vehicleId); setStatus(item.status === "review" ? "CarCheck controleren" : "Inspectie hervat"); }}><span>{item.status}</span><strong>{vehicle ? vehicleName(vehicle) : item.vehicleId}</strong><small>{vehicle?.licensePlate || "Geen kenteken"} · {inspectionProgress(item.checklist).percent}%</small></button>; })}</div></section>}
+      {openSessions.length > 0 && <section className={styles.section}><div className={styles.sectionHead}><div><span className={styles.eyebrow}>Verder waar u was</span><h2>Open inspecties</h2></div></div><div className={styles.resumeGrid}>{openSessions.map(item => { const vehicle = vehicles.find(v => v.id === item.vehicleId); return <button className={styles.resumeCard} key={item.id} onClick={() => { setSession(item); setVehicleId(item.vehicleId); setPurchaseAdvice(null); setStatus(item.status === "review" ? "CarCheck controleren" : "Inspectie hervat"); }}><span>{item.status}</span><strong>{vehicle ? vehicleName(vehicle) : item.vehicleId}</strong><small>{vehicle?.licensePlate || "Geen kenteken"} · {inspectionProgress(item.checklist).percent}%</small></button>; })}</div></section>}
       <section className={styles.section}><div className={styles.sectionHead}><div><span className={styles.eyebrow}>Voertuig</span><h2>Start CarCheck</h2></div></div><input className={styles.search} value={query} onChange={event => setQuery(event.target.value)} placeholder="Kenteken, VIN of voertuig zoeken"/><div className={styles.vehicleList}>{results.map(vehicle => <button key={vehicle.id} className={`${styles.vehicleCard} ${vehicleId === vehicle.id ? styles.selected : ""}`} onClick={() => setVehicleId(vehicle.id)}><div><span className={styles.eyebrow}>{vehicle.driveType.replaceAll("-", " ")}</span><strong>{vehicleName(vehicle)}</strong><small>{vehicle.licensePlate || "Geen kenteken"} · {vehicle.mileageKm.toLocaleString("nl-NL")} km · {vehicle.year}</small></div><div><b>{euro(vehicle.priceCents)}</b><small>{vehicleId === vehicle.id ? "Geselecteerd" : "Selecteer"}</small></div></button>)}</div><button className={styles.primaryButtonWide} disabled={!selected || !connected || busy} onClick={() => void startInspection()}>Start inspectie</button></section>
     </>}
 
     {session && !["review", "completed"].includes(session.status) && <section className={styles.inspection}><div className={styles.vehicleHeader}><button className={styles.backButton} onClick={() => setSession(null)}>‹</button><div><span>{activeVehicle?.licensePlate || "Voertuig"}</span><strong>{activeVehicle ? vehicleName(activeVehicle) : session.vehicleId}</strong></div><div className={styles.progressText}><strong>{progress.completed}/{progress.total}</strong><span>CarCheck</span></div></div><div className={styles.progressBar}><i style={{ width: `${progress.percent}%` }}/></div><div className={styles.focusCard}><span className={styles.eyebrow}>{session.currentSection.replace("_", " / ")}</span><h2>{currentItem?.label || "CarCheck"}</h2><div className={`${styles.listenState} ${listening ? styles.listening : ""}`}><i/><strong>{status}</strong></div><p>Zeg wat u ziet. VVOS gebruikt het huidige onderdeel als context.</p></div><div className={styles.actionGrid}><button onClick={() => void capturePhoto()} disabled={busy}><span>◉</span><strong>Foto</strong></button><button onClick={startListening} disabled={busy || listening}><span>⌁</span><strong>{listening ? "Luistert" : "Spreek"}</strong></button><button onClick={() => void sendCommand("in orde")} disabled={busy}><span>✓</span><strong>Goed</strong></button><button onClick={() => void sendCommand("volgende onderdeel")} disabled={busy}><span>→</span><strong>Volgende</strong></button><button onClick={() => void sendCommand(session.status === "paused" ? "hervat inspectie" : "pauzeer inspectie")} disabled={busy}><span>Ⅱ</span><strong>{session.status === "paused" ? "Hervat" : "Pauze"}</strong></button></div><form className={styles.commandBar} onSubmit={event => { event.preventDefault(); void sendCommand(command); }}><input value={command} onChange={event => setCommand(event.target.value)} placeholder='Bijv. "Velg rechtsvoor lichte schade"'/><button disabled={busy || !command.trim()}>Opslaan</button></form><div className={styles.recent}><div><span className={styles.eyebrow}>Sessie</span><strong>{session.findings.length} bevindingen · {session.media.filter(item => item.status === "uploaded").length} foto’s</strong></div><button className={styles.stopButton} onClick={() => void finish()}>Stop &amp; controleer</button></div></section>}
 
-    {session && ["review", "completed"].includes(session.status) && <section className={styles.review}><div className={styles.reviewHead}><div><span className={styles.eyebrow}>CarCheck controleren</span><h2>{activeVehicle ? vehicleName(activeVehicle) : "Voertuig"}</h2><p>{activeVehicle?.licensePlate || session.vehicleId} · {progress.completed} van {progress.total} gecontroleerd</p></div><div className={styles.score}>{progress.percent}<span>%</span></div></div>{summary && <div className={styles.summaryGrid}><div><strong>{summary.ok}</strong><span>OK</span></div><div><strong>{summary.attention}</strong><span>Aandacht</span></div><div><strong>{summary.repairs}</strong><span>Reparaties</span></div><div><strong>{summary.critical}</strong><span>Kritiek</span></div></div>}<div className={styles.findings}>{session.findings.filter(finding => finding.reviewStatus !== "dismissed").map(finding => <article key={finding.id}><div><span className={`${styles.severity} ${styles[finding.severity]}`}>{finding.severity}</span><h3>{finding.component}{finding.location ? ` · ${finding.location.replaceAll("_", " ")}` : ""}</h3><p>{finding.description}</p></div>{session.status === "review" && <div className={styles.findingActions}><button onClick={() => void reviewFinding(finding.id, "confirmed")}>Akkoord</button><button onClick={() => void reviewFinding(finding.id, "dismissed")}>Verwijderen</button></div>}</article>)}</div>{session.media.some(item => item.status === "uploaded") && <div className={styles.mediaStrip}>{session.media.filter(item => item.status === "uploaded").map((media, index) => <button key={media.id} onClick={() => void openMedia(media.id)}>Foto {index + 1}<span>Bekijken ↗</span></button>)}</div>}<div className={styles.reviewActions}>{session.status === "review" ? <><button className={styles.secondaryButton} onClick={() => void setInspectionStatus("active")}>Inspectie hervatten</button><button className={styles.primaryButton} onClick={() => void setInspectionStatus("completed")}>CarCheck opslaan</button></> : <><button className={styles.secondaryButton} onClick={() => setSession(null)}>Terug naar Glasses</button><div className={styles.completeBadge}>Definitief opgeslagen</div></>}</div><div className={styles.nextLayer}><span className={styles.eyebrow}>Volgende laag</span><strong>AI Vision, rapport en Purchase Intelligence</strong><p>P0 slaat hiervoor nu een echte, gestructureerde dataset op. Deze functies worden niet gesimuleerd.</p></div></section>}
+    {session && ["review", "completed"].includes(session.status) && <section className={styles.review}><div className={styles.reviewHead}><div><span className={styles.eyebrow}>CarCheck controleren</span><h2>{activeVehicle ? vehicleName(activeVehicle) : "Voertuig"}</h2><p>{activeVehicle?.licensePlate || session.vehicleId} · {progress.completed} van {progress.total} gecontroleerd</p></div><div className={styles.score}>{progress.percent}<span>%</span></div></div>{summary && <div className={styles.summaryGrid}><div><strong>{summary.ok}</strong><span>OK</span></div><div><strong>{summary.attention}</strong><span>Aandacht</span></div><div><strong>{summary.repairs}</strong><span>Reparaties</span></div><div><strong>{summary.critical}</strong><span>Kritiek</span></div></div>}{inspectionSummary && <div className={styles.intelligenceSummary}><span className={styles.eyebrow}>VVOS samenvatting</span><strong>{inspectionSummary.headline}</strong>{inspectionSummary.unreviewedChecklistItems > 0 && <p>{inspectionSummary.unreviewedChecklistItems} checklistonderdelen zijn nog niet beoordeeld.</p>}</div>}<div className={styles.findings}>{session.findings.filter(finding => finding.reviewStatus !== "dismissed").map(finding => <article key={finding.id}><div><span className={`${styles.severity} ${styles[finding.severity]}`}>{finding.reviewStatus === "suggested" ? `AI · ${finding.severity}` : finding.severity}</span><h3>{finding.component}{finding.location ? ` · ${finding.location.replaceAll("_", " ")}` : ""}</h3><p>{finding.description}</p>{finding.confidence !== undefined && <small>Confidence {Math.round(finding.confidence * 100)}%</small>}</div>{session.status === "review" && <div className={styles.findingActions}><button onClick={() => void reviewFinding(finding.id, "confirmed")}>Akkoord</button><button onClick={() => void reviewFinding(finding.id, "dismissed")}>Verwijderen</button></div>}</article>)}</div>{session.media.some(item => item.status === "uploaded") && <div className={styles.mediaStrip}>{session.media.filter(item => item.status === "uploaded").map((media, index) => <button key={media.id} onClick={() => void openMedia(media.id)}>Foto {index + 1}<span>Bekijken ↗</span></button>)}</div>}
+
+      <div className={styles.purchasePanel}><div className={styles.purchaseHead}><div><span className={styles.eyebrow}>Purchase Intelligence</span><h3>VVOS Inkoopadvies</h3><p>Gebaseerd op voertuigdata en uitsluitend bevestigde CarCheck-bevindingen.</p></div>{purchaseAdvice && <span className={`${styles.riskPill} ${styles[`risk_${purchaseAdvice.risk}`]}`}>{purchaseAdvice.risk}</span>}</div>{purchaseAdvice ? <><div className={styles.purchaseHero}><span>Maximale inkoopprijs</span><strong>{euro(purchaseAdvice.maximumPurchasePriceCents)}</strong><b>{verdictLabel(purchaseAdvice.verdict)}</b></div><div className={styles.assumptionGrid}><div><span>Verkoopprijs</span><strong>{euro(purchaseAdvice.assumptions.expectedSalePriceCents)}</strong></div><div><span>Werkzaamheden</span><strong>{euro(purchaseAdvice.assumptions.reconditioningCents)}</strong></div><div><span>Transport</span><strong>{euro(purchaseAdvice.assumptions.transportCents)}</strong></div><div><span>Garantie-reserve</span><strong>{euro(purchaseAdvice.assumptions.warrantyReserveCents)}</strong></div><div><span>Marketing</span><strong>{euro(purchaseAdvice.assumptions.marketingCents)}</strong></div><div><span>Voorraadkosten</span><strong>{euro(purchaseAdvice.assumptions.stockCostCents)}</strong></div><div><span>Gewenste marge</span><strong>{euro(purchaseAdvice.assumptions.desiredMarginCents)}</strong></div><div><span>Niet geprijsd</span><strong>{purchaseAdvice.unpricedFindingIds.length}</strong></div></div><div className={styles.rationale}>{purchaseAdvice.rationale.map(line => <p key={line}>{line}</p>)}</div><button className={styles.secondaryButton} onClick={() => void calculatePurchaseAdvice()} disabled={busy}>Herbereken</button></> : <button className={styles.primaryButtonWide} onClick={() => void calculatePurchaseAdvice()} disabled={busy || !activeVehicle}>Bereken inkoopadvies</button>}</div>
+
+      <div className={styles.reviewActions}>{session.status === "review" ? <><button className={styles.secondaryButton} onClick={() => void setInspectionStatus("active")}>Inspectie hervatten</button><button className={styles.primaryButton} onClick={() => void setInspectionStatus("completed")}>CarCheck opslaan</button></> : <><button className={styles.secondaryButton} onClick={() => setSession(null)}>Terug naar Glasses</button><div className={styles.completeBadge}>Definitief opgeslagen</div></>}</div><div className={styles.nextLayer}><span className={styles.eyebrow}>Vision readiness</span><strong>Human confirmation blijft verplicht</strong><p>De vision-route en suggested-finding workflow zijn actief. Zonder geconfigureerde VVOS Vision-provider worden geen schades verzonnen of automatisch goedgekeurd.</p></div></section>}
   </main>;
 }
