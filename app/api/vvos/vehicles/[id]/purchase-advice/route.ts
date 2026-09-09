@@ -6,6 +6,7 @@ import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 import { getInspectionSession } from "@/lib/glasses/repository";
 import { vvosAIService } from "@/lib/glasses/ai-service";
 import { savePurchaseAdvice } from "@/lib/glasses/purchase-repository";
+import { emitDomainEvent } from "@/lib/events/domain-events";
 import { writeAuditEvent } from "@/lib/audit/audit-log";
 
 const cents = z.number().int().min(0).max(100_000_000).optional();
@@ -32,6 +33,7 @@ export async function POST(request: Request, context: Context): Promise<Response
   const { inspectionId: _inspectionId, ...overrides } = body.data;
   const advice = await vvosAIService.generatePurchaseAdvice(vehicle, session ?? undefined, overrides);
   await savePurchaseAdvice(advice);
+  await emitDomainEvent({ name: "purchase_advice.generated", aggregateType: "vehicle", aggregateId: vehicle.id, vehicleId: vehicle.id, inspectionId: advice.inspectionId, actorId: actor.uid, payload: { adviceId: advice.id, risk: advice.risk, verdict: advice.verdict, maximumPurchasePriceCents: advice.maximumPurchasePriceCents } });
   await writeAuditEvent({ action: "purchase_advice.generated", entityType: "vehicle", entityId: vehicle.id, actor, request, metadata: { inspectionId: advice.inspectionId, risk: advice.risk, verdict: advice.verdict, maximumPurchasePriceCents: advice.maximumPurchasePriceCents } });
   return NextResponse.json({ ok: true, advice });
 }
