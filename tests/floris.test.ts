@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildFlorisContext, toFlorisVehicleContext } from "@/lib/floris/context";
-import { requiresCurrentWebInfo } from "@/lib/floris/service";
+import { requiresCurrentWebInfo } from "@/lib/floris/routing";
 import type { Vehicle } from "@/types";
 
 function vehicle(): Vehicle {
