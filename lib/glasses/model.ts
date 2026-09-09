@@ -1,6 +1,7 @@
 export type InspectionStatus = "draft" | "active" | "paused" | "processing" | "review" | "completed" | "cancelled";
 export type InspectionSectionId = "identification" | "documentation" | "body" | "glass_lighting" | "interior" | "tires_wheels" | "brakes" | "chassis" | "drivetrain" | "electronics_12v" | "hybrid_ev" | "road_test" | "final_check";
 export type ChecklistStatus = "pending" | "ok" | "attention" | "fail" | "na";
+export type InspectionRiskLevel = "low" | "medium" | "high" | "safety_critical";
 export type FindingSeverity = "info" | "minor" | "attention" | "major" | "critical";
 export type FindingSource = "manual" | "voice" | "vision" | "vehicle_data" | "diagnostic" | "ai";
 export type FindingReviewStatus = "suggested" | "confirmed" | "dismissed";
@@ -19,8 +20,8 @@ export interface InspectionChecklistItem {
   section: InspectionSectionId;
   category?: string;
   label: string;
-  safetyCritical?: boolean;
   status: ChecklistStatus;
+  riskLevel?: InspectionRiskLevel;
   value?: string | number;
   unit?: string;
   note?: string;
