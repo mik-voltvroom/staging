@@ -114,7 +114,16 @@ export function createCarCheck101Checklist():InspectionChecklistItem[]{
 }
 export function carCheckPoint(id:string):CarCheck101Definition|undefined{return CARCHECK_101.find(point=>point.id===id);}
 
-export interface CarCheck101Result { total:101; handled:number; good:number; attention:number; rejected:number; notApplicable:number; progressPercent:number; scorePercent:number; openDeviations:number; safetyCriticalRejected:number; repairCostCents:number; unpricedFindings:number; decision:CarCheckDecision; releaseBlocked:boolean; reason:string; }
+export interface CarCheck101Result {
+ total:101; handled:number; good:number; attention:number; rejected:number; notApplicable:number; progressPercent:number; scorePercent:number;
+ openDeviations:number; deviationDetailsMissing:number; safetyCriticalRejected:number; repairCostCents:number; unpricedFindings:number;
+ decision:CarCheckDecision; releaseBlocked:boolean; reason:string;
+}
+
+export function deviationDetailsComplete(item:InspectionChecklistItem):boolean{
+ if(item.status!=="attention"&&item.status!=="fail") return true;
+ return Boolean(item.riskLevel&&item.note?.trim()&&item.repairAction?.trim()&&item.repairCostCents!==undefined);
+}
 
 export function evaluateCarCheck101(session:Pick<InspectionSession,"checklist"|"findings">):CarCheck101Result{
  const checklist=session.checklist;
@@ -124,19 +133,22 @@ export function evaluateCarCheck101(session:Pick<InspectionSession,"checklist"|"
  const rejected=checklist.filter(item=>item.status==="fail").length;
  const notApplicable=checklist.filter(item=>item.status==="na").length;
  const safetyCriticalRejected=checklist.filter(item=>item.status==="fail"&&item.riskLevel==="safety_critical").length;
+ const deviations=checklist.filter(item=>item.status==="attention"||item.status==="fail");
+ const deviationDetailsMissing=deviations.filter(item=>!deviationDetailsComplete(item)).length;
  const confirmed=session.findings.filter(f=>f.reviewStatus==="confirmed");
- const repairCostCents=checklist.reduce((sum,item)=>sum+(item.repairCostCents??0),0)+confirmed.reduce((sum,f)=>sum+(f.estimatedRepairCostCents??0),0);
+ const repairCostCents=checklist.reduce((sum,item)=>sum+(item.repairCostCents??0),0);
  const unpricedFindings=confirmed.filter(f=>f.estimatedRepairCostCents===undefined&&f.severity!=="info").length;
- const openDeviations=attention+rejected;
+ const openDeviations=deviations.length;
  const denominator=Math.max(1,good+attention+rejected);
  const scorePercent=Math.max(0,Math.round(((good+attention*.5)/denominator)*100));
  let decision:CarCheckDecision="INCOMPLETE"; let reason="Inspectie nog niet compleet.";
- if(handled===101){
+ if(handled===101&&deviationDetailsMissing>0){reason=`${deviationDetailsMissing} afwijking(en) missen Ernst, bevinding, herstelactie of kosten.`;}
+ else if(handled===101){
   if(safetyCriticalRejected>0){decision="REJECTED";reason=`${safetyCriticalRejected} veiligheidskritische afkeurpunt(en) blokkeren vrijgave.`;}
-  else if(rejected>0||attention>0||confirmed.some(f=>["minor","attention","major","critical"].includes(f.severity))){decision="REPAIR_REQUIRED";reason="Afwijkingen moeten eerst worden hersteld of expliciet afgehandeld.";}
+  else if(rejected>0||attention>0||confirmed.some(f=>["minor","attention","major","critical"].includes(f.severity))){decision="REPAIR_REQUIRED";reason="Afwijkingen zijn vastgelegd en moeten eerst worden hersteld of expliciet afgehandeld.";}
   else{decision="VV_APPROVED";reason="Alle 101 punten zijn afgehandeld zonder open afwijkingen.";}
  }
- return {total:101,handled,good,attention,rejected,notApplicable,progressPercent:Math.round(handled/101*100),scorePercent,openDeviations,safetyCriticalRejected,repairCostCents,unpricedFindings,decision,releaseBlocked:decision!=="VV_APPROVED",reason};
+ return {total:101,handled,good,attention,rejected,notApplicable,progressPercent:Math.round(handled/101*100),scorePercent,openDeviations,deviationDetailsMissing,safetyCriticalRejected,repairCostCents,unpricedFindings,decision,releaseBlocked:decision!=="VV_APPROVED",reason};
 }
 
 export function applyFindingCost(findings:Finding[],findingId:string,cents:number):Finding[]{return findings.map(f=>f.id===findingId?{...f,estimatedRepairCostCents:cents}:f);}
