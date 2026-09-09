@@ -27,13 +27,13 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
   const current = parsed.data.currentItemId ? session.checklist.find(item=>item.id===parsed.data.currentItemId) : undefined;
   if (parsed.data.currentItemId && !current) return NextResponse.json({ok:false,error:"Checklistonderdeel niet gevonden."},{status:400});
   const result = evaluateCarCheck101(session);
-  if (parsed.data.status === "completed" && result.handled !== 101) return NextResponse.json({ ok:false,error:`CarCheck is nog niet compleet: ${result.handled}/101 punten afgehandeld.`,carCheck:result },{ status:409 });
+  if (parsed.data.status === "completed" && result.decision === "INCOMPLETE") return NextResponse.json({ ok:false,error:`CarCheck is nog niet compleet. ${result.reason}`,carCheck:result },{ status:409 });
   const patch = {
     ...parsed.data,
     ...(current ? { currentSection:current.section } : {}),
     ...(parsed.data.status === "completed" ? { completedAt:new Date().toISOString(),carCheckDecision:result.decision,carCheckScorePercent:result.scorePercent,carCheckHandledPoints:result.handled,carCheckReleaseBlocked:result.releaseBlocked,carCheckRepairCostCents:result.repairCostCents } : {}),
   };
   await updateInspectionSession(id,patch);
-  await writeAuditEvent({ action:parsed.data.status === "completed" ? "carcheck.updated" : "inspection.updated",entityType:"inspection",entityId:id,actor,request,metadata:{...parsed.data,carCheckDecision:result.decision,handled:result.handled,score:result.scorePercent} });
+  await writeAuditEvent({ action:parsed.data.status === "completed" ? "carcheck.updated" : "inspection.updated",entityType:"inspection",entityId:id,actor,request,metadata:{...parsed.data,carCheckDecision:result.decision,handled:result.handled,score:result.scorePercent,deviationDetailsMissing:result.deviationDetailsMissing} });
   const updated = await getInspectionSession(id); return NextResponse.json({ ok:true,session:updated,carCheck:updated ? evaluateCarCheck101(updated) : result });
 }
