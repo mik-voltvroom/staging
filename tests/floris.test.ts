@@ -54,7 +54,7 @@ describe("Floris routing", () => {
 describe("Floris public vehicle context", () => {
   it("passes public facts and charging data without exposing VIN", () => {
     const context = toFlorisVehicleContext(vehicle());
-    expect(context).toMatchObject({ name: "Volkswagen ID.4", electricRangeKm: 485, batteryHealthPercent: 96 });
+    expect(context).toMatchObject({ name: "Volkswagen ID.4", electricRangeKm: 485, batteryHealthPercent: 96, consumptionPer100Km: 17.8, consumptionUnit: "kWh/100 km" });
     expect(context.equipment).toContain("Stoelverwarming");
     expect(context.energy).toMatchObject({ bruikbare_accu_kwh: 77, dc_max_kw: 175, laadtijd_10_80_minuten: 29, warmtepomp: true });
     expect(JSON.stringify(context)).not.toContain("WVWSECRET");
@@ -67,5 +67,6 @@ describe("Floris public vehicle context", () => {
     expect(parsed.selectedVehicle.name).toBe("Volkswagen ID.4");
     expect(parsed.currentPublicInventory).toHaveLength(1);
     expect(parsed.currentPublicInventory[0].name).toBe("Toyota Yaris Cross");
+    expect(parsed.currentPublicInventory[0].consumptionUnit).toBe("l/100 km");
   });
 });
