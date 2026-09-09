@@ -17,6 +17,7 @@ export interface FlorisVehicleContext {
   batteryHealthPercent?: number;
   electricRangeKm?: number;
   consumptionPer100Km?: number;
+  consumptionUnit?: "kWh/100 km" | "l/100 km";
   warrantyMonths?: number;
   maintenanceHistory: string;
   equipment: string[];
@@ -76,6 +77,7 @@ function energyProfile(vehicle: Vehicle): Record<string, string | number | boole
 
 export function toFlorisVehicleContext(vehicle: Vehicle): FlorisVehicleContext {
   const licensePlate = safeText(vehicle.licensePlate, 16);
+  const consumption = finiteNumber(vehicle.consumptionPer100Km);
   return {
     id: vehicle.id,
     slug: vehicle.slug,
@@ -92,7 +94,7 @@ export function toFlorisVehicleContext(vehicle: Vehicle): FlorisVehicleContext {
     ...(licensePlate ? { licensePlate } : {}),
     ...(finiteNumber(vehicle.batteryHealthPercent) !== undefined ? { batteryHealthPercent: vehicle.batteryHealthPercent } : {}),
     ...(finiteNumber(vehicle.electricRangeKm) !== undefined ? { electricRangeKm: vehicle.electricRangeKm } : {}),
-    ...(finiteNumber(vehicle.consumptionPer100Km) !== undefined ? { consumptionPer100Km: vehicle.consumptionPer100Km } : {}),
+    ...(consumption !== undefined ? { consumptionPer100Km: consumption, consumptionUnit: vehicle.driveType === "electric" ? "kWh/100 km" as const : "l/100 km" as const } : {}),
     ...(finiteNumber(vehicle.warrantyMonths) !== undefined ? { warrantyMonths: vehicle.warrantyMonths } : {}),
     maintenanceHistory: vehicle.maintenanceHistory,
     equipment: vehicle.highlights.map(item => safeText(item, 140)).filter((item): item is string => Boolean(item)).slice(0, 80),
@@ -117,6 +119,7 @@ export function buildFlorisContext(vehicle: Vehicle | undefined, inventory: Vehi
       driveType: item.driveType,
       electricRangeKm: item.electricRangeKm,
       consumptionPer100Km: item.consumptionPer100Km,
+      consumptionUnit: item.consumptionUnit,
       equipment: item.equipment.slice(0, 12),
       energy: item.energy,
     }));
