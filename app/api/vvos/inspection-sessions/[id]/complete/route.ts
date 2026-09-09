@@ -11,8 +11,8 @@ export async function POST(request: Request, context: Context): Promise<Response
   if (!session) return NextResponse.json({ok:false,error:"Inspectie niet gevonden."},{status:404});
   if (!["active","paused"].includes(session.status)) return NextResponse.json({ok:false,error:"Inspectie kan vanuit deze status niet worden afgerond."},{status:409});
   const result=evaluateCarCheck101(session);
-  if (result.handled!==101) return NextResponse.json({ok:false,error:`VV CarCheck 101 is nog niet compleet: ${result.handled}/101 punten afgehandeld.`,carCheck:result},{status:409});
+  if (result.decision==="INCOMPLETE") return NextResponse.json({ok:false,error:`VV CarCheck 101 is nog niet compleet. ${result.reason}`,carCheck:result},{status:409});
   await updateInspectionSession(id,{status:"review",carCheckDecision:result.decision,carCheckScorePercent:result.scorePercent,carCheckHandledPoints:result.handled,carCheckReleaseBlocked:result.releaseBlocked,carCheckRepairCostCents:result.repairCostCents});
-  await writeAuditEvent({action:"inspection.completed_capture",entityType:"inspection",entityId:id,actor,request,metadata:{vehicleId:session.vehicleId,decision:result.decision,score:result.scorePercent,safetyCriticalRejected:result.safetyCriticalRejected}});
+  await writeAuditEvent({action:"inspection.completed_capture",entityType:"inspection",entityId:id,actor,request,metadata:{vehicleId:session.vehicleId,decision:result.decision,score:result.scorePercent,safetyCriticalRejected:result.safetyCriticalRejected,deviationDetailsMissing:result.deviationDetailsMissing}});
   return NextResponse.json({ok:true,session:await getInspectionSession(id),carCheck:result});
 }
