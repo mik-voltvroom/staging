@@ -1,0 +1,41 @@
+name: VVOS Floris CI
+
+on:
+  push:
+    branches: ['feature/floris-ai-chat']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: floris-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  floris-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VVOS_ENV: staging
+      NEXT_PUBLIC_SITE_URL: https://staging.voltvroom.nl
+      VVOS_DATA_MODE: firebase
+      VVOS_REQUIRE_AUTH: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Repository and brand gates
+        run: npm run repo:guard && npm run agent:audit && npm run brand:audit
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Floris and public-site tests
+        run: npm test -- tests/floris.test.ts tests/public-site.test.ts
+      - name: Production build
+        run: npm run build
