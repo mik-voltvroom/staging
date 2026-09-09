@@ -2,7 +2,7 @@ name: VVOS Glasses CI
 
 on:
   push:
-    branches: ['feature/vvos-glasses-p1-intelligence']
+    branches: ['feature/vvos-glasses-p1-intelligence', 'feature/vvos-carcheck-101']
   workflow_dispatch:
 
 permissions:
