@@ -3,10 +3,6 @@ import "server-only";
 export type FlorisHistoryMessage = { role: "user" | "assistant"; content: string };
 export type FlorisSource = { title: string; url: string };
 
-export function requiresCurrentWebInfo(question: string): boolean {
-  return /wegenbelasting|motorrijtuigenbelasting|\bmrb\b|bijtelling|belastingdienst|belasting|subsidie|fiscale|tarief|regelgeving|wetgeving|actueel|vandaag|dit jaar|2026/i.test(question);
-}
-
 function compactHistory(history: FlorisHistoryMessage[]): string {
   return history.slice(-8).map(message => `${message.role === "user" ? "Bezoeker" : "Floris"}: ${message.content.slice(0, 1200)}`).join("\n");
 }
@@ -44,7 +40,9 @@ function extractResponse(payload: OpenAIResponse): { answer: string; sources: Fl
       for (const annotation of content.annotations ?? []) {
         const url = annotation.url ?? annotation.url_citation?.url;
         if (!url || !/^https:\/\//i.test(url)) continue;
-        const title = annotation.title ?? annotation.url_citation?.title ?? new URL(url).hostname;
+        let fallbackTitle = url;
+        try { fallbackTitle = new URL(url).hostname; } catch { /* provider URL remains usable as title */ }
+        const title = annotation.title ?? annotation.url_citation?.title ?? fallbackTitle;
         sources.set(url, { title: title.slice(0, 160), url });
       }
     }
