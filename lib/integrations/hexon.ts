@@ -358,6 +358,8 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
   const description = sanitizeProviderDescription(firstText(parsed, ["opmerkingen", "omschrijving"]));
   const batteryHealthPercent = firstInteger(parsed, ["accu_conditie"]);
   const electricRangeKm = firstInteger(parsed, ["wltp_actieradius_elektrisch_combined", "actieradius_elektrisch"]);
+  const powerHp = firstInteger(parsed, ["vermogen_motor_pk", "vermogen_pk"]);
+  const ownerCount = firstInteger(parsed, ["aantal_eigenaren"]);
   const consumptionPer100Km = firstNumber(parsed, ["wltp_brandstofverbruik_combined_weighted", "wltp_brandstofverbruik_combined", "gemiddeld_verbruik"]);
   const warrantyMonths = firstInteger(parsed, ["garantie_maanden", "fabrieksgarantie_aantal_maanden"]);
 
@@ -377,6 +379,8 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
     color: firstText(parsed, ["kleur_nederlands", "basiskleur"]) ?? "Onbekend",
     ...(batteryHealthPercent !== undefined ? { batteryHealthPercent } : {}),
     ...(electricRangeKm !== undefined ? { electricRangeKm } : {}),
+    ...(powerHp !== undefined ? { powerHp } : {}),
+    ...(ownerCount !== undefined ? { ownerCount } : {}),
     ...(consumptionPer100Km !== undefined ? { consumptionPer100Km } : {}),
     ...(warrantyMonths !== undefined ? { warrantyMonths } : {}),
     maintenanceHistory: firstText(parsed, ["onderhoudsboekjes"]) === "dealer" ? "complete" : "unknown",

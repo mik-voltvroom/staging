@@ -90,9 +90,9 @@ describe("publieke Volt & Vroom website", () => {
     expect(detail).toContain("rustig met u door");
     expect(detail).not.toContain("Hybrid Intelligence");
     expect(detail).not.toContain(">Hybrid data<");
-    expect(card).toContain('return "Elektrisch"');
+    expect(card).toContain("publicVehicleCategory(vehicle)");
     expect(card).toContain('className="vehicleCardLink"');
-    expect(card).toContain("monthlyPriceCents");
+    expect(card).not.toContain("monthlyPriceCents");
     expect(card).toContain('src="/brand/vv-symbol.svg"');
   });
 

@@ -5,6 +5,7 @@ import { vehicles as demoVehicles } from "@/lib/sample-data";
 import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 import { deduplicateVehiclesByIdentity } from "@/lib/vehicle/identity";
 import type { Vehicle } from "@/types";
+import { publicVehicleEnteredAt } from "@/lib/vehicle/business";
 
 function isPublishedOnWebsite(vehicle: Vehicle): boolean {
   return vehicle.status === "available"
@@ -13,7 +14,7 @@ function isPublishedOnWebsite(vehicle: Vehicle): boolean {
 }
 
 function newestFirst(left: Vehicle, right: Vehicle): number {
-  return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+  return publicVehicleEnteredAt(right) - publicVehicleEnteredAt(left);
 }
 
 export async function listPublicVehicles(limit = 12): Promise<Vehicle[]> {

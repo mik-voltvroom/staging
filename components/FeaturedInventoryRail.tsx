@@ -2,13 +2,7 @@ import Link from "next/link";
 import { eur, km } from "@/lib/format";
 import { centsToEuros } from "@/lib/money";
 import type { Vehicle } from "@/types";
-
-function driveLabel(value: Vehicle["driveType"]) {
-  if (value === "plug-in-hybrid") return "Plug-in hybride";
-  if (value === "full-hybrid") return "Hybride";
-  if (value === "combustion") return "Brandstof";
-  return "Elektrisch";
-}
+import { publicVehicleCategory } from "@/lib/vehicle/business";
 
 export function FeaturedInventoryRail({ vehicles }: { vehicles: Vehicle[] }) {
   if (!vehicles.length) return null;
@@ -30,7 +24,7 @@ export function FeaturedInventoryRail({ vehicles }: { vehicles: Vehicle[] }) {
               {vehicle.images[0]
                 ? <img src={vehicle.images[0]} alt={`${vehicle.brand} ${vehicle.model}`} loading="lazy" />
                 : <div className="featuredVehicleFallback" aria-hidden="true">V&V</div>}
-              <span className="featuredDrive">{driveLabel(vehicle.driveType)}</span>
+              <span className="featuredDrive">{publicVehicleCategory(vehicle)}</span>
             </Link>
             <div className="featuredVehicleBody">
               <div className="featuredVehicleTopline"><span>{vehicle.brand}</span><strong>{vehicle.priceCents > 0 ? eur.format(centsToEuros(vehicle.priceCents)) : "Prijs op aanvraag"}</strong></div>
@@ -39,8 +33,13 @@ export function FeaturedInventoryRail({ vehicles }: { vehicles: Vehicle[] }) {
               <div className="featuredVehicleFacts">
                 <span>{vehicle.year}</span>
                 <span>{km.format(vehicle.mileageKm)} km</span>
-                {vehicle.batteryHealthPercent !== undefined ? <span>SOH {vehicle.batteryHealthPercent}%</span> : null}
-                {vehicle.electricRangeKm ? <span>{km.format(vehicle.electricRangeKm)} km elektrisch</span> : null}
+                {publicVehicleCategory(vehicle) === "Icon" ? <>
+                  {vehicle.powerHp ? <span>{km.format(vehicle.powerHp)} pk</span> : null}
+                  {vehicle.ownerCount !== undefined ? <span>{vehicle.ownerCount} {vehicle.ownerCount === 1 ? "eigenaar" : "eigenaren"}</span> : null}
+                </> : <>
+                  {vehicle.batteryHealthPercent !== undefined ? <span>SOH {vehicle.batteryHealthPercent}%</span> : null}
+                  {vehicle.electricRangeKm ? <span>{km.format(vehicle.electricRangeKm)} km elektrisch</span> : null}
+                </>}
               </div>
               <div className="featuredVehicleFooter">
                 <span className="carcheckChip">CarCheck</span>

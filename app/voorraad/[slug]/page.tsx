@@ -4,22 +4,14 @@ import { Header } from "@/components/Header";
 import { eur } from "@/lib/format";
 import { centsToEuros } from "@/lib/money";
 import { getPublicVehicleBySlug } from "@/lib/repositories/public-vehicle-repository";
+import { publicVehicleCategory } from "@/lib/vehicle/business";
+import { VehicleGallery } from "@/components/VehicleGallery";
 import styles from "./vehicle.module.css";
 
 export const revalidate = 60;
 export const dynamicParams = true;
 
 const numberFormat = new Intl.NumberFormat("nl-NL");
-
-function driveLabel(driveType?: string, fuelType?: string): string {
-  const value = `${driveType ?? ""} ${fuelType ?? ""}`.toLowerCase();
-  if (value.includes("plug-in-hybrid")) return "Plug-in hybride";
-  if (value.includes("full-hybrid") || value.includes("hybrid") || value.includes("hybride")) return "Hybride";
-  if (value.includes("electric") || value.includes("elektrisch")) return "Elektrisch";
-  if (value.includes("diesel")) return "Diesel";
-  if (value.includes("benzine") || value.includes("petrol")) return "Benzine";
-  return fuelType || "Aandrijving niet vermeld";
-}
 
 function publicDescription(description: string | undefined, vehicleName: string): string {
   const normalized = description?.replace(/\\s+/g, " ").trim();
@@ -41,10 +33,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
   const vehicle = await getPublicVehicleBySlug(slug);
   if (!vehicle) notFound();
 
-  const publicDriveType = driveLabel(vehicle.driveType, vehicle.fuelType);
+  const publicDriveType = publicVehicleCategory(vehicle);
   const vehicleName = `${vehicle.brand} ${vehicle.model}`;
   const isElectric = publicDriveType === "Elektrisch";
-  const isHybrid = publicDriveType === "Hybride" || publicDriveType === "Plug-in hybride";
+  const isHybrid = publicDriveType === "Hybride";
 
   const specs = [
     ["Carrosserie", vehicle.bodyStyle || null],
@@ -55,11 +47,15 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
     ["Garantie", vehicle.warrantyMonths ? `${vehicle.warrantyMonths} maanden` : null],
   ].filter((item): item is [string, string] => Boolean(item[1]));
 
-  const vehicleFacts = [
+  const vehicleFacts = (publicDriveType === "Icon" ? [
+    ["Vermogen", vehicle.powerHp ? `${numberFormat.format(vehicle.powerHp)} pk` : null],
+    ["Aantal eigenaren", vehicle.ownerCount !== undefined ? String(vehicle.ownerCount) : null],
+    ["Praktijkverbruik", vehicle.consumptionPer100Km ? `${vehicle.consumptionPer100Km} l/100 km` : null],
+  ] : [
     ["Accuconditie", vehicle.batteryHealthPercent !== undefined ? `${vehicle.batteryHealthPercent}%` : null],
     ["Elektrische actieradius", vehicle.electricRangeKm ? `${numberFormat.format(vehicle.electricRangeKm)} km` : null],
-    ["Praktijkverbruik", vehicle.consumptionPer100Km ? `${vehicle.consumptionPer100Km} l/100 km` : null],
-  ].filter((item): item is [string, string] => Boolean(item[1]));
+    ["Praktijkverbruik", !isElectric && vehicle.consumptionPer100Km ? `${vehicle.consumptionPer100Km} l/100 km` : null],
+  ]).filter((item): item is [string, string] => Boolean(item[1]));
 
   const dataLabel = isElectric ? "Elektrische gegevens" : isHybrid ? "Hybride gegevens" : "Voertuiggegevens";
   const dataHeading = isElectric ? "Relevante elektrische gegevens." : isHybrid ? "Relevante hybride gegevens." : "Relevante voertuiggegevens.";
@@ -77,7 +73,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
       <div className={styles.breadcrumb}><Link href="/voorraad">← Terug naar voorraad</Link><span>Volt & Vroom Selectie · Groningen</span></div>
       <section className={styles.hero}>
         <div className={styles.visual}>
-          {vehicle.images[0] ? <img src={vehicle.images[0]} alt={`${vehicle.brand} ${vehicle.model} ${vehicle.trim}`} /> : null}
+          <VehicleGallery images={vehicle.images} vehicleLabel={`${vehicle.brand} ${vehicle.model} ${vehicle.trim}`} />
           <div className={styles.visualTop}><span className={styles.status}><i /> {isReserved ? "Gereserveerd" : "Beschikbaar"}</span>{vehicleFacts.length ? <span className={styles.carcheckBadge}>{dataLabel}</span> : null}</div>
           <div className={styles.visualBottom}><div><span>Volt & Vroom selectie</span><strong>Zorgvuldig geselecteerd. Transparant gepresenteerd.</strong></div><div><span>Foto’s</span><strong>{String(vehicle.images.length).padStart(2,"0")}</strong></div></div>
         </div>
@@ -86,14 +82,14 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
           <h1>{vehicle.brand}<br />{vehicle.model}</h1>
           <p className={styles.trim}>{vehicle.trim}</p>
           <div className={styles.price}>{vehicle.priceCents > 0 ? eur.format(priceEur) : "Prijs op aanvraag"}</div>
-          <div className={styles.monthly}>{vehicle.monthlyPriceCents ? `Vanaf ${eur.format(centsToEuros(vehicle.monthlyPriceCents))} p/m` : "Persoonlijk voorstel op aanvraag"}</div>
+          <div className={styles.monthly}>Financiering en lease op persoonlijk voorstel</div>
           <div className={styles.quickFacts}>
             {vehicle.year ? <div><span>Bouwjaar</span><strong>{vehicle.year}</strong></div> : null}
             {vehicle.mileageKm !== undefined ? <div><span>Kilometerstand</span><strong>{numberFormat.format(vehicle.mileageKm)} km</strong></div> : null}
             <div><span>Aandrijving</span><strong>{publicDriveType}</strong></div>
             {vehicle.transmission ? <div><span>Transmissie</span><strong>{vehicle.transmission}</strong></div> : null}
           </div>
-          <div className={styles.ctaStack}><a className={styles.primary} href="#afspraak">Plan een proefrit</a><Link className={styles.secondary} href={tradeInHref}>Bereken inruilindicatie</Link>{vehicle.licensePlate ? <span className={styles.microTrust}>Kenteken {vehicle.licensePlate}</span> : null}</div>
+          <div className={styles.ctaStack}><a className={styles.primary} href="#afspraak" data-vv-event="test_drive_click">Plan een proefrit</a><Link className={styles.secondary} href={tradeInHref} data-vv-event="trade_in_click">Bereken inruilindicatie</Link>{vehicle.licensePlate ? <span className={styles.microTrust}>Kenteken {vehicle.licensePlate}</span> : null}</div>
         </aside>
       </section>
       <section className={styles.story}>
