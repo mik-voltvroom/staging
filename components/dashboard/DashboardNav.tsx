@@ -17,6 +17,7 @@ export function DashboardNav() {
       <details className="dashboardMore">
         <summary>Meer</summary>
         <div>
+          <Link href="/dashboard/voertuigcheck/glasses">CarCheck Glasses</Link>
           <Link href="/dashboard/afspraken">Afspraken</Link>
           <Link href="/dashboard/offertes">Offertes</Link>
           <Link href="/dashboard/afleveringen">Afleveringen</Link>
