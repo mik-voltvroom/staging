@@ -26,6 +26,20 @@ describe("publieke Volt & Vroom website", () => {
     expect(read("app/page.tsx").toUpperCase()).not.toContain("AUTOMOTIVE");
   });
 
+  it("presenteert Icons met actuele gemarkeerde voorraad", () => {
+    const icons = read("app/icons/page.tsx");
+    const carousel = read("components/IconsInventoryCarousel.tsx");
+    expect(icons).toContain("ICONS — Gebouwd voor liefhebbers");
+    expect(icons).toContain("listPublicVehicles(100)");
+    expect(icons).toContain('href="#icons-voorraad"');
+    expect(icons).not.toContain("/keuzehulp");
+    expect(carousel).toContain("scrollIntoView");
+    expect(carousel).toContain("ArrowLeft");
+    expect(carousel).toContain("ArrowRight");
+    expect(carousel).toContain("vehicle.images[0]");
+    expect(carousel).toContain("vehicle.slug");
+  });
+
   it("maakt aanbod, bewijs en primaire vervolgstap direct duidelijk", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Slim rijden.");
