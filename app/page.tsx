@@ -89,6 +89,7 @@ export default async function HomePage() {
       </div></section>
 
       <section id="voorraad" className="section container">
+        <Image className="inventoryWatermark" src="/brand/vv-logo-horizontal.svg" alt="" width={900} height={250} aria-hidden="true" />
         <div className="sectionHeading inventoryHeading"><div><p className="eyebrow">Volledig aanbod</p><h2>Actuele voorraad met controleerbare gegevens.</h2></div><p className="sectionIntro">Bij iedere auto tonen we de bekende historie, kilometerstand, technische gegevens en beschikbare accu-informatie. Ontbrekende gegevens benoemen we duidelijk.</p></div>
         {vehicles.length > 0
           ? <div className="vehicleGrid">{vehicles.map(vehicle => <VehicleCard vehicle={vehicle} key={vehicle.id} />)}</div>

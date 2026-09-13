@@ -85,15 +85,30 @@ describe("publieke Volt & Vroom website", () => {
   it("houdt voertuigteksten publiek en aandrijflijnspecifiek", () => {
     const detail = read("app/voorraad/[slug]/page.tsx");
     const card = read("components/VehicleCard.tsx");
+    const homepage = read("app/page.tsx");
+    const refresh = read("app/frontend-refresh.css");
     expect(detail).toContain("publicDescription");
     expect(detail).toContain("Elektrische gegevens");
     expect(detail).toContain("rustig met u door");
     expect(detail).not.toContain("Hybrid Intelligence");
     expect(detail).not.toContain(">Hybrid data<");
     expect(card).toContain('return "Elektrisch"');
+    expect(card).toContain('return "Icoon"');
     expect(card).toContain('className="vehicleCardLink"');
     expect(card).toContain("monthlyPriceCents");
+    expect(card).toContain("leasePriceCents");
+    expect(card).toContain("Wegenbelasting");
+    expect(card).toContain("Elektrisch rijbereik");
+    expect(card).toContain("SOH-waarde");
+    expect(card).toContain("Vermogen");
+    expect(card).toContain("Aantal eigenaren");
+    expect(card).toContain("Leaseprijs");
+    expect(card).toContain('className="vehicleFacts"');
     expect(card).toContain('src="/brand/vv-symbol.svg"');
+    expect(homepage).toContain('className="inventoryWatermark"');
+    expect(homepage).toContain('src="/brand/vv-logo-horizontal.svg"');
+    expect(refresh).toContain(".inventoryWatermark");
+    expect(refresh).toContain("opacity:.25");
   });
 
   it("biedt een veilige en volledige inruilroute", () => {
