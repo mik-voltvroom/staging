@@ -137,6 +137,10 @@ describe("publieke Volt & Vroom website", () => {
     expect(sitemap).toContain('"/vv-verified"');
     expect(sitemap).toContain('"/contact"');
     expect(read("app/robots.ts")).toContain('disallow: ["/dashboard/", "/api/", "/login"]');
+    expect(read("app/robots.ts")).toContain('userAgent: "OAI-SearchBot"');
+    expect(read("app/robots.ts")).toContain('userAgent: "ChatGPT-User"');
+    expect(read("app/llms.txt/route.ts")).toContain("Volt & Vroom");
+    expect(read("app/llms.txt/route.ts")).toContain("/hybride-auto-kopen-groningen");
     expect(read("app/page.tsx")).toContain('"@type": "AutoDealer"');
   });
 
