@@ -4,14 +4,52 @@ const memory = vi.hoisted(() => ({
   session: null as any,
   processed: new Set<string>(),
   objectExists: true,
+  purchaseAdvice: [] as any[],
 }));
+
+const vehicleRecord = {
+  slug: "toyota-rav4-25-hybrid",
+  brand: "Toyota",
+  model: "RAV4",
+  trim: "2.5 Hybrid Dynamic",
+  year: 2022,
+  mileageKm: 42831,
+  priceCents: 3_495_000,
+  driveType: "full-hybrid",
+  fuelType: "Hybrid",
+  transmission: "Automaat",
+  bodyStyle: "SUV",
+  color: "grijs",
+  maintenanceHistory: "complete",
+  images: [],
+  highlights: [],
+  status: "available",
+  locationCode: "GRONINGEN",
+  updatedAt: "2026-09-09T04:00:00.000Z",
+  commercial: { targetMarginCents: 350_000, maxStockDays: 60, viewCount: 0, leadCount: 0, priceHistory: [] },
+};
 
 vi.mock("@/lib/auth/api", () => ({
   authorizeApi: vi.fn(async () => ({ actor: { uid: "user-1", email: "test@voltvroom.nl", role: "owner" }, response: null })),
 }));
 vi.mock("@/lib/audit/audit-log", () => ({ writeAuditEvent: vi.fn(async () => undefined) }));
 vi.mock("@/lib/firebase-admin", () => ({
-  adminDb: { collection: () => ({ doc: () => ({ get: async () => ({ exists: true }) }) }) },
+  adminDb: {
+    collection: (name: string) => ({
+      doc: (id: string) => ({
+        get: async () => name === "vehicles"
+          ? { exists: true, id, data: () => vehicleRecord }
+          : { exists: true, id, data: () => ({}) },
+        collection: (subcollection: string) => ({
+          doc: (documentId: string) => ({
+            set: async (value: any) => {
+              if (name === "vehicles" && subcollection === "purchase_advice") memory.purchaseAdvice.push({ ...value, id: documentId });
+            },
+          }),
+        }),
+      }),
+    }),
+  },
   adminStorage: { bucket: () => ({ file: () => ({ getSignedUrl: async () => ["https://signed.test/object"], exists: async () => [memory.objectExists] }) }) },
 }));
 vi.mock("@/lib/glasses/repository", () => ({
@@ -52,9 +90,10 @@ beforeEach(() => {
   memory.session = null;
   memory.processed.clear();
   memory.objectExists = true;
+  memory.purchaseAdvice = [];
 });
 
-describe("VVOS Glasses P0 API flow", () => {
+describe("VVOS Glasses API flow", () => {
   it("runs the primary capture flow end to end through route handlers", async () => {
     const id = await start();
 
@@ -99,10 +138,14 @@ describe("VVOS Glasses P0 API flow", () => {
     expect(memory.session.media[0].status).toBe("failed");
   });
 
-  it("makes the P1 boundary explicit instead of faking purchase intelligence", async () => {
+  it("calculates and persists handsfree Purchase Intelligence", async () => {
     const id = await start();
     const response = await sendCommand(jsonRequest(`http://vvos.test/${id}/commands`, { transcript: "Geef inkoopadvies", source: "voice" }, { "x-vvos-idempotency-key": "advice-1" }), context(id));
-    expect(response.status).toBe(501);
-    expect((await response.json() as any).error).toContain("P1");
+    const payload = await response.json() as any;
+    expect(response.status).toBe(200);
+    expect(payload.purchaseAdvice).toMatchObject({ vehicleId: "vehicle-1", verdict: "ALLEEN_ONDER_MAX", maximumPurchasePriceCents: 3_145_000 });
+    expect(payload.responseText).toContain("Maximale inkoopprijs 31.450 euro");
+    expect(memory.purchaseAdvice).toHaveLength(1);
+    expect(memory.purchaseAdvice[0].maximumPurchasePriceCents).toBe(3_145_000);
   });
 });

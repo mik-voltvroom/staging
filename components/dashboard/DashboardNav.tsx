@@ -18,6 +18,7 @@ export function DashboardNav() {
         <summary>Meer</summary>
         <div>
           <Link href="/dashboard/voertuigcheck/glasses">CarCheck Glasses</Link>
+          <Link href="/dashboard/voertuigcheck/glasses/sessions">Glasses Sessions</Link>
           <Link href="/dashboard/afspraken">Afspraken</Link>
           <Link href="/dashboard/offertes">Offertes</Link>
           <Link href="/dashboard/afleveringen">Afleveringen</Link>
