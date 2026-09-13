@@ -47,3 +47,7 @@ export function consumePublicLeadQuota(request: Request) {
 export function consumePublicLookupQuota(request: Request) {
   return consumePublicQuota(request, "lookup", 20);
 }
+
+export function consumePublicFlorisQuota(request: Request) {
+  return consumePublicQuota(request, "floris", 30);
+}
