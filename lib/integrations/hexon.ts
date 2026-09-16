@@ -395,6 +395,8 @@ export function parseHexonMutation(xml: string, now = new Date()): HexonMutation
     color: firstText(parsed, ["kleur_nederlands", "basiskleur"]) ?? "Onbekend",
     ...(batteryHealthPercent !== undefined ? { batteryHealthPercent } : {}),
     ...(electricRangeKm !== undefined ? { electricRangeKm } : {}),
+    ...(powerHp !== undefined ? { powerHp } : {}),
+    ...(ownerCount !== undefined ? { ownerCount } : {}),
     ...(consumptionPer100Km !== undefined ? { consumptionPer100Km } : {}),
     ...(warrantyMonths !== undefined ? { warrantyMonths } : {}),
     maintenanceHistory: firstText(parsed, ["onderhoudsboekjes"]) === "dealer" ? "complete" : "unknown",

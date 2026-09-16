@@ -5,6 +5,24 @@ import { vehicles as demoVehicles } from "@/lib/sample-data";
 import { normalizeVehicleDocument } from "@/lib/vehicle/money";
 import { deduplicateVehiclesByIdentity } from "@/lib/vehicle/identity";
 import type { Vehicle } from "@/types";
+import { publicVehicleEnteredAt } from "@/lib/vehicle/business";
+
+export function isIconsVehicle(vehicle: Vehicle): boolean {
+  const data = vehicle as Vehicle & Record<string, unknown>;
+  const markerValues = [
+    data.collection,
+    data.category,
+    data.segment,
+    data.vehicleCategory,
+    data.marketingCategory,
+    data.isIcon === true ? "icons" : undefined,
+    data.isIcons === true ? "icons" : undefined,
+    ...(Array.isArray(data.labels) ? data.labels : []),
+    ...(Array.isArray(data.tags) ? data.tags : []),
+  ];
+
+  return markerValues.some(value => typeof value === "string" && ["icon", "icons"].includes(value.trim().toLowerCase()));
+}
 
 function isPublishedOnWebsite(vehicle: Vehicle): boolean {
   return vehicle.status === "available"
@@ -13,7 +31,7 @@ function isPublishedOnWebsite(vehicle: Vehicle): boolean {
 }
 
 function newestFirst(left: Vehicle, right: Vehicle): number {
-  return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+  return publicVehicleEnteredAt(right) - publicVehicleEnteredAt(left);
 }
 
 export async function listPublicVehicles(limit = 12): Promise<Vehicle[]> {

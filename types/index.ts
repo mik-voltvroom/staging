@@ -69,6 +69,8 @@ export interface Vehicle {
   color: string;
   batteryHealthPercent?: number;
   electricRangeKm?: number;
+  powerHp?: number;
+  ownerCount?: number;
   consumptionPer100Km?: number;
   annualSavingCents?: number;
   warrantyMonths?: number;

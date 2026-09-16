@@ -26,11 +26,25 @@ describe("publieke Volt & Vroom website", () => {
     expect(read("app/page.tsx").toUpperCase()).not.toContain("AUTOMOTIVE");
   });
 
+  it("presenteert Icons met actuele gemarkeerde voorraad", () => {
+    const icons = read("app/icons/page.tsx");
+    const carousel = read("components/IconsInventoryCarousel.tsx");
+    expect(icons).toContain("ICONS — Gebouwd voor liefhebbers");
+    expect(icons).toContain("listPublicVehicles(100)");
+    expect(icons).toContain('href="#icons-voorraad"');
+    expect(icons).not.toContain("/keuzehulp");
+    expect(carousel).toContain("scrollIntoView");
+    expect(carousel).toContain("ArrowLeft");
+    expect(carousel).toContain("ArrowRight");
+    expect(carousel).toContain("vehicle.images[0]");
+    expect(carousel).toContain("vehicle.slug");
+  });
+
   it("maakt aanbod, bewijs en primaire vervolgstap direct duidelijk", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Slim rijden.");
     expect(homepage).toContain("Meer genieten.");
-    expect(homepage).toContain("Hybride en elektrische occasions, geselecteerd op historie, techniek en dagelijks gebruik");
+    expect(homepage).toContain("Bij Volt &amp; Vroom vindt u hybride en elektrische occasions die passen bij uw dagelijks leven");
     expect(homepage.indexOf('href="#uitgelicht"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
   });
 
@@ -50,7 +64,8 @@ describe("publieke Volt & Vroom website", () => {
     expect(homepage).toContain("Historie gecontroleerd");
     expect(homepage).toContain("Techniek beoordeeld");
     expect(homepage).toContain("Accudata indien beschikbaar");
-    expect(homepage).toContain("Volt &amp; Vroom controle");
+    expect(homepage).toContain("CarCheck");
+    expect(homepage).toContain("Grondig gereinigd en gepoetst");
     expect(homepage).not.toContain("Hybrid Intelligence");
     expect(homepage).not.toContain("Altijd dealeronderhouden");
     expect(homepage).not.toContain("Eén eigenaar");
@@ -104,6 +119,9 @@ describe("publieke Volt & Vroom website", () => {
     expect(card).toContain("Aantal eigenaren");
     expect(card).toContain("Leaseprijs");
     expect(card).toContain('className="vehicleFacts"');
+    expect(card).toContain("publicVehicleCategory(vehicle)");
+    expect(card).toContain('className="vehicleCardLink"');
+    expect(card).not.toContain("monthlyPriceCents");
     expect(card).toContain('src="/brand/vv-symbol.svg"');
     expect(homepage).toContain('className="inventoryWatermark"');
     expect(homepage).toContain('src="/brand/vv-logo-horizontal.svg"');
@@ -126,7 +144,7 @@ describe("publieke Volt & Vroom website", () => {
     expect(submission).toContain("MAX_TRADE_IN_PHOTOS");
     expect(repository).toContain("adminDb.batch()");
     expect(repository).toContain('cacheControl: "private, no-store"');
-    expect(read("components/Header.tsx")).toContain('href: "/inruilen"');
+    expect(read("components/Header.tsx")).not.toContain('href: "/inruilen"');
     expect(read("app/sitemap.ts")).toContain('"/inruilen"');
   });
 
@@ -152,6 +170,10 @@ describe("publieke Volt & Vroom website", () => {
     expect(sitemap).toContain('"/vv-verified"');
     expect(sitemap).toContain('"/contact"');
     expect(read("app/robots.ts")).toContain('disallow: ["/dashboard/", "/api/", "/login"]');
+    expect(read("app/robots.ts")).toContain('userAgent: "OAI-SearchBot"');
+    expect(read("app/robots.ts")).toContain('userAgent: "ChatGPT-User"');
+    expect(read("app/llms.txt/route.ts")).toContain("Volt & Vroom");
+    expect(read("app/llms.txt/route.ts")).toContain("/hybride-auto-kopen-groningen");
     expect(read("app/page.tsx")).toContain('"@type": "AutoDealer"');
   });
 

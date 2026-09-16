@@ -24,10 +24,27 @@ export function vehicleFacts(vehicle: Vehicle): [string, string][] {
 export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const vehicleLabel = `${vehicle.brand} ${vehicle.model} ${vehicle.trim}`;
   const facts = vehicleFacts(vehicle);
+import { publicVehicleCategory } from "@/lib/vehicle/business";
+
+export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+  const vehicleLabel = `${vehicle.brand} ${vehicle.model} ${vehicle.trim}`;
+  const category = publicVehicleCategory(vehicle);
+  const categoryFacts = category === "Icon"
+    ? [
+        vehicle.powerHp ? `${km.format(vehicle.powerHp)} pk` : null,
+        vehicle.ownerCount !== undefined ? `${vehicle.ownerCount} ${vehicle.ownerCount === 1 ? "eigenaar" : "eigenaren"}` : null,
+      ]
+    : [
+        vehicle.electricRangeKm ? `${km.format(vehicle.electricRangeKm)} km elektrisch` : null,
+        vehicle.batteryHealthPercent !== undefined ? `SOH ${vehicle.batteryHealthPercent}%` : null,
+      ];
 
   return <Link className="vehicleCardLink" href={`/voorraad/${vehicle.slug}`} aria-label={`Bekijk ${vehicleLabel}`}>
     <article className="card vehicle">
-      <div className="vehicleMedia"><img src={vehicle.images[0] || "/brand/vv-symbol.svg"} alt={`${vehicle.brand} ${vehicle.model}`} /><span>{driveLabel(vehicle.driveType)}</span></div>
+      <div className="vehicleMedia">
+        <img src={vehicle.images[0] || "/brand/vv-symbol.svg"} alt={`${vehicle.brand} ${vehicle.model}`} loading="lazy" />
+        <span>{category}</span>
+      </div>
       <div className="vehicleBody">
         <div className="vehicleHeading">
           <div><p className="vehicleBrand">{vehicle.brand}</p><h3>{vehicle.model}</h3></div>
@@ -39,6 +56,12 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <p className="muted vehicleMeta">{vehicle.trim} · {vehicle.year} · {km.format(vehicle.mileageKm)} km</p>
         <div className="badges">
           <span className="badge">{vehicle.transmission}</span>
+          <div className="vehiclePrice"><div className="price">{vehicle.priceCents > 0 ? eur.format(centsToEuros(vehicle.priceCents)) : "Prijs op aanvraag"}</div></div>
+        </div>
+        <p className="muted vehicleMeta">{vehicle.trim} · {vehicle.year} · {km.format(vehicle.mileageKm)} km</p>
+        <div className="badges">
+          {categoryFacts.map(fact => fact ? <span className="badge" key={fact}>{fact}</span> : null)}
+          {vehicle.transmission ? <span className="badge">{vehicle.transmission}</span> : null}
         </div>
         <dl className="vehicleFacts">
           {facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}

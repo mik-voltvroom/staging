@@ -3,17 +3,18 @@ import { BrandLogo } from "@/components/BrandLogo";
 export function SiteFooter() {
   const routeHref = "https://www.google.com/maps/dir/?api=1&destination=Euvelgunnerweg%2050%2C%209723%20CW%20Groningen&travelmode=driving";
   const mapHref = "https://www.google.com/maps?q=Euvelgunnerweg%2050%2C%209723%20CW%20Groningen&output=embed";
+  const googleReviewsHref = process.env.NEXT_PUBLIC_GOOGLE_REVIEWS_URL;
 
   return <footer className="siteFooter">
     <div className="container footerTop">
       <div><BrandLogo dark /><p>Slim rijden. Meer genieten.</p></div>
       <div><strong>Ontdek</strong><a href="/hybride">Hybride</a><a href="/elektrisch">Elektrisch</a><a href="/icons">Icons</a><a href="/#voorraad">Aanbod</a><a href="/uit-de-praktijk">Uit de praktijk</a></div>
       <div><strong>Kennis &amp; advies</strong><a href="/kennis">Alle artikelen</a><a href="/kennis/elektrische-occasion-kopen-controlepunten">Elektrische occasion kopen</a><a href="/kennis/soh-accu-elektrische-auto-uitleg">SOH en accugezondheid</a><a href="/kennis/hybride-of-elektrisch-wat-past-bij-mij">Hybride of elektrisch</a></div>
-      <div><strong>Zekerheid</strong><a href="/vv-verified">VV Verified</a><a href="/inruilen">Auto inruilen</a><a href="/keuzehulp" data-vv-event="match_started">Hybrid &amp; EV Match</a><a href="/contact">Contact &amp; route</a></div>
+      <div><strong>Zekerheid</strong><a href="/vv-verified">VV Verified</a>{googleReviewsHref ? <a href={googleReviewsHref} target="_blank" rel="noopener noreferrer">Google-reviews ↗</a> : null}<a href="/vv-verified">CarCheck</a></div>
       <div className="footerContact">
         <strong>Contact</strong>
         <a href="tel:+31502113883" data-vv-event="phone_click">050 211 3883</a>
-        <a href="mailto:mik@voltvroom.nl" data-vv-event="email_click">mik@voltvroom.nl</a>
+        <a href="mailto:sales@voltvroom.nl" data-vv-event="email_click">sales@voltvroom.nl</a>
         <span>Euvelgunnerweg 50</span>
         <span>9723 CW Groningen</span>
         <div className="footerMap"><iframe src={mapHref} title="Kaart met de locatie van Volt & Vroom in Groningen" loading="lazy" referrerPolicy="no-referrer-when-downgrade" /></div>

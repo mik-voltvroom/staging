@@ -135,7 +135,7 @@ export function TradeInForm({
     }
 
     setFormState("error");
-    setFeedback(payload?.error || "Versturen lukt nu niet. Bel 050 211 3883 of mail naar mik@voltvroom.nl.");
+    setFeedback(payload?.error || "Versturen lukt nu niet. Bel 050 211 3883 of mail naar sales@voltvroom.nl.");
   }
 
   if (formState === "success") {
@@ -153,7 +153,7 @@ export function TradeInForm({
       {["Uw auto", "Staat", "Contact"].map((label, index) => {
         const number = index + 1;
         return <li className={number === step ? styles.current : number < step ? styles.complete : ""} key={label}>
-          <span>{number < step ? "✓" : number}</span>{label}
+          <span>{number < step ? "✓" : number}</span><span className={styles.progressLabel}>{label}</span>
         </li>;
       })}
     </ol>
@@ -162,7 +162,10 @@ export function TradeInForm({
       <div className={styles.stepHeading}><span>Stap 1 van 3</span><h2>Welke auto wilt u inruilen?</h2><p>Vul het kenteken en de actuele kilometerstand in. We halen de openbare voertuiggegevens op bij RDW.</p></div>
       <div className={styles.lookupGrid}>
         <label>Kenteken
-          <input className={styles.licensePlate} name="licensePlate" value={licensePlate} onChange={event => { setLicensePlate(event.target.value.toUpperCase()); setLookupState("idle"); }} placeholder="12-AB-34" autoComplete="off" inputMode="text" />
+          <span className={styles.plateInput}>
+            <span className={styles.plateCountry} aria-hidden="true">NL</span>
+            <input className={styles.licensePlate} name="licensePlate" value={licensePlate} onChange={event => { setLicensePlate(event.target.value.toUpperCase()); setLookupState("idle"); }} placeholder="12-AB-34" autoComplete="off" inputMode="text" />
+          </span>
         </label>
         <label>Kilometerstand
           <div className={styles.suffixedInput}><input name="mileageKm" value={mileageKm} onChange={event => setMileageKm(event.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="85000" /><span>km</span></div>

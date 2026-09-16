@@ -37,7 +37,7 @@ export function KnowledgeArticlePage({ article }: { article: KnowledgeArticle })
           <p className="eyebrow">{article.eyebrow}</p>
           <h1>{article.title}</h1>
           <p className="lead">{article.lead}</p>
-          <div className="articleMeta"><span>{article.readTime} leestijd</span><span>Bijgewerkt op 4 september 2026</span></div>
+          <div className="articleMeta"><span>{article.readTime} leestijd</span><span>Bijgewerkt op {new Date(article.updatedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}</span></div>
         </div>
       </header>
       <div className="container knowledgeArticleLayout">
