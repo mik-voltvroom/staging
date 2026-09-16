@@ -2,6 +2,13 @@ import Link from "next/link";
 import { eur, km } from "@/lib/format";
 import { centsToEuros } from "@/lib/money";
 import type { Vehicle } from "@/types";
+
+function driveLabel(value: Vehicle["driveType"]) {
+  if (value === "plug-in-hybrid") return "Plug-in hybride";
+  if (value === "full-hybrid") return "Hybride";
+  if (value === "combustion") return "Icoon";
+  return "Elektrisch";
+}
 import { publicVehicleCategory } from "@/lib/vehicle/business";
 
 export function FeaturedInventoryRail({ vehicles }: { vehicles: Vehicle[] }) {

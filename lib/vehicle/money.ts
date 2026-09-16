@@ -5,6 +5,7 @@ import { defaultVehicleCommercial, normalizeVehicleCommercial, recordVehiclePric
 const topLevelMoneyFields = [
   ["priceCents", "priceEur", true],
   ["monthlyPriceCents", "monthlyPriceEur", false],
+  ["leasePriceCents", "leasePriceEur", false],
   ["annualSavingCents", "annualSavingEur", false],
 ] as const;
 
