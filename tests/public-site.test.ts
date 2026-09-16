@@ -44,7 +44,7 @@ describe("publieke Volt & Vroom website", () => {
     const homepage = read("app/page.tsx");
     expect(homepage).toContain("Slim rijden.");
     expect(homepage).toContain("Meer genieten.");
-    expect(homepage).toContain("Hybride en elektrische occasions, geselecteerd op historie, techniek en dagelijks gebruik");
+    expect(homepage).toContain("Bij Volt &amp; Vroom vindt u hybride en elektrische occasions die passen bij uw dagelijks leven");
     expect(homepage.indexOf('href="#uitgelicht"')).toBeLessThan(homepage.indexOf('href="/keuzehulp"'));
   });
 
@@ -64,7 +64,8 @@ describe("publieke Volt & Vroom website", () => {
     expect(homepage).toContain("Historie gecontroleerd");
     expect(homepage).toContain("Techniek beoordeeld");
     expect(homepage).toContain("Accudata indien beschikbaar");
-    expect(homepage).toContain("Volt &amp; Vroom controle");
+    expect(homepage).toContain("CarCheck");
+    expect(homepage).toContain("Grondig gereinigd en gepoetst");
     expect(homepage).not.toContain("Hybrid Intelligence");
     expect(homepage).not.toContain("Altijd dealeronderhouden");
     expect(homepage).not.toContain("Eén eigenaar");
@@ -125,7 +126,7 @@ describe("publieke Volt & Vroom website", () => {
     expect(submission).toContain("MAX_TRADE_IN_PHOTOS");
     expect(repository).toContain("adminDb.batch()");
     expect(repository).toContain('cacheControl: "private, no-store"');
-    expect(read("components/Header.tsx")).toContain('href: "/inruilen"');
+    expect(read("components/Header.tsx")).not.toContain('href: "/inruilen"');
     expect(read("app/sitemap.ts")).toContain('"/inruilen"');
   });
 

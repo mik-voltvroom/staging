@@ -21,7 +21,7 @@ const assurances = [
   { icon: "/brand/icons/accugezondheid.svg", title: "Accu waar relevant", text: "Bij hybride en elektrische auto’s leggen we beschikbare hoogvolt- en SOH-data begrijpelijk uit, zonder er meer van te maken dan de meting zegt." },
   { icon: "/brand/icons/onderhoud.svg", title: "Technisch geselecteerd", text: "Leeftijd, kilometerstand, onderhoud, uitvoering en technisch risico worden als één geheel beoordeeld." },
   { icon: "/brand/icons/praktijkverbruik.svg", title: "Advies uit de praktijk", text: "We kijken naar uw ritten, laadmogelijkheden en gebruik. Zo krijgt u advies dat aansluit op uw dagelijkse gebruik." },
-  { icon: "/brand/icons/elektrisch.svg", title: "Energie voor thuis", text: "Laadpalen, energiecontracten en thuisbatterijen. Plaatsing waar mogelijk binnen 14 dagen." },
+  { icon: "/brand/icons/proefrit.svg", title: "Grondig gereinigd en gepoetst", text: "Elke auto wordt zorgvuldig gereinigd en gepoetst, zodat u hem verzorgd en klaar voor de volgende rit bekijkt." },
 ];
 
 const promises = [
@@ -46,7 +46,7 @@ export default async function HomePage() {
           <div className="heroCopy">
             <p className="eyebrow">Volt &amp; Vroom · Groningen</p>
             <h1 id="hero-title">Slim rijden.<br /><em>Meer genieten.</em></h1>
-            <p className="heroDescriptor">Hybride en elektrische occasions, geselecteerd op historie, techniek en dagelijks gebruik. Bij elke auto ziet u wat we hebben gecontroleerd — inclusief accudata wanneer die beschikbaar is.</p>
+            <p className="heroDescriptor">Bij Volt &amp; Vroom vindt u hybride en elektrische occasions die passen bij uw dagelijks leven. We selecteren op historie, techniek en gebruik en laten zien wat we daadwerkelijk hebben gecontroleerd.</p>
             <div className="heroTrustRow" aria-label="Onze vier zekerheden"><span>Historie gecontroleerd</span><span>Techniek beoordeeld</span><span>Accudata indien beschikbaar</span><span>Financiering mogelijk</span></div>
             <div className="actions heroActions">
               <a className="button heroPrimaryButton" href="#uitgelicht">Bekijk aanbod <span aria-hidden="true">→</span></a>
@@ -79,14 +79,18 @@ export default async function HomePage() {
       </div></section>
 
       <section id="waarom" className="section container introSection">
-        <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>De juiste aandrijflijn. Aantoonbaar de juiste auto.</h2></div><p className="sectionIntro">Een goede occasion is meer dan een nette foto en een kilometerstand. Daarom maken we historie, techniek, onderhoud en beschikbare accudata onderdeel van de presentatie.</p></div>
+        <div className="sectionHeading splitHeading"><div><p className="eyebrow">De Volt &amp; Vroom-norm</p><h2>De juiste aandrijflijn. Aantoonbaar de juiste auto.</h2></div><p className="sectionIntro">Een goede occasion is meer dan een nette foto en een kilometerstand. Daarom maken we historie, techniek, onderhoud, presentatie en beschikbare accudata onderdeel van de beoordeling.</p></div>
         <div className="assuranceGrid">{assurances.map(item => <article className="assuranceCard" key={item.title}><Image src={item.icon} alt="" width={46} height={46} /><div><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>
-        <div className="carcheckStatement"><div><p className="eyebrow">Volt &amp; Vroom controle</p><h3>Een vast protocol. Controleerbare bevindingen.</h3></div><p>Per auto leggen we relevante controlepunten en bevindingen vast. De beschikbare gegevens en bevindingen blijven belangrijker dan één badge of totaalscore.</p><a className="textButton" href="/vv-verified">Bekijk onze controleaanpak <span aria-hidden="true">→</span></a></div>
+        <div className="carcheckStatement"><div><p className="eyebrow">CarCheck</p><h3>Zorgvuldig gecontroleerd. Vastgelegd in beeld en rapport.</h3></div><p>Bij onze autochecks combineren we vakkennis met AI en een Meta-bril. Met de bril filmen we de controles vanuit het perspectief van degene die de auto inspecteert. AI helpt ons de bevindingen overzichtelijk te verwerken in een inspectierapport. Zo leggen we alle uitgevoerde checks en geconstateerde aandachtspunten vast op film én in een document, zodat u inzicht krijgt in wat we hebben gecontroleerd en aangetroffen.</p><a className="textButton" href="/vv-verified">Bekijk CarCheck <span aria-hidden="true">→</span></a></div>
       </section>
 
       <section className="choiceSection" aria-labelledby="keuze-title"><div className="container choiceGrid">
         <div className="choiceCopy"><p className="eyebrow">Drie duidelijke werelden</p><h2 id="keuze-title">Welke auto past bij uw gebruik?</h2><p className="lead">Niet de trend, maar uw ritten, laadmogelijkheden en voorkeuren bepalen wat verstandig is. Wij leggen de verschillen uit en maken de gebruikskosten vergelijkbaar.</p><a className="textButton" href="/keuzehulp">Start de keuzehulp <span aria-hidden="true">→</span></a></div>
-        <div className="choiceCards"><article><Image className="choiceIcon" src="/brand/icons/hybride.svg" alt="" width={48} height={48} /><div><h3>Hybride</h3><p>Elektrische ondersteuning met de vertrouwdheid van een brandstofmotor. Geschikt voor wisselende afstanden.</p><a href="/hybride">Lees over hybride <span aria-hidden="true">→</span></a></div></article><article><Image className="choiceIcon" src="/brand/icons/elektrisch.svg" alt="" width={48} height={48} /><div><h3>Elektrisch</h3><p>Stil en direct rijden. Wij tonen bereik, laadmogelijkheden en beschikbare accugezondheid.</p><a href="/elektrisch">Lees over elektrisch <span aria-hidden="true">→</span></a></div></article><article className="iconsChoice"><span className="iconsMark" aria-hidden="true">&amp;</span><div><h3>Icons</h3><p>Bijzondere auto’s met blijvende uitstraling, karakter of verzamelwaarde.</p><a href="/icons">Ontdek Icons <span aria-hidden="true">→</span></a></div></article></div>
+        <div className="choiceCards">
+          <article className="choiceCard choiceCardHybrid"><div className="choiceCardMedia"><Image src="/editorial/elektrisch-of-hybride.jpeg" alt="" fill sizes="(max-width: 900px) 100vw, 420px" /><span className="choiceCardScrim" /></div><div className="choiceCardContent"><Image className="choiceIcon" src="/brand/icons/hybride.svg" alt="" width={48} height={48} /><div><h3>Hybride</h3><p>Elektrische ondersteuning met de vertrouwdheid van een brandstofmotor. Geschikt voor wisselende afstanden.</p><a href="/hybride">Lees over hybride <span aria-hidden="true">→</span></a></div></div></article>
+          <article className="choiceCard choiceCardElectric"><div className="choiceCardMedia"><Image src="/editorial/elektrisch-of-hybride.jpeg" alt="" fill sizes="(max-width: 900px) 100vw, 420px" /><span className="choiceCardScrim" /></div><div className="choiceCardContent"><Image className="choiceIcon" src="/brand/icons/elektrisch.svg" alt="" width={48} height={48} /><div><h3>Elektrisch</h3><p>Stil en direct rijden. Wij tonen bereik, laadmogelijkheden en beschikbare accugezondheid.</p><a href="/elektrisch">Lees over elektrisch <span aria-hidden="true">→</span></a></div></article>
+          <article className="choiceCard choiceCardIcons iconsChoice"><div className="choiceCardMedia"><Image src="/brand/vv-symbol.svg" alt="" fill sizes="(max-width: 900px) 100vw, 420px" /><span className="choiceCardScrim" /></div><div className="choiceCardContent"><span className="iconsMark" aria-hidden="true">&amp;</span><div><h3>Icons</h3><p>Bijzondere auto’s met blijvende uitstraling, karakter of verzamelwaarde.</p><a href="/icons">Ontdek Icons <span aria-hidden="true">→</span></a></div></div></article>
+        </div>
       </div></section>
 
       <section id="voorraad" className="section container">
