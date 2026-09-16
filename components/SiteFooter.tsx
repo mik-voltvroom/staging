@@ -13,7 +13,7 @@ export function SiteFooter() {
       <div><strong>Zekerheid</strong><a href="/vv-verified">VV Verified</a>{googleReviewsHref ? <a href={googleReviewsHref} target="_blank" rel="noopener noreferrer">Google-reviews ↗</a> : null}<a href="/vv-verified">CarCheck</a></div>
       <div className="footerContact">
         <strong>Contact</strong>
-        <a href="tel:+31502113883" data-vv-event="phone_click">050 211 3883</a>
+        <a href="tel:+31619163531" data-vv-event="phone_click">06 19 16 35 31</a>
         <a href="mailto:sales@voltvroom.nl" data-vv-event="email_click">sales@voltvroom.nl</a>
         <span>Euvelgunnerweg 50</span>
         <span>9723 CW Groningen</span>
